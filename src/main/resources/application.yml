@@ -1,0 +1,12 @@
+spring:
+  config:
+    import: optional:file:.env[.properties]
+
+  application:
+    name: FolioFrame
+
+  profiles:
+    active: ${SPRING_PROFILE_ACTIVE:dev}
+
+server:
+  port: ${SERVER_PORT:8080}
