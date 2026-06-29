@@ -90,4 +90,37 @@ public class Portfolio extends BaseEntity {
     @Builder.Default
     @Column(name = "bookmark_count", nullable = false)
     private int bookmarkCount = 0;
+
+    public void updateInfo(String title, JobRole jobRole, String careerSummary,
+                           String contactEmail, String githubUrl, String personalWebsite,
+                           String oneLiner, String description, PortfolioVisibility visibility) {
+        this.title = title;
+        this.jobRole = jobRole;
+        this.careerSummary = careerSummary;
+        this.contactEmail = contactEmail;
+        this.githubUrl = githubUrl;
+        this.personalWebsite = personalWebsite;
+        this.oneLiner = oneLiner;
+        this.description = description;
+        this.visibility = visibility;
+    }
+
+    public void publish() {
+        this.editStatus = EditStatus.PUBLISHED;
+        this.publishedAt = LocalDateTime.now();
+    }
+
+    public void changeVisibility(PortfolioVisibility visibility) {
+        this.visibility = visibility;
+    }
+
+    public void increaseBookmarkCount() {
+        this.bookmarkCount++;
+    }
+
+    public void decreaseBookmarkCount() {
+        if (this.bookmarkCount > 0) {
+            this.bookmarkCount--;
+        }
+    }
 }
