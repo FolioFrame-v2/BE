@@ -3,6 +3,8 @@ package com.folioframe.domain.portfolio.entity;
 import com.folioframe.domain.common.entity.Techstack;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 @Entity
 @Table(name = "portfolio_techstack")
@@ -19,6 +21,7 @@ public class PortfolioTechstack {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "portfolio_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private Portfolio portfolio;
 
     @ManyToOne(fetch = FetchType.LAZY)
