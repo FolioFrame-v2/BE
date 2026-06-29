@@ -3,6 +3,8 @@ package com.folioframe.domain.portfolio.entity;
 import com.folioframe.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import java.time.LocalDate;
 
@@ -21,6 +23,7 @@ public class PortfolioCareer extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "portfolio_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private Portfolio portfolio;
 
     @Column(name = "company_name", nullable = false, length = 100)
@@ -42,4 +45,14 @@ public class PortfolioCareer extends BaseEntity {
     @Builder.Default
     @Column(name = "current", nullable = false)
     private boolean current = false;
+
+    public void update(String companyName, String position, String description,
+                       LocalDate startedAt, LocalDate endedAt, boolean current) {
+        this.companyName = companyName;
+        this.position = position;
+        this.description = description;
+        this.startedAt = startedAt;
+        this.endedAt = endedAt;
+        this.current = current;
+    }
 }

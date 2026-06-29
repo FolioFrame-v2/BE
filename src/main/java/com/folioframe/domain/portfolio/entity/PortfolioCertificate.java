@@ -3,6 +3,8 @@ package com.folioframe.domain.portfolio.entity;
 import com.folioframe.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import java.time.LocalDate;
 
@@ -21,6 +23,7 @@ public class PortfolioCertificate extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "portfolio_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private Portfolio portfolio;
 
     @Column(name = "name", nullable = false, length = 200)
@@ -38,4 +41,13 @@ public class PortfolioCertificate extends BaseEntity {
 
     @Column(name = "credential_id", length = 100)
     private String credentialId;
+
+    public void update(String name, String issuer, LocalDate issuedAt,
+                       LocalDate expiresAt, String credentialId) {
+        this.name = name;
+        this.issuer = issuer;
+        this.issuedAt = issuedAt;
+        this.expiresAt = expiresAt;
+        this.credentialId = credentialId;
+    }
 }

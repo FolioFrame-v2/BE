@@ -5,6 +5,8 @@ import com.folioframe.domain.portfolio.enums.AiFeedbackStatus;
 import com.folioframe.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 @Entity
 @Table(name = "portfolio_ai_feedback")
@@ -21,6 +23,7 @@ public class PortfolioAiFeedback extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "portfolio_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private Portfolio portfolio;
 
     @ManyToOne(fetch = FetchType.LAZY)
