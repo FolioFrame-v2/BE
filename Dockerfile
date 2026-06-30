@@ -3,10 +3,12 @@ FROM gradle:8.12-jdk21 AS build
 WORKDIR /app
 
 COPY gradlew ./
-RUN chmod +x gradlew
+RUN chmod 755 gradlew
 
 COPY gradle/ gradle/
 COPY build.gradle settings.gradle ./
+
+RUN ./gradlew dependencies --no-daemon
 
 COPY src/ src/
 RUN ./gradlew bootJar --no-daemon -x test
@@ -24,4 +26,4 @@ USER spring:spring
 
 EXPOSE 8080
 
-ENTRYPOINT ["java", "-jar", "-Dspring.profiles.active=prod", "app.jar"]
+ENTRYPOINT ["java", "-jar", "app.jar"]
