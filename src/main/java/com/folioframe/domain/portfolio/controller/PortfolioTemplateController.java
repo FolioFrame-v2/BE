@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/templates")
+@RequestMapping("/api/portfolio-templates")
 @RequiredArgsConstructor
 public class PortfolioTemplateController implements PortfolioTemplateControllerDocs {
 
