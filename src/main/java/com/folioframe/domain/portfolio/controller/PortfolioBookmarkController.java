@@ -9,7 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/portfolios/{portfolioId}/bookmarks")
+@RequestMapping("/api/v1/portfolios/{portfolioId}/bookmarks")
 @RequiredArgsConstructor
 public class PortfolioBookmarkController implements PortfolioBookmarkControllerDocs {
 

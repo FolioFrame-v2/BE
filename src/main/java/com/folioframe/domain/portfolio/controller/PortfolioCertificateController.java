@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/portfolios/{portfolioId}/certificates")
+@RequestMapping("/api/v1/portfolios/{portfolioId}/certificates")
 @RequiredArgsConstructor
 public class PortfolioCertificateController implements PortfolioCertificateControllerDocs {
 

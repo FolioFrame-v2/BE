@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/portfolios")
+@RequestMapping("/api/v1/portfolios")
 @RequiredArgsConstructor
 public class PortfolioController implements PortfolioControllerDocs {
 
