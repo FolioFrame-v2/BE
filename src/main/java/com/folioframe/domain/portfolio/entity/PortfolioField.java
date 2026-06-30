@@ -3,6 +3,8 @@ package com.folioframe.domain.portfolio.entity;
 import com.folioframe.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 @Entity
 @Table(name = "portfolio_field")
@@ -19,6 +21,7 @@ public class PortfolioField extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "portfolio_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private Portfolio portfolio;
 
     @Column(name = "title", nullable = false, length = 100)
@@ -34,4 +37,8 @@ public class PortfolioField extends BaseEntity {
 
     @Column(name = "display_order", nullable = false)
     private int displayOrder;
+
+    public void updateContent(String content) {
+        this.content = content;
+    }
 }

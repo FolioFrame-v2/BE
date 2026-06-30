@@ -4,6 +4,8 @@ import com.folioframe.domain.portfolio.enums.ProjectDuration;
 import com.folioframe.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 @Entity
 @Table(name = "portfolio_project")
@@ -20,6 +22,7 @@ public class PortfolioProject extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "portfolio_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private Portfolio portfolio;
 
     @Column(name = "title", nullable = false, length = 200)
@@ -40,4 +43,14 @@ public class PortfolioProject extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "duration_range")
     private ProjectDuration durationRange;
+
+    public void update(String title, String role, String content,
+                       String thumbnailUrl, String projectUrl, ProjectDuration durationRange) {
+        this.title = title;
+        this.role = role;
+        this.content = content;
+        this.thumbnailUrl = thumbnailUrl;
+        this.projectUrl = projectUrl;
+        this.durationRange = durationRange;
+    }
 }

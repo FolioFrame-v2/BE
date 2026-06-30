@@ -33,4 +33,8 @@ public class PortfolioTemplate extends BaseEntity {
     @Builder.Default
     @Column(name = "active", nullable = false)
     private boolean active = true;
+
+    public void increaseUseCount() {
+        this.useCount++;
+    }
 }
