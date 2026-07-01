@@ -63,4 +63,22 @@ public class Activity extends BaseEntity {
     @Builder.Default
     @Column(name = "bookmark_count", nullable = false)
     private int bookmarkCount = 0;
+
+    @Builder.Default
+    @Column(name = "view_count", nullable = false)
+    private int viewCount = 0;
+
+    public void increaseBookmarkCount() {
+        this.bookmarkCount++;
+    }
+
+    public void decreaseBookmarkCount() {
+        if (this.bookmarkCount > 0) {
+            this.bookmarkCount--;
+        }
+    }
+
+    public void increaseViewCount() {
+        this.viewCount++;
+    }
 }
