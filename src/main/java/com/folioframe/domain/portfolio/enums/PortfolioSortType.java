@@ -1,0 +1,16 @@
+package com.folioframe.domain.portfolio.enums;
+
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
+
+@Getter
+@RequiredArgsConstructor
+public enum PortfolioSortType {
+
+    LATEST(Sort.by(Sort.Direction.DESC, "createdAt")),
+    POPULAR(Sort.by(Sort.Direction.DESC, "bookmarkCount")),
+    MOST_VIEWED(Sort.by(Sort.Direction.DESC, "viewCount"));
+
+    private final Sort sort;
+}

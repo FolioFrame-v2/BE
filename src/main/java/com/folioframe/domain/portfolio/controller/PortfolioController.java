@@ -8,14 +8,15 @@ import com.folioframe.domain.portfolio.dto.response.PortfolioResDTO;
 import com.folioframe.domain.portfolio.dto.response.PortfolioSummaryResDTO;
 import com.folioframe.domain.portfolio.exception.code.PortfolioSuccessCode;
 import com.folioframe.domain.portfolio.service.PortfolioService;
+import com.folioframe.domain.portfolio.enums.PortfolioSortType;
 import com.folioframe.global.apiPayload.ApiResponse;
+import com.folioframe.global.dto.PageRequest;
+import com.folioframe.global.dto.PageResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/portfolios")
@@ -36,11 +37,25 @@ public class PortfolioController implements PortfolioControllerDocs {
 
     @Override
     @GetMapping
-    public ResponseEntity<ApiResponse<List<PortfolioSummaryResDTO>>> getList(
-            @RequestHeader("X-Member-Id") Long memberId) {
+    public ResponseEntity<ApiResponse<PageResponse<PortfolioSummaryResDTO>>> getList(
+            @RequestHeader("X-Member-Id") Long memberId,
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "4") Integer size) {
         return ResponseEntity.ok(
                 ApiResponse.onSuccess(PortfolioSuccessCode.PORTFOLIO_LIST_FOUND,
-                        portfolioService.getList(memberId)));
+                        portfolioService.getList(memberId, PageRequest.of(page, size))));
+    }
+
+    @Override
+    @GetMapping("/public")
+    public ResponseEntity<ApiResponse<PageResponse<PortfolioSummaryResDTO>>> getPublicList(
+            @RequestParam(required = false) PortfolioSortType sort,
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "9") Integer size,
+            @RequestHeader(value = "X-Member-Id", required = false) Long memberId) {
+        return ResponseEntity.ok(
+                ApiResponse.onSuccess(PortfolioSuccessCode.PORTFOLIO_LIST_FOUND,
+                        portfolioService.getPublicList(sort, PageRequest.of(page, size), memberId)));
     }
 
     @Override

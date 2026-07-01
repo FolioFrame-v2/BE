@@ -6,6 +6,10 @@ import com.folioframe.domain.portfolio.dto.request.PortfolioVisibilityReqDTO;
 import com.folioframe.domain.portfolio.dto.response.PortfolioDetailResDTO;
 import com.folioframe.domain.portfolio.dto.response.PortfolioResDTO;
 import com.folioframe.domain.portfolio.dto.response.PortfolioSummaryResDTO;
+import com.folioframe.domain.portfolio.enums.EditStatus;
+import com.folioframe.domain.portfolio.enums.PortfolioSortType;
+import com.folioframe.global.dto.PageRequest;
+import com.folioframe.global.dto.PageResponse;
 import com.folioframe.domain.portfolio.entity.Portfolio;
 import com.folioframe.domain.portfolio.entity.PortfolioField;
 import com.folioframe.domain.portfolio.entity.PortfolioTemplate;
@@ -88,12 +92,25 @@ public class PortfolioService {
     }
 
     @Transactional(readOnly = true)
-    public List<PortfolioSummaryResDTO> getList(Long memberId) {
+    public PageResponse<PortfolioSummaryResDTO> getList(Long memberId, PageRequest pageRequest) {
         TalentProfile talentProfile = findTalentProfile(memberId);
-        return portfolioRepository.findAllByTalentProfileOrderByCreatedAtDesc(talentProfile)
-                .stream()
-                .map(PortfolioSummaryResDTO::from)
-                .toList();
+        return PageResponse.of(
+                portfolioRepository.findAllByTalentProfileOrderByUpdatedAtDesc(talentProfile, pageRequest.toPageable())
+                        .map(PortfolioSummaryResDTO::from)
+        );
+    }
+
+    @Transactional(readOnly = true)
+    public PageResponse<PortfolioSummaryResDTO> getPublicList(PortfolioSortType sortType, PageRequest pageRequest, Long memberId) {
+        if (sortType == null) sortType = PortfolioSortType.LATEST;
+        // 비로그인 시 상위 3개만 반환 (프론트에서 회원가입 유도)
+        PageRequest effectiveRequest = (memberId == null) ? PageRequest.of(1, 3) : pageRequest;
+        return PageResponse.of(
+                portfolioRepository.findAllByVisibilityAndEditStatus(
+                                PortfolioVisibility.PUBLIC, EditStatus.PUBLISHED,
+                                effectiveRequest.toPageable(sortType.getSort()))
+                        .map(PortfolioSummaryResDTO::from)
+        );
     }
 
     @Transactional(readOnly = true)

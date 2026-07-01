@@ -6,7 +6,9 @@ import com.folioframe.domain.portfolio.dto.request.PortfolioVisibilityReqDTO;
 import com.folioframe.domain.portfolio.dto.response.PortfolioDetailResDTO;
 import com.folioframe.domain.portfolio.dto.response.PortfolioResDTO;
 import com.folioframe.domain.portfolio.dto.response.PortfolioSummaryResDTO;
+import com.folioframe.domain.portfolio.enums.PortfolioSortType;
 import com.folioframe.global.apiPayload.ApiResponse;
+import com.folioframe.global.dto.PageResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -16,8 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
-
-import java.util.List;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @Tag(name = "Portfolio", description = "포트폴리오 생성·조회·수정·삭제 API")
 public interface PortfolioControllerDocs {
@@ -37,15 +38,33 @@ public interface PortfolioControllerDocs {
     );
 
     @Operation(
-            summary = "포트폴리오 목록 조회",
-            description = "내 포트폴리오 목록을 최신순으로 조회합니다."
+            summary = "내 포트폴리오 목록 조회 (마이페이지)",
+            description = "본인이 작성한 포트폴리오 목록을 최근 수정순으로 페이지 단위 조회합니다. (2×2, 기본 4개/페이지)"
     )
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "회원 또는 탤런트 프로필을 찾을 수 없습니다.")
     })
-    ResponseEntity<ApiResponse<List<PortfolioSummaryResDTO>>> getList(
-            @Parameter(description = "인증된 회원 ID", required = true) @RequestHeader("X-Member-Id") Long memberId
+    ResponseEntity<ApiResponse<PageResponse<PortfolioSummaryResDTO>>> getList(
+            @Parameter(description = "인증된 회원 ID", required = true) @RequestHeader("X-Member-Id") Long memberId,
+            @Parameter(description = "페이지 번호 (1부터 시작, 기본값: 1)") @RequestParam(defaultValue = "1") Integer page,
+            @Parameter(description = "페이지 크기 (기본값: 4)") @RequestParam(defaultValue = "4") Integer size
+    );
+
+    @Operation(
+            summary = "공개 포트폴리오 탐색 목록 조회",
+            description = "공개(PUBLIC) + 게시(PUBLISHED) 상태인 포트폴리오 전체를 페이지 단위 조회합니다. (3×3, 기본 9개/페이지)\n\n" +
+                    "- `sort`: LATEST(최신순, 기본값) / POPULAR(북마크 순) / MOST_VIEWED(조회순)\n" +
+                    "- **비로그인 시**: 상위 3개만 반환 (`totalElements`는 실제 전체 개수 — 프론트에서 회원가입 유도 UI 표시)"
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공")
+    })
+    ResponseEntity<ApiResponse<PageResponse<PortfolioSummaryResDTO>>> getPublicList(
+            @Parameter(description = "정렬 (LATEST / POPULAR / MOST_VIEWED, 기본값: LATEST)") @RequestParam(required = false) PortfolioSortType sort,
+            @Parameter(description = "페이지 번호 (1부터 시작, 기본값: 1)") @RequestParam(defaultValue = "1") Integer page,
+            @Parameter(description = "페이지 크기 (기본값: 9)") @RequestParam(defaultValue = "9") Integer size,
+            @Parameter(description = "인증된 회원 ID (선택 — 미전달 시 상위 3개만 반환)") @RequestHeader(value = "X-Member-Id", required = false) Long memberId
     );
 
     @Operation(
