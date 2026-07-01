@@ -12,11 +12,13 @@ import com.folioframe.domain.member.entity.Member;
 import com.folioframe.domain.member.exception.MemberException;
 import com.folioframe.domain.member.exception.code.MemberErrorCode;
 import com.folioframe.domain.member.repository.MemberRepository;
+import com.folioframe.global.dto.PageRequest;
+import com.folioframe.global.dto.PageResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.Set;
 
 @Service
@@ -28,33 +30,38 @@ public class ActivityService {
     private final ActivityBookmarkRepository activityBookmarkRepository;
     private final MemberRepository memberRepository;
 
-    public List<ActivityResDTO> getActivities(ActivityCategory category, ActivitySortType sortType, Long memberId) {
-        ActivitySortType resolvedSort = (sortType != null) ? sortType : ActivitySortType.LATEST;
+    public PageResponse<ActivityResDTO> getActivities(ActivityCategory category, ActivitySortType sortType, PageRequest pageRequest, Long memberId) {
+        if (sortType == null) sortType = ActivitySortType.LATEST;
+        org.springframework.data.domain.PageRequest pageable = pageRequest.toPageable(sortType.getSort());
 
-        List<Activity> activities = (category != null)
-                ? activityRepository.findAllByCategory(category, resolvedSort.getSort())
-                : activityRepository.findAll(resolvedSort.getSort());
+        Page<Activity> activityPage;
+        if (category != null) {
+            activityPage = activityRepository.findAllByCategory(category, pageable);
+        } else {
+            activityPage = activityRepository.findAll(pageable);
+        }
 
         Set<Long> bookmarkedIds = getBookmarkedActivityIds(memberId);
 
-        return activities.stream()
+        return PageResponse.of(activityPage, activityPage.getContent().stream()
                 .map(a -> ActivityResDTO.of(a, bookmarkedIds.contains(a.getId())))
-                .toList();
+                .toList());
     }
 
-    public List<ActivityResDTO> getBookmarkedActivities(Long memberId) {
+    public PageResponse<ActivityResDTO> getBookmarkedActivities(Long memberId, PageRequest pageRequest) {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new MemberException(MemberErrorCode.MEMBER_NOT_FOUND));
 
-        return activityBookmarkRepository.findAllByMemberOrderByCreatedAtDesc(member).stream()
-                .map(bm -> ActivityResDTO.of(bm.getActivity(), true))
-                .toList();
+        Page<ActivityResDTO> page = activityBookmarkRepository
+                .findAllByMember(member, pageRequest.toPageable(ActivitySortType.LATEST.getSort()))
+                .map(bm -> ActivityResDTO.of(bm.getActivity(), true));
+
+        return PageResponse.of(page);
     }
 
     @Transactional
     public void incrementViewCount(Long activityId) {
-        Activity activity = findActivity(activityId);
-        activity.increaseViewCount();
+        findActivity(activityId).increaseViewCount();
     }
 
     public Activity findActivity(Long activityId) {

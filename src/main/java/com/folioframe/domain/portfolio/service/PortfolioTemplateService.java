@@ -8,6 +8,8 @@ import com.folioframe.domain.portfolio.exception.PortfolioException;
 import com.folioframe.domain.portfolio.exception.code.PortfolioErrorCode;
 import com.folioframe.domain.portfolio.repository.PortfolioTemplateRepository;
 import com.folioframe.domain.portfolio.repository.TemplateFieldRepository;
+import com.folioframe.global.dto.PageRequest;
+import com.folioframe.global.dto.PageResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,11 +24,11 @@ public class PortfolioTemplateService {
     private final TemplateFieldRepository templateFieldRepository;
 
     @Transactional(readOnly = true)
-    public List<TemplateResDTO> getList() {
-        return templateRepository.findAllByActiveTrueOrderByUseCountDesc()
-                .stream()
-                .map(TemplateResDTO::from)
-                .toList();
+    public PageResponse<TemplateResDTO> getList(PageRequest pageRequest) {
+        return PageResponse.of(
+                templateRepository.findAllByActiveTrueOrderByUseCountDesc(pageRequest.toPageable())
+                        .map(TemplateResDTO::from)
+        );
     }
 
     @Transactional(readOnly = true)
