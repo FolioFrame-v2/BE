@@ -5,6 +5,7 @@ import com.folioframe.domain.portfolio.dto.response.PortfolioFieldResDTO;
 import com.folioframe.domain.portfolio.exception.code.PortfolioSuccessCode;
 import com.folioframe.domain.portfolio.service.PortfolioFieldService;
 import com.folioframe.global.apiPayload.ApiResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -33,7 +34,7 @@ public class PortfolioFieldController implements PortfolioFieldControllerDocs {
             @PathVariable Long portfolioId,
             @PathVariable Long fieldId,
             @RequestHeader("X-Member-Id") Long memberId,
-            @RequestBody PortfolioFieldUpdateReqDTO request) {
+            @Valid @RequestBody PortfolioFieldUpdateReqDTO request) {
         return ResponseEntity.ok(
                 ApiResponse.onSuccess(PortfolioSuccessCode.PORTFOLIO_FIELD_UPDATED,
                         fieldService.updateContent(portfolioId, fieldId, memberId, request)));
