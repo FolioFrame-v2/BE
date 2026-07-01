@@ -33,11 +33,8 @@ public class PortfolioAiFeedback extends BaseEntity {
     @Column(name = "version")
     private Integer version;
 
-    @Column(name = "good_points", columnDefinition = "TEXT")
-    private String goodPoints;
-
-    @Column(name = "improve_points", columnDefinition = "TEXT")
-    private String improvePoints;
+    @Column(name = "overall_comment", columnDefinition = "TEXT")
+    private String comment;
 
     // 0~100, null 이면 점수 없음
     @Column(name = "score")
