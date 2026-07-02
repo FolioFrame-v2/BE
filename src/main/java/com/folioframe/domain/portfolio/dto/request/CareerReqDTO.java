@@ -20,7 +20,5 @@ public record CareerReqDTO(
         @NotNull(message = "입사일은 필수입니다.")
         LocalDate startedAt,
 
-        LocalDate endedAt,
-
-        boolean current
+        LocalDate endedAt
 ) {}

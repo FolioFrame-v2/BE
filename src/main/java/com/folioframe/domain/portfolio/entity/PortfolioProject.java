@@ -1,11 +1,12 @@
 package com.folioframe.domain.portfolio.entity;
 
-import com.folioframe.domain.portfolio.enums.ProjectDuration;
 import com.folioframe.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
+
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "portfolio_project")
@@ -34,23 +35,24 @@ public class PortfolioProject extends BaseEntity {
     @Column(name = "content", columnDefinition = "TEXT")
     private String content;
 
-    @Column(name = "thumbnail_url", length = 500)
-    private String thumbnailUrl;
-
     @Column(name = "project_url", length = 500)
     private String projectUrl;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "duration_range")
-    private ProjectDuration durationRange;
+    // 연-월 단위로만 사용 (일자는 매월 1일로 고정)
+    @Column(name = "started_at")
+    private LocalDate startedAt;
+
+    @Column(name = "ended_at")
+    private LocalDate endedAt;
 
     public void update(String title, String role, String content,
-                       String thumbnailUrl, String projectUrl, ProjectDuration durationRange) {
+                       String projectUrl,
+                       LocalDate startedAt, LocalDate endedAt) {
         this.title = title;
         this.role = role;
         this.content = content;
-        this.thumbnailUrl = thumbnailUrl;
         this.projectUrl = projectUrl;
-        this.durationRange = durationRange;
+        this.startedAt = startedAt;
+        this.endedAt = endedAt;
     }
 }

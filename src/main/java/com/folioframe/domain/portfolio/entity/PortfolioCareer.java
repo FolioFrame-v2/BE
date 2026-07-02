@@ -42,17 +42,12 @@ public class PortfolioCareer extends BaseEntity {
     @Column(name = "ended_at")
     private LocalDate endedAt;
 
-    @Builder.Default
-    @Column(name = "current", nullable = false)
-    private boolean current = false;
-
     public void update(String companyName, String position, String description,
-                       LocalDate startedAt, LocalDate endedAt, boolean current) {
+                       LocalDate startedAt, LocalDate endedAt) {
         this.companyName = companyName;
         this.position = position;
         this.description = description;
         this.startedAt = startedAt;
         this.endedAt = endedAt;
-        this.current = current;
     }
 }

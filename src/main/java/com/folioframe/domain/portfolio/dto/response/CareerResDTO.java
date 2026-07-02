@@ -13,7 +13,6 @@ public record CareerResDTO(
         String description,
         LocalDate startedAt,
         LocalDate endedAt,
-        boolean current,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {
@@ -26,7 +25,6 @@ public record CareerResDTO(
                 career.getDescription(),
                 career.getStartedAt(),
                 career.getEndedAt(),
-                career.isCurrent(),
                 career.getCreatedAt(),
                 career.getUpdatedAt()
         );

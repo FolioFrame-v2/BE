@@ -24,6 +24,8 @@ public enum PortfolioErrorCode implements BaseErrorCode {
     PROJECT_NOT_FOUND(HttpStatus.NOT_FOUND, "PROJECT404_1", "프로젝트 정보를 찾을 수 없습니다."),
     PROJECT_NOT_IN_PORTFOLIO(HttpStatus.BAD_REQUEST, "PROJECT400_1", "해당 포트폴리오에 속한 프로젝트 정보가 아닙니다."),
 
+    TECHSTACK_NOT_FOUND(HttpStatus.NOT_FOUND, "TECHSTACK404_1", "존재하지 않는 기술스택이 포함되어 있습니다."),
+
     BOOKMARK_ALREADY_EXISTS(HttpStatus.CONFLICT, "BOOKMARK409_1", "이미 북마크한 포트폴리오입니다."),
     BOOKMARK_NOT_FOUND(HttpStatus.NOT_FOUND, "BOOKMARK404_1", "북마크 정보를 찾을 수 없습니다."),
 
