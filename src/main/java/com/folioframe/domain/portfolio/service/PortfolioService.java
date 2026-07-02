@@ -62,10 +62,6 @@ public class PortfolioService {
                 .template(template)
                 .title(request.title())
                 .jobRole(request.jobRole())
-                .careerSummary(request.careerSummary())
-                .contactEmail(request.contactEmail())
-                .githubUrl(request.githubUrl())
-                .personalWebsite(request.personalWebsite())
                 .oneLiner(request.oneLiner())
                 .description(request.description())
                 .visibility(request.visibility() != null ? request.visibility() : PortfolioVisibility.PRIVATE)
@@ -144,10 +140,6 @@ public class PortfolioService {
         portfolio.updateInfo(
                 request.title(),
                 request.jobRole(),
-                request.careerSummary(),
-                request.contactEmail(),
-                request.githubUrl(),
-                request.personalWebsite(),
                 request.oneLiner(),
                 request.description(),
                 request.visibility() != null ? request.visibility() : portfolio.getVisibility()

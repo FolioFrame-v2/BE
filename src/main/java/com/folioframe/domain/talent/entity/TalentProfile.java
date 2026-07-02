@@ -31,7 +31,7 @@ public class TalentProfile extends BaseEntity {
     @Column(name = "job_title", length = 100)
     private String jobTitle;
 
-    @Column(name = "one_liner", length = 200)
+    @Column(name = "one_liner", length = 500)
     private String oneLiner;
 
     @Column(name = "contact_email", length = 100)

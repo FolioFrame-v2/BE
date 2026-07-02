@@ -38,19 +38,7 @@ public class Portfolio extends BaseEntity {
     @Column(name = "job_role")
     private JobRole jobRole;
 
-    @Column(name = "career_summary", columnDefinition = "TEXT")
-    private String careerSummary;
-
-    @Column(name = "contact_email", length = 100)
-    private String contactEmail;
-
-    @Column(name = "github_url", length = 500)
-    private String githubUrl;
-
-    @Column(name = "personal_website", length = 500)
-    private String personalWebsite;
-
-    @Column(name = "one_liner", length = 200)
+    @Column(name = "one_liner", length = 500)
     private String oneLiner;
 
     @Column(name = "description", columnDefinition = "TEXT")
@@ -91,15 +79,10 @@ public class Portfolio extends BaseEntity {
     @Column(name = "bookmark_count", nullable = false)
     private int bookmarkCount = 0;
 
-    public void updateInfo(String title, JobRole jobRole, String careerSummary,
-                           String contactEmail, String githubUrl, String personalWebsite,
-                           String oneLiner, String description, PortfolioVisibility visibility) {
+    public void updateInfo(String title, JobRole jobRole, String oneLiner,
+                           String description, PortfolioVisibility visibility) {
         this.title = title;
         this.jobRole = jobRole;
-        this.careerSummary = careerSummary;
-        this.contactEmail = contactEmail;
-        this.githubUrl = githubUrl;
-        this.personalWebsite = personalWebsite;
         this.oneLiner = oneLiner;
         this.description = description;
         this.visibility = visibility;
