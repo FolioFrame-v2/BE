@@ -46,7 +46,10 @@ public enum PortfolioSuccessCode implements BaseSuccessCode {
     TEMPLATE_DETAIL_FOUND(HttpStatus.OK, "TEMPLATE200_2", "템플릿 상세를 조회했습니다."),
 
     PORTFOLIO_FIELD_LIST_FOUND(HttpStatus.OK, "FIELD200_1", "포트폴리오 필드 목록을 조회했습니다."),
-    PORTFOLIO_FIELD_UPDATED(HttpStatus.OK, "FIELD200_2", "포트폴리오 필드 내용이 수정되었습니다.");
+    PORTFOLIO_FIELD_UPDATED(HttpStatus.OK, "FIELD200_2", "포트폴리오 필드 내용이 수정되었습니다."),
+
+    AI_FEEDBACK_GENERATED(HttpStatus.OK, "AIFEEDBACK200_1", "AI 첨삭 결과를 생성했습니다."),
+    AI_FEEDBACK_FOUND(HttpStatus.OK, "AIFEEDBACK200_2", "AI 첨삭 결과를 조회했습니다.");
 
     private final HttpStatus status;
     private final String code;

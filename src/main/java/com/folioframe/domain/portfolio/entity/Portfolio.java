@@ -102,6 +102,10 @@ public class Portfolio extends BaseEntity {
         this.visibility = visibility;
     }
 
+    public void increaseAiCheckUsedCount() {
+        this.aiCheckUsedCount++;
+    }
+
     public void increaseBookmarkCount() {
         this.bookmarkCount++;
     }

@@ -32,7 +32,13 @@ public enum PortfolioErrorCode implements BaseErrorCode {
     TEMPLATE_NOT_FOUND(HttpStatus.NOT_FOUND, "TEMPLATE404_1", "템플릿을 찾을 수 없습니다."),
 
     PORTFOLIO_FIELD_NOT_FOUND(HttpStatus.NOT_FOUND, "FIELD404_1", "포트폴리오 필드를 찾을 수 없습니다."),
-    PORTFOLIO_FIELD_NOT_IN_PORTFOLIO(HttpStatus.BAD_REQUEST, "FIELD400_1", "해당 포트폴리오에 속한 필드가 아닙니다.");
+    PORTFOLIO_FIELD_NOT_IN_PORTFOLIO(HttpStatus.BAD_REQUEST, "FIELD400_1", "해당 포트폴리오에 속한 필드가 아닙니다."),
+
+    AI_FEEDBACK_LIMIT_EXCEEDED(HttpStatus.FORBIDDEN, "AIFEEDBACK403_1", "AI 첨삭 가능 횟수를 모두 사용했습니다."),
+    AI_FEEDBACK_EMPTY_CONTENT(HttpStatus.BAD_REQUEST, "AIFEEDBACK400_1", "첨삭할 내용이 없습니다."),
+    AI_FEEDBACK_NOT_FOUND(HttpStatus.NOT_FOUND, "AIFEEDBACK404_1", "AI 첨삭 결과를 찾을 수 없습니다."),
+    AI_SERVICE_UNAVAILABLE(HttpStatus.BAD_GATEWAY, "AIFEEDBACK502_1", "AI 첨삭 서비스 호출에 실패했습니다."),
+    AI_SERVICE_QUOTA_EXCEEDED(HttpStatus.TOO_MANY_REQUESTS, "AIFEEDBACK429_1", "AI 서비스 사용량이 많아 잠시 후 다시 시도해주세요.");
 
     private final HttpStatus status;
     private final String code;
