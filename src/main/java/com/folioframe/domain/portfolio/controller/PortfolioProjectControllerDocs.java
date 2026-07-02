@@ -1,7 +1,9 @@
 package com.folioframe.domain.portfolio.controller;
 
 import com.folioframe.domain.portfolio.dto.request.ProjectReqDTO;
+import com.folioframe.domain.portfolio.dto.request.TechstackIdsReqDTO;
 import com.folioframe.domain.portfolio.dto.response.ProjectResDTO;
+import com.folioframe.domain.common.dto.response.TechstackResDTO;
 import com.folioframe.global.apiPayload.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -20,13 +22,13 @@ public interface PortfolioProjectControllerDocs {
 
     @Operation(
             summary = "프로젝트 등록",
-            description = "포트폴리오에 프로젝트를 등록합니다. startedAt/endedAt은 연-월 단위로 사용하며(일자는 무시), endedAt이 없으면 진행 중인 프로젝트로 취급합니다."
+            description = "포트폴리오에 프로젝트를 등록합니다. startedAt/endedAt은 연-월 단위로 사용하며(일자는 무시), endedAt이 없으면 진행 중인 프로젝트로 취급합니다. techstackIds로 프로젝트에 사용한 기술스택을 함께 등록할 수 있습니다."
     )
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "등록 성공"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "요청 값이 올바르지 않습니다."),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "해당 포트폴리오에 접근 권한이 없습니다."),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "포트폴리오를 찾을 수 없습니다.")
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "포트폴리오 또는 기술스택을 찾을 수 없습니다.")
     })
     ResponseEntity<ApiResponse<ProjectResDTO>> create(
             @Parameter(description = "포트폴리오 ID", required = true) @PathVariable Long portfolioId,
@@ -48,13 +50,13 @@ public interface PortfolioProjectControllerDocs {
 
     @Operation(
             summary = "프로젝트 수정",
-            description = "등록된 프로젝트 정보를 수정합니다. 본인 포트폴리오의 프로젝트만 수정 가능합니다."
+            description = "등록된 프로젝트 정보를 수정합니다. 본인 포트폴리오의 프로젝트만 수정 가능합니다. techstackIds는 매번 전체 목록으로 교체됩니다."
     )
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "수정 성공"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "요청 값이 올바르지 않거나 해당 프로젝트가 이 포트폴리오에 속하지 않습니다."),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "해당 포트폴리오에 접근 권한이 없습니다."),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "포트폴리오 또는 프로젝트를 찾을 수 없습니다.")
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "포트폴리오, 프로젝트 또는 기술스택을 찾을 수 없습니다.")
     })
     ResponseEntity<ApiResponse<ProjectResDTO>> update(
             @Parameter(description = "포트폴리오 ID", required = true) @PathVariable Long portfolioId,
@@ -77,5 +79,22 @@ public interface PortfolioProjectControllerDocs {
             @Parameter(description = "포트폴리오 ID", required = true) @PathVariable Long portfolioId,
             @Parameter(description = "프로젝트 ID", required = true) @PathVariable Long projectId,
             @Parameter(description = "인증된 회원 ID", required = true) @RequestHeader("X-Member-Id") Long memberId
+    );
+
+    @Operation(
+            summary = "프로젝트 기술스택 수정",
+            description = "프로젝트의 사용 기술스택만 가볍게 교체합니다. techstackIds에 남길 항목만 담아 보내면 되며(예: 태그 하나 제거), 다른 필드는 건드리지 않습니다."
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "수정 성공"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "해당 프로젝트가 이 포트폴리오에 속하지 않습니다."),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "해당 포트폴리오에 접근 권한이 없습니다."),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "포트폴리오, 프로젝트 또는 기술스택을 찾을 수 없습니다.")
+    })
+    ResponseEntity<ApiResponse<List<TechstackResDTO>>> updateTechstacks(
+            @Parameter(description = "포트폴리오 ID", required = true) @PathVariable Long portfolioId,
+            @Parameter(description = "프로젝트 ID", required = true) @PathVariable Long projectId,
+            @Parameter(description = "인증된 회원 ID", required = true) @RequestHeader("X-Member-Id") Long memberId,
+            @Valid @RequestBody TechstackIdsReqDTO request
     );
 }

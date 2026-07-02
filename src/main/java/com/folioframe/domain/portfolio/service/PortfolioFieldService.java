@@ -39,6 +39,8 @@ public class PortfolioFieldService {
         validateBelongsToPortfolio(field, portfolioId);
 
         field.updateContent(request.content());
+        portfolio.markSaved();
+
         return PortfolioFieldResDTO.from(field);
     }
 

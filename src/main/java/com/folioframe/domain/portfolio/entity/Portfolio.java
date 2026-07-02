@@ -91,6 +91,11 @@ public class Portfolio extends BaseEntity {
     public void publish() {
         this.editStatus = EditStatus.PUBLISHED;
         this.publishedAt = LocalDateTime.now();
+        this.lastSavedAt = LocalDateTime.now();
+    }
+
+    public void markSaved() {
+        this.lastSavedAt = LocalDateTime.now();
     }
 
     public void changeVisibility(PortfolioVisibility visibility) {

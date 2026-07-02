@@ -6,6 +6,7 @@ import com.folioframe.domain.portfolio.dto.request.PortfolioVisibilityReqDTO;
 import com.folioframe.domain.portfolio.dto.response.PortfolioDetailResDTO;
 import com.folioframe.domain.portfolio.dto.response.PortfolioResDTO;
 import com.folioframe.domain.portfolio.dto.response.PortfolioSummaryResDTO;
+import com.folioframe.domain.common.dto.response.TechstackResDTO;
 import com.folioframe.domain.portfolio.enums.EditStatus;
 import com.folioframe.domain.portfolio.enums.PortfolioSortType;
 import com.folioframe.global.dto.PageRequest;
@@ -21,20 +22,30 @@ import com.folioframe.domain.portfolio.repository.PortfolioCareerRepository;
 import com.folioframe.domain.portfolio.repository.PortfolioCertificateRepository;
 import com.folioframe.domain.portfolio.repository.PortfolioEducationRepository;
 import com.folioframe.domain.portfolio.repository.PortfolioFieldRepository;
+import com.folioframe.domain.portfolio.entity.PortfolioProject;
+import com.folioframe.domain.portfolio.entity.PortfolioTechstack;
+import com.folioframe.domain.portfolio.entity.ProjectTechstack;
 import com.folioframe.domain.portfolio.repository.PortfolioProjectRepository;
 import com.folioframe.domain.portfolio.repository.PortfolioRepository;
+import com.folioframe.domain.portfolio.repository.PortfolioTechstackRepository;
 import com.folioframe.domain.portfolio.repository.PortfolioTemplateRepository;
+import com.folioframe.domain.portfolio.repository.ProjectTechstackRepository;
 import com.folioframe.domain.portfolio.repository.TemplateFieldRepository;
 import com.folioframe.domain.talent.entity.TalentProfile;
 import com.folioframe.domain.talent.repository.TalentProfileRepository;
 import com.folioframe.global.apiPayload.code.GeneralErrorCode;
 import com.folioframe.global.apiPayload.exception.GeneralException;
+import com.folioframe.domain.common.entity.Techstack;
+import com.folioframe.domain.common.repository.TechstackRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -49,6 +60,9 @@ public class PortfolioService {
     private final PortfolioCareerRepository careerRepository;
     private final PortfolioCertificateRepository certificateRepository;
     private final PortfolioProjectRepository projectRepository;
+    private final ProjectTechstackRepository projectTechstackRepository;
+    private final PortfolioTechstackRepository portfolioTechstackRepository;
+    private final TechstackRepository techstackRepository;
 
     @Transactional
     public PortfolioResDTO create(Long memberId, PortfolioCreateReqDTO request) {
@@ -84,7 +98,10 @@ public class PortfolioService {
 
         portfolioFieldRepository.saveAll(portfolioFields);
 
-        return PortfolioResDTO.from(portfolio);
+        List<Techstack> techstacks = attachTechstacks(portfolio, request.techstackIds());
+        portfolio.markSaved();
+
+        return PortfolioResDTO.from(portfolio, techstacks);
     }
 
     @Transactional(readOnly = true)
@@ -145,7 +162,10 @@ public class PortfolioService {
                 request.visibility() != null ? request.visibility() : portfolio.getVisibility()
         );
 
-        return PortfolioResDTO.from(portfolio);
+        List<Techstack> techstacks = replaceTechstacks(portfolio, request.techstackIds());
+        portfolio.markSaved();
+
+        return PortfolioResDTO.from(portfolio, techstacks);
     }
 
     @Transactional
@@ -153,7 +173,7 @@ public class PortfolioService {
         Portfolio portfolio = findPortfolio(portfolioId);
         validateOwnership(portfolio, memberId);
         portfolio.changeVisibility(request.visibility());
-        return PortfolioResDTO.from(portfolio);
+        return PortfolioResDTO.from(portfolio, getTechstacks(portfolio));
     }
 
     @Transactional
@@ -162,7 +182,7 @@ public class PortfolioService {
         validateOwnership(portfolio, memberId);
         portfolio.publish();
         portfolio.getTemplate().increaseUseCount();
-        return PortfolioResDTO.from(portfolio);
+        return PortfolioResDTO.from(portfolio, getTechstacks(portfolio));
     }
 
     @Transactional
@@ -172,15 +192,74 @@ public class PortfolioService {
         portfolioRepository.delete(portfolio);
     }
 
+    @Transactional
+    public List<TechstackResDTO> updateTechstacks(Long portfolioId, Long memberId, List<Long> techstackIds) {
+        Portfolio portfolio = findPortfolio(portfolioId);
+        validateOwnership(portfolio, memberId);
+
+        List<Techstack> techstacks = replaceTechstacks(portfolio, techstackIds);
+        portfolio.markSaved();
+
+        return techstacks.stream().map(TechstackResDTO::from).toList();
+    }
+
     private PortfolioDetailResDTO toDetailResDTO(Portfolio portfolio) {
+        List<PortfolioProject> projects = projectRepository.findAllByPortfolioOrderByCreatedAtDesc(portfolio);
+
+        Map<Long, List<Techstack>> techstacksByProjectId = projectTechstackRepository
+                .findAllByPortfolioProjectInWithTechstack(projects)
+                .stream()
+                .collect(Collectors.groupingBy(
+                        pt -> pt.getPortfolioProject().getId(),
+                        Collectors.mapping(ProjectTechstack::getTechstack, Collectors.toList())
+                ));
+
+        List<Techstack> techstacks = getTechstacks(portfolio);
+
         return PortfolioDetailResDTO.of(
                 portfolio,
                 portfolioFieldRepository.findAllByPortfolioOrderByDisplayOrder(portfolio),
                 educationRepository.findAllByPortfolioOrderByStartedAtDesc(portfolio),
                 careerRepository.findAllByPortfolioOrderByStartedAtDesc(portfolio),
                 certificateRepository.findAllByPortfolioOrderByIssuedAtDesc(portfolio),
-                projectRepository.findAllByPortfolioOrderByCreatedAtDesc(portfolio)
+                projects,
+                techstacksByProjectId,
+                techstacks
         );
+    }
+
+    private List<Techstack> getTechstacks(Portfolio portfolio) {
+        return portfolioTechstackRepository.findAllByPortfolioWithTechstack(portfolio)
+                .stream()
+                .map(PortfolioTechstack::getTechstack)
+                .toList();
+    }
+
+    private List<Techstack> replaceTechstacks(Portfolio portfolio, List<Long> techstackIds) {
+        portfolioTechstackRepository.deleteAllByPortfolio(portfolio);
+        return attachTechstacks(portfolio, techstackIds);
+    }
+
+    private List<Techstack> attachTechstacks(Portfolio portfolio, List<Long> techstackIds) {
+        if (techstackIds == null || techstackIds.isEmpty()) {
+            return List.of();
+        }
+
+        Set<Long> uniqueIds = Set.copyOf(techstackIds);
+        List<Techstack> techstacks = techstackRepository.findAllByIdIn(techstackIds);
+        if (techstacks.size() != uniqueIds.size()) {
+            throw new PortfolioException(PortfolioErrorCode.TECHSTACK_NOT_FOUND);
+        }
+
+        List<PortfolioTechstack> portfolioTechstacks = techstacks.stream()
+                .map(techstack -> PortfolioTechstack.builder()
+                        .portfolio(portfolio)
+                        .techstack(techstack)
+                        .build())
+                .toList();
+        portfolioTechstackRepository.saveAll(portfolioTechstacks);
+
+        return techstacks;
     }
 
     private TalentProfile findTalentProfile(Long memberId) {

@@ -35,9 +35,6 @@ public class PortfolioProject extends BaseEntity {
     @Column(name = "content", columnDefinition = "TEXT")
     private String content;
 
-    @Column(name = "thumbnail_url", length = 500)
-    private String thumbnailUrl;
-
     @Column(name = "project_url", length = 500)
     private String projectUrl;
 
@@ -49,12 +46,11 @@ public class PortfolioProject extends BaseEntity {
     private LocalDate endedAt;
 
     public void update(String title, String role, String content,
-                       String thumbnailUrl, String projectUrl,
+                       String projectUrl,
                        LocalDate startedAt, LocalDate endedAt) {
         this.title = title;
         this.role = role;
         this.content = content;
-        this.thumbnailUrl = thumbnailUrl;
         this.projectUrl = projectUrl;
         this.startedAt = startedAt;
         this.endedAt = endedAt;
