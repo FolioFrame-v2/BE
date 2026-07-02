@@ -1,8 +1,8 @@
 package com.folioframe.domain.portfolio.dto.response;
 
 import com.folioframe.domain.portfolio.entity.PortfolioProject;
-import com.folioframe.domain.portfolio.enums.ProjectDuration;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 public record ProjectResDTO(
@@ -13,7 +13,8 @@ public record ProjectResDTO(
         String content,
         String thumbnailUrl,
         String projectUrl,
-        ProjectDuration durationRange,
+        LocalDate startedAt,
+        LocalDate endedAt,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {
@@ -26,7 +27,8 @@ public record ProjectResDTO(
                 project.getContent(),
                 project.getThumbnailUrl(),
                 project.getProjectUrl(),
-                project.getDurationRange(),
+                project.getStartedAt(),
+                project.getEndedAt(),
                 project.getCreatedAt(),
                 project.getUpdatedAt()
         );

@@ -32,7 +32,8 @@ public class PortfolioProjectService {
                 .content(request.content())
                 .thumbnailUrl(request.thumbnailUrl())
                 .projectUrl(request.projectUrl())
-                .durationRange(request.durationRange())
+                .startedAt(request.startedAt())
+                .endedAt(request.endedAt())
                 .build();
 
         return ProjectResDTO.from(projectRepository.save(project));
@@ -61,7 +62,8 @@ public class PortfolioProjectService {
                 request.content(),
                 request.thumbnailUrl(),
                 request.projectUrl(),
-                request.durationRange()
+                request.startedAt(),
+                request.endedAt()
         );
 
         return ProjectResDTO.from(project);

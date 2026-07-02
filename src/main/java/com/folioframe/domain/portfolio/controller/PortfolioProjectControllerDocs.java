@@ -20,7 +20,7 @@ public interface PortfolioProjectControllerDocs {
 
     @Operation(
             summary = "프로젝트 등록",
-            description = "포트폴리오에 프로젝트를 등록합니다. durationRange는 LESS_THAN_1_MONTH / ONE_TO_THREE_MONTHS / THREE_TO_SIX_MONTHS / SIX_TO_TWELVE_MONTHS / OVER_ONE_YEAR 중 하나입니다."
+            description = "포트폴리오에 프로젝트를 등록합니다. startedAt/endedAt은 연-월 단위로 사용하며(일자는 무시), endedAt이 없으면 진행 중인 프로젝트로 취급합니다."
     )
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "등록 성공"),
