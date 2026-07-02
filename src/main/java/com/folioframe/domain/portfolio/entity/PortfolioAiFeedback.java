@@ -8,6 +8,8 @@ import lombok.*;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "portfolio_ai_feedback")
 @Getter
@@ -44,4 +46,17 @@ public class PortfolioAiFeedback extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     private AiFeedbackStatus status = AiFeedbackStatus.PENDING;
+
+    // null이면 아직 열려있는(선택 변경 가능한) 버전, 값이 있으면 저장/업로드/재첨삭 등으로 확정되어
+    // 더 이상 필드 선택을 바꿀 수 없는 버전
+    @Column(name = "finalized_at")
+    private LocalDateTime finalizedAt;
+
+    public void markFinalized(LocalDateTime finalizedAt) {
+        this.finalizedAt = finalizedAt;
+    }
+
+    public boolean isFinalized() {
+        return finalizedAt != null;
+    }
 }

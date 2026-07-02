@@ -106,6 +106,14 @@ public class Portfolio extends BaseEntity {
         this.aiCheckUsedCount++;
     }
 
+    public void updateOneLiner(String oneLiner) {
+        this.oneLiner = oneLiner;
+    }
+
+    public void updateDescription(String description) {
+        this.description = description;
+    }
+
     public void increaseBookmarkCount() {
         this.bookmarkCount++;
     }

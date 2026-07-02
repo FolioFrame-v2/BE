@@ -45,4 +45,10 @@ public class PortfolioField extends BaseEntity {
     public void updateContent(String content) {
         this.content = content;
     }
+
+    // AI 첨삭 선택(AI 채택 시 feedback 전달, 원본 복원 시 null 전달) 반영
+    public void applyContent(String content, PortfolioAiFeedback appliedFeedback) {
+        this.content = content;
+        this.appliedFeedback = appliedFeedback;
+    }
 }
