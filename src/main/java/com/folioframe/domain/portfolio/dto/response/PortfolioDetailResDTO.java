@@ -1,5 +1,7 @@
 package com.folioframe.domain.portfolio.dto.response;
 
+import com.folioframe.domain.common.dto.response.TechstackResDTO;
+import com.folioframe.domain.common.entity.Techstack;
 import com.folioframe.domain.common.enums.JobRole;
 import com.folioframe.domain.portfolio.entity.Portfolio;
 import com.folioframe.domain.portfolio.entity.PortfolioCareer;
@@ -12,6 +14,7 @@ import com.folioframe.domain.portfolio.enums.PortfolioVisibility;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 public record PortfolioDetailResDTO(
         Long id,
@@ -20,10 +23,6 @@ public record PortfolioDetailResDTO(
         String templateName,
         String title,
         JobRole jobRole,
-        String careerSummary,
-        String contactEmail,
-        String githubUrl,
-        String personalWebsite,
         String oneLiner,
         String description,
         PortfolioVisibility visibility,
@@ -39,7 +38,9 @@ public record PortfolioDetailResDTO(
         List<EducationResDTO> educations,
         List<CareerResDTO> careers,
         List<CertificateResDTO> certificates,
-        List<ProjectResDTO> projects
+        List<ProjectResDTO> projects,
+        List<TechstackResDTO> techstacks,
+        TalentProfileSummaryResDTO talentProfile
 ) {
     public static PortfolioDetailResDTO of(
             Portfolio portfolio,
@@ -47,7 +48,9 @@ public record PortfolioDetailResDTO(
             List<PortfolioEducation> educations,
             List<PortfolioCareer> careers,
             List<PortfolioCertificate> certificates,
-            List<PortfolioProject> projects
+            List<PortfolioProject> projects,
+            Map<Long, List<Techstack>> techstacksByProjectId,
+            List<Techstack> techstacks
     ) {
         return new PortfolioDetailResDTO(
                 portfolio.getId(),
@@ -56,10 +59,6 @@ public record PortfolioDetailResDTO(
                 portfolio.getTemplate().getName(),
                 portfolio.getTitle(),
                 portfolio.getJobRole(),
-                portfolio.getCareerSummary(),
-                portfolio.getContactEmail(),
-                portfolio.getGithubUrl(),
-                portfolio.getPersonalWebsite(),
                 portfolio.getOneLiner(),
                 portfolio.getDescription(),
                 portfolio.getVisibility(),
@@ -75,7 +74,11 @@ public record PortfolioDetailResDTO(
                 educations.stream().map(EducationResDTO::from).toList(),
                 careers.stream().map(CareerResDTO::from).toList(),
                 certificates.stream().map(CertificateResDTO::from).toList(),
-                projects.stream().map(ProjectResDTO::from).toList()
+                projects.stream()
+                        .map(project -> ProjectResDTO.from(project, techstacksByProjectId.getOrDefault(project.getId(), List.of())))
+                        .toList(),
+                techstacks.stream().map(TechstackResDTO::from).toList(),
+                TalentProfileSummaryResDTO.from(portfolio.getTalentProfile())
         );
     }
 }

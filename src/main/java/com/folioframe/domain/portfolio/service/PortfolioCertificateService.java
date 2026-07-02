@@ -33,8 +33,10 @@ public class PortfolioCertificateService {
                 .expiresAt(request.expiresAt())
                 .credentialId(request.credentialId())
                 .build();
+        certificateRepository.save(certificate);
+        portfolio.markSaved();
 
-        return CertificateResDTO.from(certificateRepository.save(certificate));
+        return CertificateResDTO.from(certificate);
     }
 
     @Transactional(readOnly = true)
@@ -61,6 +63,7 @@ public class PortfolioCertificateService {
                 request.expiresAt(),
                 request.credentialId()
         );
+        portfolio.markSaved();
 
         return CertificateResDTO.from(certificate);
     }
@@ -74,6 +77,7 @@ public class PortfolioCertificateService {
         validateBelongsToPortfolio(certificate, portfolioId);
 
         certificateRepository.delete(certificate);
+        portfolio.markSaved();
     }
 
     private PortfolioCertificate findCertificate(Long certificateId) {

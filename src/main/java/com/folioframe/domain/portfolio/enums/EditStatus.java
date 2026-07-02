@@ -7,8 +7,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum EditStatus {
     DRAFT("초안"),
-    IN_PROGRESS("작성 중"),
-    REVIEW("검토 중"),
     PUBLISHED("게시됨");
 
     private final String label;

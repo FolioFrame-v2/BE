@@ -20,7 +20,7 @@ public interface PortfolioCareerControllerDocs {
 
     @Operation(
             summary = "경력 등록",
-            description = "포트폴리오에 경력을 등록합니다. current가 true이거나 endedAt이 null이면 현재 재직 중으로 처리됩니다."
+            description = "포트폴리오에 경력을 등록합니다. endedAt이 null이면 현재 재직 중으로 처리됩니다."
     )
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "등록 성공"),

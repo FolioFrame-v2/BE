@@ -1,11 +1,14 @@
 package com.folioframe.domain.portfolio.dto.response;
 
+import com.folioframe.domain.common.dto.response.TechstackResDTO;
+import com.folioframe.domain.common.entity.Techstack;
 import com.folioframe.domain.common.enums.JobRole;
 import com.folioframe.domain.portfolio.entity.Portfolio;
 import com.folioframe.domain.portfolio.enums.EditStatus;
 import com.folioframe.domain.portfolio.enums.PortfolioVisibility;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 public record PortfolioResDTO(
         Long id,
@@ -14,10 +17,6 @@ public record PortfolioResDTO(
         String templateName,
         String title,
         JobRole jobRole,
-        String careerSummary,
-        String contactEmail,
-        String githubUrl,
-        String personalWebsite,
         String oneLiner,
         String description,
         PortfolioVisibility visibility,
@@ -28,9 +27,10 @@ public record PortfolioResDTO(
         LocalDateTime lastSavedAt,
         LocalDateTime publishedAt,
         LocalDateTime createdAt,
-        LocalDateTime updatedAt
+        LocalDateTime updatedAt,
+        List<TechstackResDTO> techstacks
 ) {
-    public static PortfolioResDTO from(Portfolio portfolio) {
+    public static PortfolioResDTO from(Portfolio portfolio, List<Techstack> techstacks) {
         return new PortfolioResDTO(
                 portfolio.getId(),
                 portfolio.getTalentProfile().getId(),
@@ -38,10 +38,6 @@ public record PortfolioResDTO(
                 portfolio.getTemplate() != null ? portfolio.getTemplate().getName() : null,
                 portfolio.getTitle(),
                 portfolio.getJobRole(),
-                portfolio.getCareerSummary(),
-                portfolio.getContactEmail(),
-                portfolio.getGithubUrl(),
-                portfolio.getPersonalWebsite(),
                 portfolio.getOneLiner(),
                 portfolio.getDescription(),
                 portfolio.getVisibility(),
@@ -52,7 +48,8 @@ public record PortfolioResDTO(
                 portfolio.getLastSavedAt(),
                 portfolio.getPublishedAt(),
                 portfolio.getCreatedAt(),
-                portfolio.getUpdatedAt()
+                portfolio.getUpdatedAt(),
+                techstacks.stream().map(TechstackResDTO::from).toList()
         );
     }
 }

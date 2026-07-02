@@ -16,6 +16,7 @@ public enum PortfolioSuccessCode implements BaseSuccessCode {
     PORTFOLIO_VISIBILITY_CHANGED(HttpStatus.OK, "PORTFOLIO200_4", "포트폴리오 공개 설정이 변경되었습니다."),
     PORTFOLIO_PUBLISHED(HttpStatus.OK, "PORTFOLIO200_5", "포트폴리오가 게시되었습니다."),
     PORTFOLIO_DELETED(HttpStatus.OK, "PORTFOLIO200_6", "포트폴리오가 삭제되었습니다."),
+    PORTFOLIO_TECHSTACKS_UPDATED(HttpStatus.OK, "PORTFOLIO200_7", "포트폴리오 기술스택이 수정되었습니다."),
 
     EDUCATION_CREATED(HttpStatus.CREATED, "EDUCATION201_1", "학력 정보가 등록되었습니다."),
     EDUCATION_LIST_FOUND(HttpStatus.OK, "EDUCATION200_1", "학력 목록을 조회했습니다."),
@@ -36,6 +37,7 @@ public enum PortfolioSuccessCode implements BaseSuccessCode {
     PROJECT_LIST_FOUND(HttpStatus.OK, "PROJECT200_1", "프로젝트 목록을 조회했습니다."),
     PROJECT_UPDATED(HttpStatus.OK, "PROJECT200_2", "프로젝트 정보가 수정되었습니다."),
     PROJECT_DELETED(HttpStatus.OK, "PROJECT200_3", "프로젝트 정보가 삭제되었습니다."),
+    PROJECT_TECHSTACKS_UPDATED(HttpStatus.OK, "PROJECT200_4", "프로젝트 기술스택이 수정되었습니다."),
 
     BOOKMARK_CREATED(HttpStatus.CREATED, "BOOKMARK201_1", "포트폴리오를 북마크했습니다."),
     BOOKMARK_DELETED(HttpStatus.OK, "BOOKMARK200_1", "북마크를 취소했습니다."),
