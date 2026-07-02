@@ -27,6 +27,10 @@ public class PortfolioField extends BaseEntity {
     @Column(name = "title", nullable = false, length = 100)
     private String title;
 
+    // 관리자가 템플릿 필드 생성 시 남긴 작성 안내 (TemplateField.description 복사본)
+    @Column(name = "description", length = 500)
+    private String description;
+
     @Column(name = "content", columnDefinition = "TEXT")
     private String content;
 

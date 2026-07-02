@@ -91,6 +91,7 @@ public class PortfolioService {
                 .map(tf -> PortfolioField.builder()
                         .portfolio(portfolio)
                         .title(tf.getTitle())
+                        .description(tf.getDescription())
                         .content("")
                         .displayOrder(tf.getDisplayOrder())
                         .build())
