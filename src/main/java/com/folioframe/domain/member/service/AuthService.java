@@ -13,8 +13,7 @@ import com.folioframe.domain.member.entity.MemberAgreement;
 import com.folioframe.domain.member.enums.MemberType;
 import com.folioframe.domain.member.repository.MemberAgreementRepository;
 import com.folioframe.domain.member.repository.MemberRepository;
-import com.folioframe.domain.token.entity.RefreshToken;
-import com.folioframe.domain.token.repository.RefreshTokenRepository;
+import com.folioframe.domain.token.service.TokenService;
 import com.folioframe.global.auth.JwtUtil;
 import com.folioframe.global.auth.exception.AuthException;
 import com.folioframe.global.auth.exception.code.AuthErrorCode;
@@ -24,6 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.HashSet;
 import java.util.List;
@@ -41,7 +41,7 @@ public class AuthService {
     private final MemberRepository memberRepository;
     private final TermsRepository termsRepository;
     private final MemberAgreementRepository memberAgreementRepository;
-    private final RefreshTokenRepository refreshTokenRepository;
+    private final TokenService tokenService;
     private final CompanyProfileRepository companyProfileRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
@@ -141,15 +141,21 @@ public class AuthService {
                 .accessToken(accessToken).refreshToken(refreshToken).memberType(member.getMemberType()).build();
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public RefreshResDTO reissue(String refreshToken) {
 
         jwtUtil.validateToken(refreshToken);
+        String loginId = jwtUtil.getUserId(refreshToken);
 
-        // 로그아웃 등으로 폐기된 refresh token은 서명은 유효해도 더 이상 재발급에 쓸 수 없어야 함
-        RefreshToken stored = refreshTokenRepository.findByToken(refreshToken)
+        // 로그아웃 등으로 폐기되거나 재발급으로 교체된(회전된) refresh token은 서명은 유효해도 더 이상 쓸 수 없어야 함
+        String storedRefreshToken = tokenService.getRefreshToken(loginId)
                 .orElseThrow(() -> new AuthException(AuthErrorCode.INVALID_TOKEN));
-        Member member = stored.getMember();
+        if (!storedRefreshToken.equals(refreshToken)) {
+            throw new AuthException(AuthErrorCode.INVALID_TOKEN);
+        }
+
+        Member member = memberRepository.findByLoginId(loginId)
+                .orElseThrow(() -> new AuthException(AuthErrorCode.USER_NOT_FOUND));
 
         String newAccessToken = jwtUtil.createAccessToken(member.getLoginId(), member.getMemberType().name());
         String newRefreshToken = jwtUtil.createRefreshToken(member.getLoginId(), member.getMemberType().name());
@@ -163,12 +169,8 @@ public class AuthService {
 
     private void saveRefreshToken(Member member, String refreshToken) {
         Instant expiryDate = jwtUtil.getExpiryDate(refreshToken);
-        refreshTokenRepository.findByMember(member)
-                .ifPresentOrElse(
-                        existing -> existing.updateToken(refreshToken, expiryDate),
-                        () -> refreshTokenRepository.save(RefreshToken.builder()
-                                .member(member).token(refreshToken).expiryDate(expiryDate).build())
-                );
+        Duration ttl = Duration.between(Instant.now(), expiryDate);
+        tokenService.saveRefreshToken(member.getLoginId(), refreshToken, ttl);
     }
 
     @Transactional(readOnly = true)

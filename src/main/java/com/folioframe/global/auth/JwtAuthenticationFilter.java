@@ -1,6 +1,6 @@
 package com.folioframe.global.auth;
 
-import com.folioframe.domain.token.repository.BlacklistedTokenRepository;
+import com.folioframe.domain.token.service.TokenService;
 import com.folioframe.global.auth.exception.AuthException;
 import com.folioframe.global.util.FilterResponseUtils;
 import jakarta.servlet.FilterChain;
@@ -19,7 +19,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
     private final CustomUserDetailsService customUserDetailsService;
-    private final BlacklistedTokenRepository blacklistedTokenRepository;
+    private final TokenService tokenService;
     private final FilterResponseUtils filterResponseUtils;
 
     @Override
@@ -33,7 +33,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             try {
                 // 블랙리스트 체크
-                if (blacklistedTokenRepository.existsByToken(token)) {
+                if (tokenService.isBlacklisted(token)) {
                     throw new AuthException(com.folioframe.global.auth.exception.code.AuthErrorCode.INVALID_TOKEN);
                 }
 

@@ -1,6 +1,6 @@
 package com.folioframe.global.config;
 
-import com.folioframe.domain.token.repository.BlacklistedTokenRepository;
+import com.folioframe.domain.token.service.TokenService;
 import com.folioframe.global.auth.*;
 import com.folioframe.global.auth.exception.code.AuthErrorCode;
 import com.folioframe.global.auth.exception.code.AuthSuccessCode;
@@ -34,7 +34,7 @@ public class SecurityConfig {
     private final CustomOAuth2UserService customOAuth2UserService;
     private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
     private final JwtLogoutHandler jwtLogoutHandler;
-    private final BlacklistedTokenRepository blacklistedTokenRepository;
+    private final TokenService tokenService;
     private final FilterResponseUtils filterResponseUtils;
 
     @Bean
@@ -68,7 +68,7 @@ public class SecurityConfig {
                         .successHandler(oAuth2AuthenticationSuccessHandler)
                 )
 
-                .addFilterBefore(new JwtAuthenticationFilter(jwtUtil, customUserDetailsService, blacklistedTokenRepository, filterResponseUtils),
+                .addFilterBefore(new JwtAuthenticationFilter(jwtUtil, customUserDetailsService, tokenService, filterResponseUtils),
                         org.springframework.security.web.authentication.logout.LogoutFilter.class)
 
                 .logout(logout -> logout
