@@ -25,24 +25,29 @@ public interface PortfolioAiFeedbackControllerDocs {
 
     @Operation(
             summary = "AI 첨삭 요청",
-            description = "포트폴리오 한줄소개/상세설명/프로필 소개/프로젝트 요약/커스텀 필드를 FolioFrame_AI로 보내 첨삭을 생성합니다. " +
-                    "포트폴리오에 대해 최초로 호출되는 경우, 그 순간의 라이브 콘텐츠를 '원본'(version=0)으로 스냅샷 떠둔 뒤 " +
-                    "새 버전을 만듭니다. 생성된 버전의 각 필드는 기본으로 AI 수정본이 채택된 상태로 시작하지만, 이는 그 " +
-                    "버전 자신의 초안(resolvedText)일 뿐 실제 라이브 콘텐츠는 전혀 바뀌지 않습니다 — 게시(publish) API를 " +
-                    "호출해야만 라이브에 반영됩니다. 직전 버전이 아직 저장(확정)되지 않았더라도 자동으로 확정되지 않으므로, " +
-                    "FE는 이 API를 호출하기 전에 직전 버전에 대해 저장 API를 먼저 호출해야 합니다. 호출할 때마다 새로운 " +
-                    "최상위 버전(version)이 하나씩 늘어나며, 포트폴리오당 ai_check_max_count(기본 3회)를 초과하면 실패합니다."
+            description = "지금 편집 화면에 불러와 있는(선택된) 버전 — sourceVersion/sourceSubVersion으로 지정 — 의 내용을 " +
+                    "FolioFrame_AI로 보내 첨삭을 생성합니다. **게시(publish) 중인 콘텐츠나 라이브 콘텐츠가 아니라 그 " +
+                    "버전 자신의 확정/초안 내용(resolvedText)을 기준으로 합니다.** 두 파라미터를 생략하면 원본(version=0) " +
+                    "을 기준으로 하며, 포트폴리오에 대해 최초로 호출되는 경우 그 순간의 라이브 콘텐츠를 원본 스냅샷으로 " +
+                    "먼저 만들어둔 뒤 그것을 사용합니다. 결과는 어떤 버전을 기준으로 했든 항상 새로운 최상위 버전으로 " +
+                    "생성됩니다(자식 버전을 기준으로 호출해도 그 자식 밑이 아니라 새 최상위 버전이 생김). 생성된 버전의 " +
+                    "각 필드는 기본으로 AI 수정본이 채택된 상태로 시작하지만, 이는 그 버전 자신의 초안일 뿐 실제 라이브 " +
+                    "콘텐츠는 전혀 바뀌지 않습니다 — 게시(publish) API를 호출해야만 라이브에 반영됩니다. 호출할 때마다 " +
+                    "새로운 최상위 버전(version)이 하나씩 늘어나며, 포트폴리오당 ai_check_max_count(기본 3회)를 " +
+                    "초과하면 실패합니다."
     )
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "생성 성공"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "첨삭할 내용이 없습니다."),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "접근 권한이 없거나 AI 첨삭 가능 횟수를 모두 사용했습니다."),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "포트폴리오를 찾을 수 없습니다."),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "포트폴리오 또는 지정한 sourceVersion/sourceSubVersion을 찾을 수 없습니다."),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "429", description = "AI 서비스 사용량이 많아 잠시 후 다시 시도해야 합니다."),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "502", description = "AI 첨삭 서비스 호출에 실패했습니다.")
     })
     ResponseEntity<ApiResponse<PortfolioAiFeedbackResDTO>> generate(
             @Parameter(description = "포트폴리오 ID", required = true) @PathVariable Long portfolioId,
+            @Parameter(description = "첨삭 기준이 될 최상위 버전 번호(원본은 0). 생략하면 0(원본)") @RequestParam(required = false) Integer sourceVersion,
+            @Parameter(description = "첨삭 기준이 될 자식(수정본) 버전 번호. 없으면 최상위 버전을 기준으로 함") @RequestParam(required = false) Integer sourceSubVersion,
             @Parameter(description = "인증된 회원 ID", required = true) @RequestHeader("X-Member-Id") Long memberId
     );
 
@@ -164,16 +169,22 @@ public interface PortfolioAiFeedbackControllerDocs {
 
     @Operation(
             summary = "AI 첨삭 버전 게시",
-            description = "버전 관리 패널에서 '게시'(올리기) 버튼을 눌렀을 때 호출합니다. 포트폴리오를 게시하는 유일한 " +
-                    "API입니다(기존 '포트폴리오 저장(발행)' PATCH /portfolios/{portfolioId}/publish는 폐지됨). 별도의 " +
-                    "게시 여부 상태는 없고, 게시 = visibility를 PUBLIC으로 전환하는 것과 같습니다. 대상 버전의 확정된 " +
-                    "필드 내용을 실제 라이브 엔티티(포트폴리오 한줄소개/상세설명, 프로필 소개, 커스텀 필드, 프로젝트 요약)에 " +
-                    "복사하고, portfolio.visibility를 PUBLIC으로 바꾸며 이 버전을 '지금 게시 중인 버전'으로 기록합니다. " +
-                    "AI 첨삭을 한 번도 요청한 적 없는 포트폴리오는 version=0(원본) row 자체가 없는데, 이때 version=0으로 " +
-                    "게시를 호출하면 복사할 대상 없이 지금 라이브 콘텐츠를 그대로 공개 전환합니다. 라이브 콘텐츠가 바뀌는 " +
-                    "유일한 경로이며, 게시 전까지는 어떤 버전을 편집해도 실제 공개 포트폴리오는 바뀌지 않습니다. " +
-                    "subVersion을 주면 자식(수정본) 버전을 게시합니다. 이 포트폴리오가 처음 게시되는 순간에만 선택한 " +
-                    "템플릿의 useCount가 1 증가합니다(버전을 바꿔가며 재게시해도 추가로 늘지 않음)."
+            description = "버전 관리 패널에서 공개/비공개를 선택한 뒤 '게시하기' 버튼을 눌렀을 때 호출합니다. 포트폴리오를 " +
+                    "게시하는 유일한 API입니다(기존 '포트폴리오 저장(발행)' PATCH /portfolios/{portfolioId}/publish는 " +
+                    "폐지됨). **이 API는 visibility를 강제로 바꾸지 않습니다** — 그 직전에 PATCH " +
+                    "/portfolios/{portfolioId}/visibility로 사용자가 이미 선택해둔 공개/비공개 값을 그대로 따르므로, " +
+                    "비공개를 선택한 채로도 게시할 수 있습니다(이 경우 라이브 콘텐츠는 갱신되지만 여전히 비공개입니다). " +
+                    "대상 버전의 지금 내용(resolvedText — 선택/직접수정 즉시 반영되므로 저장 여부와 무관하게 항상 최신 " +
+                    "값)을 실제 라이브 엔티티(포트폴리오 한줄소개/상세설명, 프로필 소개, 커스텀 필드, 프로젝트 요약)에 " +
+                    "복사하고 이 버전을 '지금 게시 중인 버전'으로 기록합니다. 대상 버전이 아직 확정 전(finalized=false, " +
+                    "원본/AI 선택 UX가 떠 있는 오픈 상태)이면 **게시와 동시에 자동으로 확정도 함께 처리합니다**(게시=확정) " +
+                    "— 별도로 저장 API를 먼저 호출할 필요가 없습니다. 아직 한 번도 저장/AI첨삭/게시를 하지 않은 초안은 " +
+                    "이 API를 호출해야 비로소 확정되어 마이페이지 목록에 노출되고 방치 정리 대상에서 제외됩니다. AI 첨삭을 " +
+                    "한 번도 요청한 적 없는 포트폴리오는 version=0(원본) row 자체가 없는데, 이때 version=0으로 게시를 " +
+                    "호출하면 복사할 대상 없이 지금 라이브 콘텐츠를 그대로 확정합니다. 라이브 콘텐츠가 바뀌는 유일한 " +
+                    "경로이며, 게시 전까지는 어떤 버전을 편집해도 실제 라이브 포트폴리오는 바뀌지 않습니다. subVersion을 " +
+                    "주면 자식(수정본) 버전을 게시합니다. 이 포트폴리오가 처음 게시(확정)되는 순간에만 선택한 템플릿의 " +
+                    "useCount가 1 증가합니다(버전을 바꿔가며 재게시해도 추가로 늘지 않음)."
     )
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "게시 성공"),

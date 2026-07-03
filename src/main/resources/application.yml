@@ -13,3 +13,8 @@ server:
 
 ai-service:
   base-url: ${AI_SERVICE_BASE_URL:http://localhost:8000}
+
+portfolio:
+  draft-cleanup:
+    grace-period-hours: ${PORTFOLIO_DRAFT_GRACE_PERIOD_HOURS:72}
+    cron: ${PORTFOLIO_DRAFT_CLEANUP_CRON:0 0 * * * *}

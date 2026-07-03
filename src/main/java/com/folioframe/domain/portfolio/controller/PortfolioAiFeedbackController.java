@@ -27,10 +27,12 @@ public class PortfolioAiFeedbackController implements PortfolioAiFeedbackControl
     @PostMapping
     public ResponseEntity<ApiResponse<PortfolioAiFeedbackResDTO>> generate(
             @PathVariable Long portfolioId,
+            @RequestParam(required = false) Integer sourceVersion,
+            @RequestParam(required = false) Integer sourceSubVersion,
             @RequestHeader("X-Member-Id") Long memberId) {
         return ResponseEntity.ok(
                 ApiResponse.onSuccess(PortfolioSuccessCode.AI_FEEDBACK_GENERATED,
-                        aiFeedbackService.generate(portfolioId, memberId)));
+                        aiFeedbackService.generate(portfolioId, sourceVersion, sourceSubVersion, memberId)));
     }
 
     @Override
