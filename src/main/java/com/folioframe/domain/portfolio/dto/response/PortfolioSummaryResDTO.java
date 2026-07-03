@@ -2,7 +2,6 @@ package com.folioframe.domain.portfolio.dto.response;
 
 import com.folioframe.domain.common.enums.JobRole;
 import com.folioframe.domain.portfolio.entity.Portfolio;
-import com.folioframe.domain.portfolio.enums.EditStatus;
 import com.folioframe.domain.portfolio.enums.PortfolioVisibility;
 
 import java.time.LocalDateTime;
@@ -13,7 +12,7 @@ public record PortfolioSummaryResDTO(
         JobRole jobRole,
         String oneLiner,
         PortfolioVisibility visibility,
-        EditStatus editStatus,
+        String publicSlug,
         int viewCount,
         int bookmarkCount,
         LocalDateTime createdAt,
@@ -26,7 +25,7 @@ public record PortfolioSummaryResDTO(
                 portfolio.getJobRole(),
                 portfolio.getOneLiner(),
                 portfolio.getVisibility(),
-                portfolio.getEditStatus(),
+                portfolio.getPublicSlug(),
                 portfolio.getViewCount(),
                 portfolio.getBookmarkCount(),
                 portfolio.getCreatedAt(),

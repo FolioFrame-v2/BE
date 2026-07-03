@@ -14,8 +14,9 @@ public enum PortfolioSuccessCode implements BaseSuccessCode {
     PORTFOLIO_DETAIL_FOUND(HttpStatus.OK, "PORTFOLIO200_2", "포트폴리오 상세를 조회했습니다."),
     PORTFOLIO_UPDATED(HttpStatus.OK, "PORTFOLIO200_3", "포트폴리오가 수정되었습니다."),
     PORTFOLIO_VISIBILITY_CHANGED(HttpStatus.OK, "PORTFOLIO200_4", "포트폴리오 공개 설정이 변경되었습니다."),
-    PORTFOLIO_PUBLISHED(HttpStatus.OK, "PORTFOLIO200_5", "포트폴리오가 게시되었습니다."),
     PORTFOLIO_DELETED(HttpStatus.OK, "PORTFOLIO200_6", "포트폴리오가 삭제되었습니다."),
+    PORTFOLIO_TECHSTACKS_UPDATED(HttpStatus.OK, "PORTFOLIO200_7", "포트폴리오 기술스택이 수정되었습니다."),
+    PORTFOLIO_SAVE_CONFIRMED(HttpStatus.OK, "PORTFOLIO200_8", "포트폴리오 저장이 확정되었습니다."),
 
     EDUCATION_CREATED(HttpStatus.CREATED, "EDUCATION201_1", "학력 정보가 등록되었습니다."),
     EDUCATION_LIST_FOUND(HttpStatus.OK, "EDUCATION200_1", "학력 목록을 조회했습니다."),
@@ -36,6 +37,7 @@ public enum PortfolioSuccessCode implements BaseSuccessCode {
     PROJECT_LIST_FOUND(HttpStatus.OK, "PROJECT200_1", "프로젝트 목록을 조회했습니다."),
     PROJECT_UPDATED(HttpStatus.OK, "PROJECT200_2", "프로젝트 정보가 수정되었습니다."),
     PROJECT_DELETED(HttpStatus.OK, "PROJECT200_3", "프로젝트 정보가 삭제되었습니다."),
+    PROJECT_TECHSTACKS_UPDATED(HttpStatus.OK, "PROJECT200_4", "프로젝트 기술스택이 수정되었습니다."),
 
     BOOKMARK_CREATED(HttpStatus.CREATED, "BOOKMARK201_1", "포트폴리오를 북마크했습니다."),
     BOOKMARK_DELETED(HttpStatus.OK, "BOOKMARK200_1", "북마크를 취소했습니다."),
@@ -44,7 +46,18 @@ public enum PortfolioSuccessCode implements BaseSuccessCode {
     TEMPLATE_DETAIL_FOUND(HttpStatus.OK, "TEMPLATE200_2", "템플릿 상세를 조회했습니다."),
 
     PORTFOLIO_FIELD_LIST_FOUND(HttpStatus.OK, "FIELD200_1", "포트폴리오 필드 목록을 조회했습니다."),
-    PORTFOLIO_FIELD_UPDATED(HttpStatus.OK, "FIELD200_2", "포트폴리오 필드 내용이 수정되었습니다.");
+    PORTFOLIO_FIELD_UPDATED(HttpStatus.OK, "FIELD200_2", "포트폴리오 필드 내용이 수정되었습니다."),
+
+    AI_FEEDBACK_GENERATED(HttpStatus.OK, "AIFEEDBACK200_1", "AI 첨삭 결과를 생성했습니다."),
+    AI_FEEDBACK_FOUND(HttpStatus.OK, "AIFEEDBACK200_2", "AI 첨삭 결과를 조회했습니다."),
+    AI_FEEDBACK_VERSION_LIST_FOUND(HttpStatus.OK, "AIFEEDBACK200_3", "AI 첨삭 버전 목록을 조회했습니다."),
+    AI_FEEDBACK_FIELD_CHOSEN(HttpStatus.OK, "AIFEEDBACK200_4", "AI 첨삭 선택이 반영되었습니다."),
+    AI_FEEDBACK_VERSION_SAVED(HttpStatus.OK, "AIFEEDBACK200_5", "AI 첨삭 버전이 저장되었습니다."),
+    AI_FEEDBACK_REVISION_CREATED(HttpStatus.CREATED, "AIFEEDBACK201_1", "수정본이 생성되었습니다."),
+    AI_FEEDBACK_VERSION_DELETED(HttpStatus.OK, "AIFEEDBACK200_6", "AI 첨삭 버전이 삭제되었습니다."),
+    AI_FEEDBACK_VERSION_PUBLISHED(HttpStatus.OK, "AIFEEDBACK200_7", "AI 첨삭 버전이 게시되었습니다."),
+    AI_FEEDBACK_FIELD_EDITED(HttpStatus.OK, "AIFEEDBACK200_8", "AI 첨삭 필드 내용이 수정되었습니다."),
+    AI_FEEDBACK_VERSION_RENAMED(HttpStatus.OK, "AIFEEDBACK200_9", "AI 첨삭 버전 이름이 변경되었습니다.");
 
     private final HttpStatus status;
     private final String code;

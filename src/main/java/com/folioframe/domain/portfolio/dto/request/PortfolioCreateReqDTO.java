@@ -7,6 +7,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
+import java.util.List;
+
 public record PortfolioCreateReqDTO(
 
         @NotNull(message = "템플릿 선택은 필수입니다.")
@@ -19,21 +21,14 @@ public record PortfolioCreateReqDTO(
 
         JobRole jobRole,
 
-        String careerSummary,
-
-        @Size(max = 100, message = "연락처 이메일은 100자를 초과할 수 없습니다.")
-        String contactEmail,
-
-        @Size(max = 500, message = "GitHub URL은 500자를 초과할 수 없습니다.")
-        String githubUrl,
-
-        @Size(max = 500, message = "개인 웹사이트 URL은 500자를 초과할 수 없습니다.")
-        String personalWebsite,
-
-        @Size(max = 200, message = "한줄 소개는 200자를 초과할 수 없습니다.")
+        @Size(max = 500, message = "한줄 소개는 500자를 초과할 수 없습니다.")
         String oneLiner,
 
+        @Size(max = 500, message = "상세 설명은 500자를 초과할 수 없습니다.")
         String description,
 
-        PortfolioVisibility visibility
+        PortfolioVisibility visibility,
+
+        // 포트폴리오 전체에서 사용해본 기술스택 ID 목록
+        List<Long> techstackIds
 ) {}

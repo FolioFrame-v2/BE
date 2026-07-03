@@ -31,7 +31,7 @@ public class TalentProfile extends BaseEntity {
     @Column(name = "job_title", length = 100)
     private String jobTitle;
 
-    @Column(name = "one_liner", length = 200)
+    @Column(name = "one_liner", length = 500)
     private String oneLiner;
 
     @Column(name = "contact_email", length = 100)
@@ -65,4 +65,8 @@ public class TalentProfile extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "profile_visibility", nullable = false)
     private ProfileVisibility profileVisibility = ProfileVisibility.PRIVATE;
+
+    public void updateOneLiner(String oneLiner) {
+        this.oneLiner = oneLiner;
+    }
 }

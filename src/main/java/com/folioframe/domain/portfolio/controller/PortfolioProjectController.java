@@ -1,7 +1,9 @@
 package com.folioframe.domain.portfolio.controller;
 
 import com.folioframe.domain.portfolio.dto.request.ProjectReqDTO;
+import com.folioframe.domain.portfolio.dto.request.TechstackIdsReqDTO;
 import com.folioframe.domain.portfolio.dto.response.ProjectResDTO;
+import com.folioframe.domain.common.dto.response.TechstackResDTO;
 import com.folioframe.domain.portfolio.exception.code.PortfolioSuccessCode;
 import com.folioframe.domain.portfolio.service.PortfolioProjectService;
 import com.folioframe.global.apiPayload.ApiResponse;
@@ -60,5 +62,17 @@ public class PortfolioProjectController implements PortfolioProjectControllerDoc
             @RequestHeader("X-Member-Id") Long memberId) {
         projectService.delete(portfolioId, projectId, memberId);
         return ResponseEntity.ok(ApiResponse.onSuccess(PortfolioSuccessCode.PROJECT_DELETED, null));
+    }
+
+    @Override
+    @PatchMapping("/{projectId}/techstacks")
+    public ResponseEntity<ApiResponse<List<TechstackResDTO>>> updateTechstacks(
+            @PathVariable Long portfolioId,
+            @PathVariable Long projectId,
+            @RequestHeader("X-Member-Id") Long memberId,
+            @Valid @RequestBody TechstackIdsReqDTO request) {
+        return ResponseEntity.ok(
+                ApiResponse.onSuccess(PortfolioSuccessCode.PROJECT_TECHSTACKS_UPDATED,
+                        projectService.updateTechstacks(portfolioId, projectId, memberId, request.techstackIds())));
     }
 }

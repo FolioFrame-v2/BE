@@ -34,8 +34,10 @@ public class PortfolioEducationService {
                 .endedAt(request.endedAt())
                 .graduated(request.graduated())
                 .build();
+        educationRepository.save(education);
+        portfolio.markSaved();
 
-        return EducationResDTO.from(educationRepository.save(education));
+        return EducationResDTO.from(education);
     }
 
     @Transactional(readOnly = true)
@@ -63,6 +65,7 @@ public class PortfolioEducationService {
                 request.endedAt(),
                 request.graduated()
         );
+        portfolio.markSaved();
 
         return EducationResDTO.from(education);
     }
@@ -76,6 +79,7 @@ public class PortfolioEducationService {
         validateBelongsToPortfolio(education, portfolioId);
 
         educationRepository.delete(education);
+        portfolio.markSaved();
     }
 
     private PortfolioEducation findEducation(Long educationId) {

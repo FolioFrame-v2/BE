@@ -32,10 +32,11 @@ public class PortfolioCareerService {
                 .description(request.description())
                 .startedAt(request.startedAt())
                 .endedAt(request.endedAt())
-                .current(request.current())
                 .build();
+        careerRepository.save(career);
+        portfolio.markSaved();
 
-        return CareerResDTO.from(careerRepository.save(career));
+        return CareerResDTO.from(career);
     }
 
     @Transactional(readOnly = true)
@@ -60,9 +61,9 @@ public class PortfolioCareerService {
                 request.position(),
                 request.description(),
                 request.startedAt(),
-                request.endedAt(),
-                request.current()
+                request.endedAt()
         );
+        portfolio.markSaved();
 
         return CareerResDTO.from(career);
     }
@@ -76,6 +77,7 @@ public class PortfolioCareerService {
         validateBelongsToPortfolio(career, portfolioId);
 
         careerRepository.delete(career);
+        portfolio.markSaved();
     }
 
     private PortfolioCareer findCareer(Long careerId) {
