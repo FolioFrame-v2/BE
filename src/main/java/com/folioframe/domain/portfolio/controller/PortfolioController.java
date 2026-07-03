@@ -104,16 +104,6 @@ public class PortfolioController implements PortfolioControllerDocs {
     }
 
     @Override
-    @PatchMapping("/{portfolioId}/publish")
-    public ResponseEntity<ApiResponse<PortfolioResDTO>> publish(
-            @PathVariable Long portfolioId,
-            @RequestHeader("X-Member-Id") Long memberId) {
-        return ResponseEntity.ok(
-                ApiResponse.onSuccess(PortfolioSuccessCode.PORTFOLIO_PUBLISHED,
-                        portfolioService.publish(portfolioId, memberId)));
-    }
-
-    @Override
     @DeleteMapping("/{portfolioId}")
     public ResponseEntity<ApiResponse<Void>> delete(
             @PathVariable Long portfolioId,

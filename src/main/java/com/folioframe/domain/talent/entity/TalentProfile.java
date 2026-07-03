@@ -65,4 +65,8 @@ public class TalentProfile extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "profile_visibility", nullable = false)
     private ProfileVisibility profileVisibility = ProfileVisibility.PRIVATE;
+
+    public void updateOneLiner(String oneLiner) {
+        this.oneLiner = oneLiner;
+    }
 }

@@ -6,6 +6,7 @@ public record PortfolioFieldResDTO(
         Long id,
         Long portfolioId,
         String title,
+        String description,
         String content,
         int displayOrder
 ) {
@@ -14,6 +15,7 @@ public record PortfolioFieldResDTO(
                 field.getId(),
                 field.getPortfolio().getId(),
                 field.getTitle(),
+                field.getDescription(),
                 field.getContent(),
                 field.getDisplayOrder()
         );

@@ -9,7 +9,6 @@ import com.folioframe.domain.portfolio.entity.PortfolioCertificate;
 import com.folioframe.domain.portfolio.entity.PortfolioEducation;
 import com.folioframe.domain.portfolio.entity.PortfolioField;
 import com.folioframe.domain.portfolio.entity.PortfolioProject;
-import com.folioframe.domain.portfolio.enums.EditStatus;
 import com.folioframe.domain.portfolio.enums.PortfolioVisibility;
 
 import java.time.LocalDateTime;
@@ -29,7 +28,6 @@ public record PortfolioDetailResDTO(
         String publicSlug,
         int viewCount,
         int bookmarkCount,
-        EditStatus editStatus,
         LocalDateTime lastSavedAt,
         LocalDateTime publishedAt,
         LocalDateTime createdAt,
@@ -65,7 +63,6 @@ public record PortfolioDetailResDTO(
                 portfolio.getPublicSlug(),
                 portfolio.getViewCount(),
                 portfolio.getBookmarkCount(),
-                portfolio.getEditStatus(),
                 portfolio.getLastSavedAt(),
                 portfolio.getPublishedAt(),
                 portfolio.getCreatedAt(),

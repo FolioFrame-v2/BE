@@ -1,7 +1,6 @@
 package com.folioframe.domain.portfolio.repository;
 
 import com.folioframe.domain.portfolio.entity.Portfolio;
-import com.folioframe.domain.portfolio.enums.EditStatus;
 import com.folioframe.domain.portfolio.enums.PortfolioVisibility;
 import com.folioframe.domain.talent.entity.TalentProfile;
 import org.springframework.data.domain.Page;
@@ -14,7 +13,7 @@ public interface PortfolioRepository extends JpaRepository<Portfolio, Long> {
 
     Page<Portfolio> findAllByTalentProfileOrderByUpdatedAtDesc(TalentProfile talentProfile, Pageable pageable);
 
-    Page<Portfolio> findAllByVisibilityAndEditStatus(PortfolioVisibility visibility, EditStatus editStatus, Pageable pageable);
+    Page<Portfolio> findAllByVisibility(PortfolioVisibility visibility, Pageable pageable);
 
     Optional<Portfolio> findByPublicSlug(String publicSlug);
 }

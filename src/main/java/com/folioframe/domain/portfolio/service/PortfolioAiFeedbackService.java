@@ -1,0 +1,576 @@
+package com.folioframe.domain.portfolio.service;
+
+import com.folioframe.domain.portfolio.dto.ai.AiFeedbackApiReqDTO;
+import com.folioframe.domain.portfolio.dto.ai.AiFeedbackApiResDTO;
+import com.folioframe.domain.portfolio.dto.ai.AiFieldInputDTO;
+import com.folioframe.domain.portfolio.dto.ai.AiFieldRevisionDTO;
+import com.folioframe.domain.portfolio.dto.response.PortfolioAiFeedbackResDTO;
+import com.folioframe.domain.portfolio.dto.response.PortfolioAiFeedbackVersionResDTO;
+import com.folioframe.domain.portfolio.dto.response.AiFieldResultDTO;
+import com.folioframe.domain.portfolio.entity.Portfolio;
+import com.folioframe.domain.portfolio.entity.PortfolioAiFeedback;
+import com.folioframe.domain.portfolio.entity.PortfolioAiField;
+import com.folioframe.domain.portfolio.entity.PortfolioField;
+import com.folioframe.domain.portfolio.entity.PortfolioProject;
+import com.folioframe.domain.portfolio.enums.AiChosenType;
+import com.folioframe.domain.portfolio.enums.AiFeedbackStatus;
+import com.folioframe.domain.portfolio.enums.AiFieldTargetType;
+import com.folioframe.domain.portfolio.enums.PortfolioVisibility;
+import com.folioframe.domain.portfolio.exception.PortfolioException;
+import com.folioframe.domain.portfolio.exception.code.PortfolioErrorCode;
+import com.folioframe.domain.portfolio.repository.PortfolioAiFeedbackRepository;
+import com.folioframe.domain.portfolio.repository.PortfolioAiFieldRepository;
+import com.folioframe.domain.portfolio.repository.PortfolioFieldRepository;
+import com.folioframe.domain.portfolio.repository.PortfolioProjectRepository;
+import com.folioframe.domain.talent.entity.TalentProfile;
+import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.MediaType;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.HttpStatusCodeException;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+@Service
+@RequiredArgsConstructor
+public class PortfolioAiFeedbackService {
+
+    private static final Logger log = LoggerFactory.getLogger(PortfolioAiFeedbackService.class);
+
+    private final PortfolioService portfolioService;
+    private final PortfolioFieldRepository portfolioFieldRepository;
+    private final PortfolioProjectRepository portfolioProjectRepository;
+    private final PortfolioAiFeedbackRepository feedbackRepository;
+    private final PortfolioAiFieldRepository aiFieldRepository;
+    private final RestClient aiServiceRestClient;
+
+    @Transactional
+    public PortfolioAiFeedbackResDTO generate(Long portfolioId, Long memberId) {
+        Portfolio portfolio = portfolioService.findPortfolio(portfolioId);
+        portfolioService.validateOwnership(portfolio, memberId);
+
+        if (portfolio.getAiCheckUsedCount() >= portfolio.getAiCheckMaxCount()) {
+            throw new PortfolioException(PortfolioErrorCode.AI_FEEDBACK_LIMIT_EXCEEDED);
+        }
+
+        TalentProfile talentProfile = portfolio.getTalentProfile();
+
+        List<PortfolioField> customFields = portfolioFieldRepository.findAllByPortfolioOrderByDisplayOrder(portfolio);
+        List<PortfolioProject> projects = portfolioProjectRepository.findAllByPortfolioOrderByCreatedAtDesc(portfolio);
+
+        Map<Long, PortfolioField> fieldById = customFields.stream()
+                .collect(Collectors.toMap(PortfolioField::getId, Function.identity()));
+        Map<Long, PortfolioProject> projectById = projects.stream()
+                .collect(Collectors.toMap(PortfolioProject::getId, Function.identity()));
+
+        // 포트폴리오 최초 AI 첨삭 요청이면, 지금 이 순간의 라이브 콘텐츠를 "원본"(version=0)으로
+        // 스냅샷 떠둔다. 이후로는 원본도 다른 버전처럼 독립적으로 편집·게시할 수 있다.
+        ensureOriginalSnapshot(portfolio, talentProfile, fieldById, projectById);
+
+        List<AiFieldInputDTO> inputs = buildFieldInputs(portfolio, talentProfile, customFields, projects);
+        if (inputs.isEmpty()) {
+            throw new PortfolioException(PortfolioErrorCode.AI_FEEDBACK_EMPTY_CONTENT);
+        }
+
+        AiFeedbackApiReqDTO request = new AiFeedbackApiReqDTO(
+                portfolio.getTitle(),
+                portfolio.getJobRole() != null ? portfolio.getJobRole().name() : null,
+                inputs
+        );
+
+        AiFeedbackApiResDTO response = callAiService(request);
+
+        portfolio.increaseAiCheckUsedCount();
+
+        // 최상위 버전 번호는 지금까지 생성된 최상위(부모 없는) 버전 중 가장 큰 번호 + 1로 매긴다.
+        // (개수 기반으로 매기면 중간 버전이 삭제됐을 때 번호가 충돌할 수 있어 MAX+1을 사용한다.)
+        // 자식(수정본) 버전에서 다시 AI 첨삭을 호출해도 여기서 새 최상위 버전이 생성된다.
+        int nextVersion = feedbackRepository.findTopByPortfolioAndParentFeedbackIsNullOrderByVersionDesc(portfolio)
+                .map(top -> top.getVersion() + 1)
+                .orElse(1);
+        PortfolioAiFeedback feedback = feedbackRepository.save(PortfolioAiFeedback.builder()
+                .portfolio(portfolio)
+                .member(talentProfile.getMember())
+                .version(nextVersion)
+                .comment(response.comment())
+                .score(response.score())
+                .status(AiFeedbackStatus.SUCCESS)
+                .build());
+
+        List<PortfolioAiField> aiFields = response.fields().stream()
+                .map(revision -> toAiField(feedback, revision, fieldById, projectById, portfolio, talentProfile))
+                .toList();
+
+        // 기본값은 AI 수정본 채택: 사용자가 아무것도 선택하지 않고 저장해도 AI 수정본이 그 버전의
+        // 초안에 반영된다. 실제 라이브 콘텐츠는 "게시" API를 호출하기 전까지 전혀 바뀌지 않는다.
+        aiFields.forEach(aiField -> {
+            aiField.choose(AiChosenType.AI);
+            aiField.updateResolvedText(aiField.getAiRevisedText());
+        });
+        aiFieldRepository.saveAll(aiFields);
+
+        List<AiFieldResultDTO> fieldResults = aiFields.stream().map(AiFieldResultDTO::from).toList();
+        return PortfolioAiFeedbackResDTO.of(feedback, fieldResults, false);
+    }
+
+    @Transactional(readOnly = true)
+    public PortfolioAiFeedbackResDTO getLatest(Long portfolioId, Long memberId) {
+        Portfolio portfolio = portfolioService.findPortfolio(portfolioId);
+        portfolioService.validateOwnership(portfolio, memberId);
+
+        PortfolioAiFeedback feedback = feedbackRepository.findTopByPortfolioAndParentFeedbackIsNullOrderByVersionDesc(portfolio)
+                .orElseThrow(() -> new PortfolioException(PortfolioErrorCode.AI_FEEDBACK_NOT_FOUND));
+
+        return toResDTO(feedback);
+    }
+
+    @Transactional(readOnly = true)
+    public PortfolioAiFeedbackResDTO getByVersion(Long portfolioId, Integer version, Integer subVersion, Long memberId) {
+        Portfolio portfolio = portfolioService.findPortfolio(portfolioId);
+        portfolioService.validateOwnership(portfolio, memberId);
+
+        PortfolioAiFeedback feedback = findFeedback(portfolio, version, subVersion);
+        return toResDTO(feedback);
+    }
+
+    @Transactional(readOnly = true)
+    public List<PortfolioAiFeedbackVersionResDTO> getVersions(Long portfolioId, Long memberId) {
+        Portfolio portfolio = portfolioService.findPortfolio(portfolioId);
+        portfolioService.validateOwnership(portfolio, memberId);
+
+        List<PortfolioAiFeedback> topLevelFeedbacks = feedbackRepository.findAllByPortfolioAndParentFeedbackIsNullOrderByVersionAsc(portfolio);
+        if (topLevelFeedbacks.isEmpty()) {
+            // AI 첨삭을 한 번도 요청한 적 없음: 원본을 라이브 콘텐츠 기준 가상 항목으로만 보여준다.
+            boolean publishedAsIs = isPublishedWithoutVersion(portfolio);
+            return List.of(PortfolioAiFeedbackVersionResDTO.original(publishedAsIs));
+        }
+
+        Long publishedId = portfolio.getPublishedFeedback() != null ? portfolio.getPublishedFeedback().getId() : null;
+
+        List<PortfolioAiFeedbackVersionResDTO> results = new ArrayList<>();
+        for (PortfolioAiFeedback feedback : topLevelFeedbacks) {
+            List<PortfolioAiFeedbackVersionResDTO> revisions = feedbackRepository.findAllByParentFeedbackOrderBySubVersionAsc(feedback).stream()
+                    .map(revision -> PortfolioAiFeedbackVersionResDTO.from(revision, List.of(), revision.getId().equals(publishedId)))
+                    .toList();
+            results.add(PortfolioAiFeedbackVersionResDTO.from(feedback, revisions, feedback.getId().equals(publishedId)));
+        }
+        return results;
+    }
+
+    // "원본" 조회. AI 첨삭을 이미 시작했다면 그 순간 스냅샷 떠둔 독립 버전(version=0)을 그대로 보여주고,
+    // 아직 한 번도 요청한 적 없다면 지금 라이브 필드 콘텐츠를 읽기 전용으로 보여준다.
+    @Transactional(readOnly = true)
+    public PortfolioAiFeedbackResDTO getOriginal(Long portfolioId, Long memberId) {
+        Portfolio portfolio = portfolioService.findPortfolio(portfolioId);
+        portfolioService.validateOwnership(portfolio, memberId);
+
+        return feedbackRepository.findByPortfolioAndVersionAndParentFeedbackIsNull(portfolio, 0)
+                .map(this::toResDTO)
+                .orElseGet(() -> buildLiveOriginalResponse(portfolio));
+    }
+
+    private PortfolioAiFeedbackResDTO buildLiveOriginalResponse(Portfolio portfolio) {
+        TalentProfile talentProfile = portfolio.getTalentProfile();
+        List<PortfolioField> customFields = portfolioFieldRepository.findAllByPortfolioOrderByDisplayOrder(portfolio);
+        List<PortfolioProject> projects = portfolioProjectRepository.findAllByPortfolioOrderByCreatedAtDesc(portfolio);
+
+        List<AiFieldResultDTO> fieldResults = buildFieldInputs(portfolio, talentProfile, customFields, projects).stream()
+                .map(input -> AiFieldResultDTO.liveOriginal(
+                        input.fieldType(),
+                        input.fieldType() == AiFieldTargetType.CUSTOM_FIELD ? input.fieldId() : null,
+                        input.fieldType() == AiFieldTargetType.PROJECT_SUMMARY ? input.fieldId() : null,
+                        input.content()))
+                .toList();
+
+        return PortfolioAiFeedbackResDTO.original(fieldResults, isPublishedWithoutVersion(portfolio));
+    }
+
+    @Transactional
+    public AiFieldResultDTO chooseField(Long portfolioId, Long aiFieldId, Long memberId, AiChosenType chosen) {
+        if (chosen == AiChosenType.PENDING) {
+            throw new PortfolioException(PortfolioErrorCode.AI_FEEDBACK_INVALID_CHOICE);
+        }
+
+        Portfolio portfolio = portfolioService.findPortfolio(portfolioId);
+        portfolioService.validateOwnership(portfolio, memberId);
+
+        PortfolioAiField aiField = findOwnedAiField(portfolioId, aiFieldId);
+        if (aiField.getFeedback().isFinalized()) {
+            throw new PortfolioException(PortfolioErrorCode.AI_FEEDBACK_VERSION_CLOSED);
+        }
+
+        aiField.choose(chosen);
+        String text = (chosen == AiChosenType.AI) ? aiField.getAiRevisedText() : aiField.getOriginalText();
+        aiField.updateResolvedText(text);
+
+        return AiFieldResultDTO.from(aiField);
+    }
+
+    // "직접 수정". 확정 여부와 무관하게 그 버전 자신의 초안(resolvedText)만 덮어쓴다. 실제 라이브
+    // 콘텐츠는 바뀌지 않으며, 게시(publish) API를 호출해야만 라이브에 반영된다.
+    @Transactional
+    public AiFieldResultDTO editField(Long portfolioId, Long aiFieldId, Long memberId, String content) {
+        Portfolio portfolio = portfolioService.findPortfolio(portfolioId);
+        portfolioService.validateOwnership(portfolio, memberId);
+
+        PortfolioAiField aiField = findOwnedAiField(portfolioId, aiFieldId);
+        aiField.updateResolvedText(content);
+
+        return AiFieldResultDTO.from(aiField);
+    }
+
+    // 저장(확정). 오픈 상태 버전이면 지금 초안 상태를 최종본으로 확정(finalizedAt 설정)한다.
+    // resolvedText는 chooseField/editField가 이미 계속 최신 상태로 유지하고 있으므로 추가로
+    // 동기화할 필요는 없다. 이미 확정된 버전(또는 자식 수정본)에 대한 호출은 상태 변화 없이 그대로 응답한다.
+    @Transactional
+    public PortfolioAiFeedbackResDTO saveVersion(Long portfolioId, Integer version, Integer subVersion, Long memberId) {
+        Portfolio portfolio = portfolioService.findPortfolio(portfolioId);
+        portfolioService.validateOwnership(portfolio, memberId);
+
+        PortfolioAiFeedback feedback = findFeedback(portfolio, version, subVersion);
+        if (!feedback.isFinalized()) {
+            feedback.markFinalized(LocalDateTime.now());
+        }
+
+        return toResDTO(feedback);
+    }
+
+    // "수정본 만들기". 확정된 최상위 버전 바로 아래 자식 버전을 만든다. AI를 다시 호출하지 않고
+    // 부모의 확정 콘텐츠를 그대로 복사해 선택 UX 없이 바로 직접 수정만 가능한 상태로 시작한다.
+    @Transactional
+    public PortfolioAiFeedbackResDTO createRevision(Long portfolioId, Integer version, Integer subVersion, Long memberId) {
+        Portfolio portfolio = portfolioService.findPortfolio(portfolioId);
+        portfolioService.validateOwnership(portfolio, memberId);
+
+        PortfolioAiFeedback parent = feedbackRepository.findByPortfolioAndVersionAndParentFeedbackIsNull(portfolio, version)
+                .orElseThrow(() -> new PortfolioException(PortfolioErrorCode.AI_FEEDBACK_NOT_FOUND));
+        if (!parent.isFinalized()) {
+            throw new PortfolioException(PortfolioErrorCode.AI_FEEDBACK_REVISION_ON_OPEN_VERSION);
+        }
+
+        // subVersion을 지정하면 그 형제 자식(예: 버전2-1)의 최신 내용을 이어받아 다음 자식(버전2-2)을 만든다.
+        // 지정하지 않으면 최상위 부모(버전2)의 확정 콘텐츠에서 시작한다. 자식은 항상 같은 부모 밑에 1단계로만 붙는다.
+        PortfolioAiFeedback source = parent;
+        if (subVersion != null) {
+            source = feedbackRepository.findByParentFeedbackAndSubVersion(parent, subVersion)
+                    .orElseThrow(() -> new PortfolioException(PortfolioErrorCode.AI_FEEDBACK_NOT_FOUND));
+        }
+
+        // 자식 서브버전 번호는 개수가 아닌 MAX+1로 매겨 중간 자식이 삭제됐을 때의 번호 충돌을 피한다.
+        int nextSubVersion = feedbackRepository.findTopByParentFeedbackOrderBySubVersionDesc(parent)
+                .map(top -> top.getSubVersion() + 1)
+                .orElse(1);
+        PortfolioAiFeedback child = feedbackRepository.save(PortfolioAiFeedback.builder()
+                .portfolio(portfolio)
+                .member(parent.getMember())
+                .version(parent.getVersion())
+                .subVersion(nextSubVersion)
+                .parentFeedback(parent)
+                .comment(parent.getComment())
+                .score(parent.getScore())
+                .status(parent.getStatus())
+                .finalizedAt(LocalDateTime.now())
+                .build());
+
+        List<PortfolioAiField> sourceFields = aiFieldRepository.findAllByFeedback(source);
+        List<PortfolioAiField> childFields = sourceFields.stream()
+                .map(sourceField -> PortfolioAiField.builder()
+                        .feedback(child)
+                        .targetType(sourceField.getTargetType())
+                        .portfolioField(sourceField.getPortfolioField())
+                        .portfolioProject(sourceField.getPortfolioProject())
+                        .resolvedText(sourceField.getResolvedText())
+                        .build())
+                .toList();
+        aiFieldRepository.saveAll(childFields);
+
+        return toResDTO(child);
+    }
+
+    // 게시. 대상 버전(원본 포함)의 확정 콘텐츠를 실제 라이브 엔티티에 복사하고, 그 버전을
+    // "지금 게시 중인 버전"으로 기록한다. 라이브 콘텐츠가 바뀌는 유일한 경로다.
+    @Transactional
+    public PortfolioAiFeedbackResDTO publishVersion(Long portfolioId, Integer version, Integer subVersion, Long memberId) {
+        Portfolio portfolio = portfolioService.findPortfolio(portfolioId);
+        portfolioService.validateOwnership(portfolio, memberId);
+
+        // 템플릿 useCount는 "이 템플릿으로 만든 포트폴리오가 처음 게시되는 순간"에만 1 증가한다.
+        // 같은 포트폴리오에서 버전을 바꿔가며 다시 게시하는 건 정상적인 반복 동작이라 매번 세지 않는다.
+        boolean firstPublish = portfolio.getPublishedAt() == null;
+
+        // AI 첨삭을 한 번도 요청한 적 없는 포트폴리오는 "원본"(version=0) row 자체가 없다.
+        // 이 경우 게시는 지금 라이브 콘텐츠를 그대로 공개 전환하는 것과 같다(복사할 대상이 없음).
+        if (version == 0 && subVersion == null
+                && feedbackRepository.findByPortfolioAndVersionAndParentFeedbackIsNull(portfolio, 0).isEmpty()) {
+            portfolio.publish();
+            if (firstPublish) {
+                portfolio.getTemplate().increaseUseCount();
+            }
+            return buildLiveOriginalResponse(portfolio);
+        }
+
+        PortfolioAiFeedback feedback = findFeedback(portfolio, version, subVersion);
+        List<PortfolioAiField> fields = aiFieldRepository.findAllByFeedback(feedback);
+        for (PortfolioAiField field : fields) {
+            applyToSource(field, portfolio, field.getResolvedText());
+        }
+        portfolio.publishFeedback(feedback);
+        if (firstPublish) {
+            portfolio.getTemplate().increaseUseCount();
+        }
+
+        return toResDTO(feedback);
+    }
+
+    // 버전 삭제. 최상위 버전을 삭제하면 그 아래 자식(수정본) 버전까지 전부 함께 삭제되고(그룹 삭제),
+    // 자식 버전만 지정하면 그 자식만 삭제된다. 원본(version=0)은 삭제할 수 없다. 삭제 대상이 지금
+    // 게시 중인 버전(또는 그 부모)이라면 포트폴리오 게시를 함께 내린다.
+    @Transactional
+    public void deleteVersion(Long portfolioId, Integer version, Integer subVersion, Long memberId) {
+        Portfolio portfolio = portfolioService.findPortfolio(portfolioId);
+        portfolioService.validateOwnership(portfolio, memberId);
+
+        if (version == 0) {
+            throw new PortfolioException(PortfolioErrorCode.AI_FEEDBACK_ORIGINAL_NOT_DELETABLE);
+        }
+
+        PortfolioAiFeedback feedback = findFeedback(portfolio, version, subVersion);
+
+        PortfolioAiFeedback published = portfolio.getPublishedFeedback();
+        boolean removesPublished = published != null && (
+                published.getId().equals(feedback.getId())
+                || (feedback.isTopLevel() && published.getParentFeedback() != null
+                    && published.getParentFeedback().getId().equals(feedback.getId())));
+        if (removesPublished) {
+            // 게시 중이던 버전이 사라지므로 그 버전이 라이브에 올려둔 내용을 전부 비우고 비공개로 전환한다.
+            for (PortfolioAiField field : aiFieldRepository.findAllByFeedback(published)) {
+                clearSource(field, portfolio);
+            }
+            portfolio.unpublish();
+        }
+
+        feedbackRepository.delete(feedback);
+    }
+
+    // 버전 목록 패널에 표시되는 이름을 사용자가 직접 지정/수정한다. 원본이 아직 실제 row로
+    // 승격되기 전(=AI 첨삭을 한 번도 요청한 적 없음)에는 저장할 곳이 없어 지원하지 않는다.
+    @Transactional
+    public PortfolioAiFeedbackResDTO renameVersion(Long portfolioId, Integer version, Integer subVersion, Long memberId, String label) {
+        Portfolio portfolio = portfolioService.findPortfolio(portfolioId);
+        portfolioService.validateOwnership(portfolio, memberId);
+
+        PortfolioAiFeedback feedback = findFeedback(portfolio, version, subVersion);
+        feedback.rename(label);
+
+        return toResDTO(feedback);
+    }
+
+    private void clearSource(PortfolioAiField aiField, Portfolio portfolio) {
+        switch (aiField.getTargetType()) {
+            case CUSTOM_FIELD -> {
+                PortfolioField field = aiField.getPortfolioField();
+                if (field != null) {
+                    field.applyContent("", null);
+                }
+            }
+            case PROJECT_SUMMARY -> {
+                PortfolioProject project = aiField.getPortfolioProject();
+                if (project != null) {
+                    project.updateContent("");
+                }
+            }
+            case PORTFOLIO_ONE_LINER -> portfolio.updateOneLiner("");
+            case PORTFOLIO_DESCRIPTION -> portfolio.updateDescription("");
+            case PROFILE_ONE_LINER -> portfolio.getTalentProfile().updateOneLiner("");
+        }
+    }
+
+    private boolean isPublishedWithoutVersion(Portfolio portfolio) {
+        return portfolio.getVisibility() == PortfolioVisibility.PUBLIC && portfolio.getPublishedFeedback() == null;
+    }
+
+    private void ensureOriginalSnapshot(Portfolio portfolio, TalentProfile talentProfile,
+                                         Map<Long, PortfolioField> fieldById, Map<Long, PortfolioProject> projectById) {
+        if (feedbackRepository.findByPortfolioAndVersionAndParentFeedbackIsNull(portfolio, 0).isPresent()) {
+            return;
+        }
+
+        PortfolioAiFeedback origin = feedbackRepository.save(PortfolioAiFeedback.builder()
+                .portfolio(portfolio)
+                .member(talentProfile.getMember())
+                .version(0)
+                .status(AiFeedbackStatus.SUCCESS)
+                .finalizedAt(LocalDateTime.now())
+                .build());
+
+        List<AiFieldInputDTO> inputs = buildFieldInputs(portfolio, talentProfile,
+                new ArrayList<>(fieldById.values()), new ArrayList<>(projectById.values()));
+
+        List<PortfolioAiField> originFields = inputs.stream()
+                .map(input -> PortfolioAiField.builder()
+                        .feedback(origin)
+                        .targetType(input.fieldType())
+                        .portfolioField(input.fieldType() == AiFieldTargetType.CUSTOM_FIELD ? fieldById.get(input.fieldId()) : null)
+                        .portfolioProject(input.fieldType() == AiFieldTargetType.PROJECT_SUMMARY ? projectById.get(input.fieldId()) : null)
+                        .resolvedText(input.content())
+                        .build())
+                .toList();
+        aiFieldRepository.saveAll(originFields);
+    }
+
+    private PortfolioAiField findOwnedAiField(Long portfolioId, Long aiFieldId) {
+        PortfolioAiField aiField = aiFieldRepository.findById(aiFieldId)
+                .orElseThrow(() -> new PortfolioException(PortfolioErrorCode.AI_FEEDBACK_FIELD_NOT_FOUND));
+        if (!aiField.getFeedback().getPortfolio().getId().equals(portfolioId)) {
+            throw new PortfolioException(PortfolioErrorCode.AI_FEEDBACK_FIELD_NOT_IN_PORTFOLIO);
+        }
+        return aiField;
+    }
+
+    private PortfolioAiFeedback findFeedback(Portfolio portfolio, Integer version, Integer subVersion) {
+        if (subVersion == null) {
+            return feedbackRepository.findByPortfolioAndVersionAndParentFeedbackIsNull(portfolio, version)
+                    .orElseThrow(() -> new PortfolioException(PortfolioErrorCode.AI_FEEDBACK_NOT_FOUND));
+        }
+        PortfolioAiFeedback parent = feedbackRepository.findByPortfolioAndVersionAndParentFeedbackIsNull(portfolio, version)
+                .orElseThrow(() -> new PortfolioException(PortfolioErrorCode.AI_FEEDBACK_NOT_FOUND));
+        return feedbackRepository.findByParentFeedbackAndSubVersion(parent, subVersion)
+                .orElseThrow(() -> new PortfolioException(PortfolioErrorCode.AI_FEEDBACK_NOT_FOUND));
+    }
+
+    private PortfolioAiFeedbackResDTO toResDTO(PortfolioAiFeedback feedback) {
+        boolean open = !feedback.isFinalized();
+        Portfolio portfolio = feedback.getPortfolio();
+        boolean published = portfolio.getPublishedFeedback() != null
+                && portfolio.getPublishedFeedback().getId().equals(feedback.getId());
+
+        List<AiFieldResultDTO> fieldResults = aiFieldRepository.findAllByFeedback(feedback).stream()
+                .map(field -> open ? AiFieldResultDTO.from(field) : AiFieldResultDTO.finalOnly(field))
+                .toList();
+
+        return PortfolioAiFeedbackResDTO.of(feedback, fieldResults, published);
+    }
+
+    // 게시 시에만 호출된다. 대상 버전의 확정된 텍스트를 실제 라이브 엔티티에 복사한다.
+    private void applyToSource(PortfolioAiField aiField, Portfolio portfolio, String text) {
+        switch (aiField.getTargetType()) {
+            case CUSTOM_FIELD -> {
+                PortfolioField field = aiField.getPortfolioField();
+                if (field == null) {
+                    throw new PortfolioException(PortfolioErrorCode.AI_FEEDBACK_FIELD_NOT_FOUND);
+                }
+                field.applyContent(text, aiField.getFeedback());
+            }
+            case PROJECT_SUMMARY -> {
+                PortfolioProject project = aiField.getPortfolioProject();
+                if (project == null) {
+                    throw new PortfolioException(PortfolioErrorCode.AI_FEEDBACK_FIELD_NOT_FOUND);
+                }
+                project.updateContent(text);
+            }
+            case PORTFOLIO_ONE_LINER -> portfolio.updateOneLiner(text);
+            case PORTFOLIO_DESCRIPTION -> portfolio.updateDescription(text);
+            case PROFILE_ONE_LINER -> portfolio.getTalentProfile().updateOneLiner(text);
+        }
+    }
+
+    private List<AiFieldInputDTO> buildFieldInputs(
+            Portfolio portfolio,
+            TalentProfile talentProfile,
+            List<PortfolioField> customFields,
+            List<PortfolioProject> projects
+    ) {
+        List<AiFieldInputDTO> inputs = new ArrayList<>();
+
+        addIfPresent(inputs, portfolio.getId(), AiFieldTargetType.PORTFOLIO_ONE_LINER,
+                AiFieldTargetType.PORTFOLIO_ONE_LINER.getLabel(), null, portfolio.getOneLiner());
+        addIfPresent(inputs, portfolio.getId(), AiFieldTargetType.PORTFOLIO_DESCRIPTION,
+                AiFieldTargetType.PORTFOLIO_DESCRIPTION.getLabel(), null, portfolio.getDescription());
+        addIfPresent(inputs, talentProfile.getId(), AiFieldTargetType.PROFILE_ONE_LINER,
+                AiFieldTargetType.PROFILE_ONE_LINER.getLabel(), null, talentProfile.getOneLiner());
+
+        for (PortfolioProject project : projects) {
+            addIfPresent(inputs, project.getId(), AiFieldTargetType.PROJECT_SUMMARY,
+                    project.getTitle(), null, project.getContent());
+        }
+        for (PortfolioField field : customFields) {
+            addIfPresent(inputs, field.getId(), AiFieldTargetType.CUSTOM_FIELD,
+                    field.getTitle(), field.getDescription(), field.getContent());
+        }
+
+        return inputs;
+    }
+
+    private void addIfPresent(List<AiFieldInputDTO> inputs, Long fieldId, AiFieldTargetType type,
+                              String title, String description, String content) {
+        if (content == null || content.isBlank()) {
+            return;
+        }
+        inputs.add(new AiFieldInputDTO(fieldId, type, title, description, content));
+    }
+
+    private PortfolioAiField toAiField(
+            PortfolioAiFeedback feedback,
+            AiFieldRevisionDTO revision,
+            Map<Long, PortfolioField> fieldById,
+            Map<Long, PortfolioProject> projectById,
+            Portfolio portfolio,
+            TalentProfile talentProfile
+    ) {
+        PortfolioAiField.PortfolioAiFieldBuilder builder = PortfolioAiField.builder()
+                .feedback(feedback)
+                .targetType(revision.fieldType())
+                .aiRevisedText(revision.aiRevisedText());
+
+        switch (revision.fieldType()) {
+            case CUSTOM_FIELD -> {
+                PortfolioField field = fieldById.get(revision.fieldId());
+                builder.portfolioField(field).originalText(field != null ? field.getContent() : null);
+            }
+            case PROJECT_SUMMARY -> {
+                PortfolioProject project = projectById.get(revision.fieldId());
+                builder.portfolioProject(project).originalText(project != null ? project.getContent() : null);
+            }
+            case PORTFOLIO_ONE_LINER -> builder.originalText(portfolio.getOneLiner());
+            case PORTFOLIO_DESCRIPTION -> builder.originalText(portfolio.getDescription());
+            case PROFILE_ONE_LINER -> builder.originalText(talentProfile.getOneLiner());
+        }
+
+        return builder.build();
+    }
+
+    private AiFeedbackApiResDTO callAiService(AiFeedbackApiReqDTO request) {
+        try {
+            AiFeedbackApiResDTO response = aiServiceRestClient.post()
+                    .uri("/api/v1/feedback")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(request)
+                    .retrieve()
+                    .body(AiFeedbackApiResDTO.class);
+
+            if (response == null) {
+                throw new PortfolioException(PortfolioErrorCode.AI_SERVICE_UNAVAILABLE);
+            }
+            return response;
+        } catch (HttpStatusCodeException exc) {
+            if (exc.getStatusCode().value() == 429) {
+                log.warn("AI 서비스 할당량 초과: {}", exc.getMessage());
+                throw new PortfolioException(PortfolioErrorCode.AI_SERVICE_QUOTA_EXCEEDED);
+            }
+            log.error("AI 서비스 호출 실패 (status={})", exc.getStatusCode(), exc);
+            throw new PortfolioException(PortfolioErrorCode.AI_SERVICE_UNAVAILABLE);
+        } catch (RestClientException exc) {
+            log.error("AI 서비스 호출 실패", exc);
+            throw new PortfolioException(PortfolioErrorCode.AI_SERVICE_UNAVAILABLE);
+        }
+    }
+}
