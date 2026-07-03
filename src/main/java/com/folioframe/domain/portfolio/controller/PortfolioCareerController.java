@@ -5,6 +5,7 @@ import com.folioframe.domain.portfolio.dto.response.CareerResDTO;
 import com.folioframe.domain.portfolio.exception.code.PortfolioSuccessCode;
 import com.folioframe.domain.portfolio.service.PortfolioCareerService;
 import com.folioframe.global.apiPayload.ApiResponse;
+import com.folioframe.global.auth.CurrentMemberId;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -24,7 +25,7 @@ public class PortfolioCareerController implements PortfolioCareerControllerDocs 
     @PostMapping
     public ResponseEntity<ApiResponse<CareerResDTO>> create(
             @PathVariable Long portfolioId,
-            @RequestHeader("X-Member-Id") Long memberId,
+            @CurrentMemberId Long memberId,
             @Valid @RequestBody CareerReqDTO request) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.onSuccess(PortfolioSuccessCode.CAREER_CREATED,
@@ -45,7 +46,7 @@ public class PortfolioCareerController implements PortfolioCareerControllerDocs 
     public ResponseEntity<ApiResponse<CareerResDTO>> update(
             @PathVariable Long portfolioId,
             @PathVariable Long careerId,
-            @RequestHeader("X-Member-Id") Long memberId,
+            @CurrentMemberId Long memberId,
             @Valid @RequestBody CareerReqDTO request) {
         return ResponseEntity.ok(
                 ApiResponse.onSuccess(PortfolioSuccessCode.CAREER_UPDATED,
@@ -57,7 +58,7 @@ public class PortfolioCareerController implements PortfolioCareerControllerDocs 
     public ResponseEntity<ApiResponse<Void>> delete(
             @PathVariable Long portfolioId,
             @PathVariable Long careerId,
-            @RequestHeader("X-Member-Id") Long memberId) {
+            @CurrentMemberId Long memberId) {
         careerService.delete(portfolioId, careerId, memberId);
         return ResponseEntity.ok(ApiResponse.onSuccess(PortfolioSuccessCode.CAREER_DELETED, null));
     }

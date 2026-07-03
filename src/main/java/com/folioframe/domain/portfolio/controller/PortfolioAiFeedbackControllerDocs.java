@@ -15,7 +15,6 @@ import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
@@ -48,7 +47,7 @@ public interface PortfolioAiFeedbackControllerDocs {
             @Parameter(description = "포트폴리오 ID", required = true) @PathVariable Long portfolioId,
             @Parameter(description = "첨삭 기준이 될 최상위 버전 번호(원본은 0). 생략하면 0(원본)") @RequestParam(required = false) Integer sourceVersion,
             @Parameter(description = "첨삭 기준이 될 자식(수정본) 버전 번호. 없으면 최상위 버전을 기준으로 함") @RequestParam(required = false) Integer sourceSubVersion,
-            @Parameter(description = "인증된 회원 ID", required = true) @RequestHeader("X-Member-Id") Long memberId
+            Long memberId
     );
 
     @Operation(
@@ -63,7 +62,7 @@ public interface PortfolioAiFeedbackControllerDocs {
     })
     ResponseEntity<ApiResponse<PortfolioAiFeedbackResDTO>> getLatest(
             @Parameter(description = "포트폴리오 ID", required = true) @PathVariable Long portfolioId,
-            @Parameter(description = "인증된 회원 ID", required = true) @RequestHeader("X-Member-Id") Long memberId
+            Long memberId
     );
 
     @Operation(
@@ -83,7 +82,7 @@ public interface PortfolioAiFeedbackControllerDocs {
     })
     ResponseEntity<ApiResponse<List<PortfolioAiFeedbackVersionResDTO>>> getVersions(
             @Parameter(description = "포트폴리오 ID", required = true) @PathVariable Long portfolioId,
-            @Parameter(description = "인증된 회원 ID", required = true) @RequestHeader("X-Member-Id") Long memberId
+            Long memberId
     );
 
     @Operation(
@@ -100,7 +99,7 @@ public interface PortfolioAiFeedbackControllerDocs {
     })
     ResponseEntity<ApiResponse<PortfolioAiFeedbackResDTO>> getOriginal(
             @Parameter(description = "포트폴리오 ID", required = true) @PathVariable Long portfolioId,
-            @Parameter(description = "인증된 회원 ID", required = true) @RequestHeader("X-Member-Id") Long memberId
+            Long memberId
     );
 
     @Operation(
@@ -121,7 +120,7 @@ public interface PortfolioAiFeedbackControllerDocs {
             @Parameter(description = "포트폴리오 ID", required = true) @PathVariable Long portfolioId,
             @Parameter(description = "조회할 최상위 버전 번호", required = true) @PathVariable Integer version,
             @Parameter(description = "조회할 자식(수정본) 버전 번호. 없으면 최상위 버전을 조회") @RequestParam(required = false) Integer subVersion,
-            @Parameter(description = "인증된 회원 ID", required = true) @RequestHeader("X-Member-Id") Long memberId
+            Long memberId
     );
 
     @Operation(
@@ -141,7 +140,7 @@ public interface PortfolioAiFeedbackControllerDocs {
             @Parameter(description = "포트폴리오 ID", required = true) @PathVariable Long portfolioId,
             @Parameter(description = "저장할 최상위 버전 번호", required = true) @PathVariable Integer version,
             @Parameter(description = "저장할 자식(수정본) 버전 번호. 없으면 최상위 버전을 저장") @RequestParam(required = false) Integer subVersion,
-            @Parameter(description = "인증된 회원 ID", required = true) @RequestHeader("X-Member-Id") Long memberId
+            Long memberId
     );
 
     @Operation(
@@ -164,7 +163,7 @@ public interface PortfolioAiFeedbackControllerDocs {
             @Parameter(description = "포트폴리오 ID", required = true) @PathVariable Long portfolioId,
             @Parameter(description = "수정본을 만들 최상위 버전 번호", required = true) @PathVariable Integer version,
             @Parameter(description = "내용을 이어받을 기존 형제 자식의 subVersion. 없으면 최상위 버전에서 시작") @RequestParam(required = false) Integer subVersion,
-            @Parameter(description = "인증된 회원 ID", required = true) @RequestHeader("X-Member-Id") Long memberId
+            Long memberId
     );
 
     @Operation(
@@ -195,7 +194,7 @@ public interface PortfolioAiFeedbackControllerDocs {
             @Parameter(description = "포트폴리오 ID", required = true) @PathVariable Long portfolioId,
             @Parameter(description = "게시할 최상위 버전 번호(원본은 0)", required = true) @PathVariable Integer version,
             @Parameter(description = "게시할 자식(수정본) 버전 번호. 없으면 최상위 버전을 게시") @RequestParam(required = false) Integer subVersion,
-            @Parameter(description = "인증된 회원 ID", required = true) @RequestHeader("X-Member-Id") Long memberId
+            Long memberId
     );
 
     @Operation(
@@ -216,7 +215,7 @@ public interface PortfolioAiFeedbackControllerDocs {
             @Parameter(description = "포트폴리오 ID", required = true) @PathVariable Long portfolioId,
             @Parameter(description = "이름을 바꿀 최상위 버전 번호(원본은 0)", required = true) @PathVariable Integer version,
             @Parameter(description = "이름을 바꿀 자식(수정본) 버전 번호. 없으면 최상위 버전을 변경") @RequestParam(required = false) Integer subVersion,
-            @Parameter(description = "인증된 회원 ID", required = true) @RequestHeader("X-Member-Id") Long memberId,
+            Long memberId,
             @Valid @RequestBody AiFeedbackRenameReqDTO request
     );
 
@@ -239,7 +238,7 @@ public interface PortfolioAiFeedbackControllerDocs {
             @Parameter(description = "포트폴리오 ID", required = true) @PathVariable Long portfolioId,
             @Parameter(description = "삭제할 최상위 버전 번호", required = true) @PathVariable Integer version,
             @Parameter(description = "삭제할 자식(수정본) 버전 번호. 없으면 최상위 버전(+ 모든 자식)을 삭제") @RequestParam(required = false) Integer subVersion,
-            @Parameter(description = "인증된 회원 ID", required = true) @RequestHeader("X-Member-Id") Long memberId
+            Long memberId
     );
 
     @Operation(
@@ -259,7 +258,7 @@ public interface PortfolioAiFeedbackControllerDocs {
     ResponseEntity<ApiResponse<AiFieldResultDTO>> chooseField(
             @Parameter(description = "포트폴리오 ID", required = true) @PathVariable Long portfolioId,
             @Parameter(description = "AI 첨삭 필드 ID (PortfolioAiField.id)", required = true) @PathVariable Long aiFieldId,
-            @Parameter(description = "인증된 회원 ID", required = true) @RequestHeader("X-Member-Id") Long memberId,
+            Long memberId,
             @Valid @RequestBody AiFieldChooseReqDTO request
     );
 
@@ -278,7 +277,7 @@ public interface PortfolioAiFeedbackControllerDocs {
     ResponseEntity<ApiResponse<AiFieldResultDTO>> editField(
             @Parameter(description = "포트폴리오 ID", required = true) @PathVariable Long portfolioId,
             @Parameter(description = "AI 첨삭 필드 ID (PortfolioAiField.id)", required = true) @PathVariable Long aiFieldId,
-            @Parameter(description = "인증된 회원 ID", required = true) @RequestHeader("X-Member-Id") Long memberId,
+            Long memberId,
             @Valid @RequestBody AiFieldEditReqDTO request
     );
 }

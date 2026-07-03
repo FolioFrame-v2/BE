@@ -9,6 +9,7 @@ import com.folioframe.domain.portfolio.dto.response.PortfolioAiFeedbackVersionRe
 import com.folioframe.domain.portfolio.exception.code.PortfolioSuccessCode;
 import com.folioframe.domain.portfolio.service.PortfolioAiFeedbackService;
 import com.folioframe.global.apiPayload.ApiResponse;
+import com.folioframe.global.auth.CurrentMemberId;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -29,7 +30,7 @@ public class PortfolioAiFeedbackController implements PortfolioAiFeedbackControl
             @PathVariable Long portfolioId,
             @RequestParam(required = false) Integer sourceVersion,
             @RequestParam(required = false) Integer sourceSubVersion,
-            @RequestHeader("X-Member-Id") Long memberId) {
+            @CurrentMemberId Long memberId) {
         return ResponseEntity.ok(
                 ApiResponse.onSuccess(PortfolioSuccessCode.AI_FEEDBACK_GENERATED,
                         aiFeedbackService.generate(portfolioId, sourceVersion, sourceSubVersion, memberId)));
@@ -39,7 +40,7 @@ public class PortfolioAiFeedbackController implements PortfolioAiFeedbackControl
     @GetMapping("/latest")
     public ResponseEntity<ApiResponse<PortfolioAiFeedbackResDTO>> getLatest(
             @PathVariable Long portfolioId,
-            @RequestHeader("X-Member-Id") Long memberId) {
+            @CurrentMemberId Long memberId) {
         return ResponseEntity.ok(
                 ApiResponse.onSuccess(PortfolioSuccessCode.AI_FEEDBACK_FOUND,
                         aiFeedbackService.getLatest(portfolioId, memberId)));
@@ -49,7 +50,7 @@ public class PortfolioAiFeedbackController implements PortfolioAiFeedbackControl
     @GetMapping("/versions")
     public ResponseEntity<ApiResponse<List<PortfolioAiFeedbackVersionResDTO>>> getVersions(
             @PathVariable Long portfolioId,
-            @RequestHeader("X-Member-Id") Long memberId) {
+            @CurrentMemberId Long memberId) {
         return ResponseEntity.ok(
                 ApiResponse.onSuccess(PortfolioSuccessCode.AI_FEEDBACK_VERSION_LIST_FOUND,
                         aiFeedbackService.getVersions(portfolioId, memberId)));
@@ -59,7 +60,7 @@ public class PortfolioAiFeedbackController implements PortfolioAiFeedbackControl
     @GetMapping("/original")
     public ResponseEntity<ApiResponse<PortfolioAiFeedbackResDTO>> getOriginal(
             @PathVariable Long portfolioId,
-            @RequestHeader("X-Member-Id") Long memberId) {
+            @CurrentMemberId Long memberId) {
         return ResponseEntity.ok(
                 ApiResponse.onSuccess(PortfolioSuccessCode.AI_FEEDBACK_FOUND,
                         aiFeedbackService.getOriginal(portfolioId, memberId)));
@@ -71,7 +72,7 @@ public class PortfolioAiFeedbackController implements PortfolioAiFeedbackControl
             @PathVariable Long portfolioId,
             @PathVariable Integer version,
             @RequestParam(required = false) Integer subVersion,
-            @RequestHeader("X-Member-Id") Long memberId) {
+            @CurrentMemberId Long memberId) {
         return ResponseEntity.ok(
                 ApiResponse.onSuccess(PortfolioSuccessCode.AI_FEEDBACK_FOUND,
                         aiFeedbackService.getByVersion(portfolioId, version, subVersion, memberId)));
@@ -83,7 +84,7 @@ public class PortfolioAiFeedbackController implements PortfolioAiFeedbackControl
             @PathVariable Long portfolioId,
             @PathVariable Integer version,
             @RequestParam(required = false) Integer subVersion,
-            @RequestHeader("X-Member-Id") Long memberId) {
+            @CurrentMemberId Long memberId) {
         return ResponseEntity.ok(
                 ApiResponse.onSuccess(PortfolioSuccessCode.AI_FEEDBACK_VERSION_SAVED,
                         aiFeedbackService.saveVersion(portfolioId, version, subVersion, memberId)));
@@ -95,7 +96,7 @@ public class PortfolioAiFeedbackController implements PortfolioAiFeedbackControl
             @PathVariable Long portfolioId,
             @PathVariable Integer version,
             @RequestParam(required = false) Integer subVersion,
-            @RequestHeader("X-Member-Id") Long memberId) {
+            @CurrentMemberId Long memberId) {
         return ResponseEntity.ok(
                 ApiResponse.onSuccess(PortfolioSuccessCode.AI_FEEDBACK_REVISION_CREATED,
                         aiFeedbackService.createRevision(portfolioId, version, subVersion, memberId)));
@@ -107,7 +108,7 @@ public class PortfolioAiFeedbackController implements PortfolioAiFeedbackControl
             @PathVariable Long portfolioId,
             @PathVariable Integer version,
             @RequestParam(required = false) Integer subVersion,
-            @RequestHeader("X-Member-Id") Long memberId) {
+            @CurrentMemberId Long memberId) {
         return ResponseEntity.ok(
                 ApiResponse.onSuccess(PortfolioSuccessCode.AI_FEEDBACK_VERSION_PUBLISHED,
                         aiFeedbackService.publishVersion(portfolioId, version, subVersion, memberId)));
@@ -119,7 +120,7 @@ public class PortfolioAiFeedbackController implements PortfolioAiFeedbackControl
             @PathVariable Long portfolioId,
             @PathVariable Integer version,
             @RequestParam(required = false) Integer subVersion,
-            @RequestHeader("X-Member-Id") Long memberId,
+            @CurrentMemberId Long memberId,
             @Valid @RequestBody AiFeedbackRenameReqDTO request) {
         return ResponseEntity.ok(
                 ApiResponse.onSuccess(PortfolioSuccessCode.AI_FEEDBACK_VERSION_RENAMED,
@@ -132,7 +133,7 @@ public class PortfolioAiFeedbackController implements PortfolioAiFeedbackControl
             @PathVariable Long portfolioId,
             @PathVariable Integer version,
             @RequestParam(required = false) Integer subVersion,
-            @RequestHeader("X-Member-Id") Long memberId) {
+            @CurrentMemberId Long memberId) {
         aiFeedbackService.deleteVersion(portfolioId, version, subVersion, memberId);
         return ResponseEntity.ok(ApiResponse.onSuccess(PortfolioSuccessCode.AI_FEEDBACK_VERSION_DELETED, null));
     }
@@ -142,7 +143,7 @@ public class PortfolioAiFeedbackController implements PortfolioAiFeedbackControl
     public ResponseEntity<ApiResponse<AiFieldResultDTO>> chooseField(
             @PathVariable Long portfolioId,
             @PathVariable Long aiFieldId,
-            @RequestHeader("X-Member-Id") Long memberId,
+            @CurrentMemberId Long memberId,
             @Valid @RequestBody AiFieldChooseReqDTO request) {
         return ResponseEntity.ok(
                 ApiResponse.onSuccess(PortfolioSuccessCode.AI_FEEDBACK_FIELD_CHOSEN,
@@ -154,7 +155,7 @@ public class PortfolioAiFeedbackController implements PortfolioAiFeedbackControl
     public ResponseEntity<ApiResponse<AiFieldResultDTO>> editField(
             @PathVariable Long portfolioId,
             @PathVariable Long aiFieldId,
-            @RequestHeader("X-Member-Id") Long memberId,
+            @CurrentMemberId Long memberId,
             @Valid @RequestBody AiFieldEditReqDTO request) {
         return ResponseEntity.ok(
                 ApiResponse.onSuccess(PortfolioSuccessCode.AI_FEEDBACK_FIELD_EDITED,
