@@ -46,14 +46,15 @@ public record AiFieldResultDTO(
         );
     }
 
-    // "원본"(첫 AI 첨삭 요청 직전 상태) 조회용. version 1의 AiField가 기록해 둔 originalText만 노출한다.
-    public static AiFieldResultDTO originalOnly(PortfolioAiField field) {
+    // "원본"(현재 라이브 필드 콘텐츠) 조회용. AI 첨삭 이력과 무관하게 지금의 실제 콘텐츠만 노출한다.
+    public static AiFieldResultDTO liveOriginal(AiFieldTargetType targetType, Long portfolioFieldId,
+                                                 Long portfolioProjectId, String content) {
         return new AiFieldResultDTO(
-                field.getId(),
-                field.getTargetType(),
-                field.getPortfolioField() != null ? field.getPortfolioField().getId() : null,
-                field.getPortfolioProject() != null ? field.getPortfolioProject().getId() : null,
-                field.getOriginalText(),
+                null,
+                targetType,
+                portfolioFieldId,
+                portfolioProjectId,
+                content,
                 null,
                 null,
                 null

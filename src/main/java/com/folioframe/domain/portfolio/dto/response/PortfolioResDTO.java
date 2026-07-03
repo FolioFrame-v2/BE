@@ -4,7 +4,6 @@ import com.folioframe.domain.common.dto.response.TechstackResDTO;
 import com.folioframe.domain.common.entity.Techstack;
 import com.folioframe.domain.common.enums.JobRole;
 import com.folioframe.domain.portfolio.entity.Portfolio;
-import com.folioframe.domain.portfolio.enums.EditStatus;
 import com.folioframe.domain.portfolio.enums.PortfolioVisibility;
 
 import java.time.LocalDateTime;
@@ -23,7 +22,6 @@ public record PortfolioResDTO(
         String publicSlug,
         int viewCount,
         int bookmarkCount,
-        EditStatus editStatus,
         LocalDateTime lastSavedAt,
         LocalDateTime publishedAt,
         LocalDateTime createdAt,
@@ -44,7 +42,6 @@ public record PortfolioResDTO(
                 portfolio.getPublicSlug(),
                 portfolio.getViewCount(),
                 portfolio.getBookmarkCount(),
-                portfolio.getEditStatus(),
                 portfolio.getLastSavedAt(),
                 portfolio.getPublishedAt(),
                 portfolio.getCreatedAt(),

@@ -42,7 +42,9 @@ public enum PortfolioErrorCode implements BaseErrorCode {
     AI_FEEDBACK_FIELD_NOT_FOUND(HttpStatus.NOT_FOUND, "AIFEEDBACK404_2", "AI 첨삭 필드를 찾을 수 없습니다."),
     AI_FEEDBACK_FIELD_NOT_IN_PORTFOLIO(HttpStatus.BAD_REQUEST, "AIFEEDBACK400_2", "해당 포트폴리오에 속한 AI 첨삭 필드가 아닙니다."),
     AI_FEEDBACK_INVALID_CHOICE(HttpStatus.BAD_REQUEST, "AIFEEDBACK400_3", "PENDING은 선택할 수 없습니다."),
-    AI_FEEDBACK_VERSION_CLOSED(HttpStatus.BAD_REQUEST, "AIFEEDBACK400_4", "이미 확정된 버전은 선택을 변경할 수 없습니다.");
+    AI_FEEDBACK_VERSION_CLOSED(HttpStatus.BAD_REQUEST, "AIFEEDBACK400_4", "이미 확정된 버전은 선택을 변경할 수 없습니다."),
+    AI_FEEDBACK_REVISION_ON_OPEN_VERSION(HttpStatus.BAD_REQUEST, "AIFEEDBACK400_5", "아직 확정되지 않은 버전에는 수정본을 만들 수 없습니다."),
+    AI_FEEDBACK_ORIGINAL_NOT_DELETABLE(HttpStatus.BAD_REQUEST, "AIFEEDBACK400_6", "원본은 삭제할 수 없습니다.");
 
     private final HttpStatus status;
     private final String code;

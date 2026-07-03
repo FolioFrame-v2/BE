@@ -9,11 +9,15 @@ import java.util.Optional;
 
 public interface PortfolioAiFeedbackRepository extends JpaRepository<PortfolioAiFeedback, Long> {
 
-    Optional<PortfolioAiFeedback> findTopByPortfolioOrderByVersionDesc(Portfolio portfolio);
+    Optional<PortfolioAiFeedback> findTopByPortfolioAndParentFeedbackIsNullOrderByVersionDesc(Portfolio portfolio);
 
-    Optional<PortfolioAiFeedback> findByPortfolioAndVersion(Portfolio portfolio, Integer version);
+    Optional<PortfolioAiFeedback> findByPortfolioAndVersionAndParentFeedbackIsNull(Portfolio portfolio, Integer version);
 
-    List<PortfolioAiFeedback> findAllByPortfolioOrderByVersionAsc(Portfolio portfolio);
+    Optional<PortfolioAiFeedback> findByParentFeedbackAndSubVersion(PortfolioAiFeedback parentFeedback, Integer subVersion);
 
-    int countByPortfolio(Portfolio portfolio);
+    List<PortfolioAiFeedback> findAllByPortfolioAndParentFeedbackIsNullOrderByVersionAsc(Portfolio portfolio);
+
+    List<PortfolioAiFeedback> findAllByParentFeedbackOrderBySubVersionAsc(PortfolioAiFeedback parentFeedback);
+
+    Optional<PortfolioAiFeedback> findTopByParentFeedbackOrderBySubVersionDesc(PortfolioAiFeedback parentFeedback);
 }

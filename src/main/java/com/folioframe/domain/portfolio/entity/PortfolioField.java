@@ -34,9 +34,10 @@ public class PortfolioField extends BaseEntity {
     @Column(name = "content", columnDefinition = "TEXT")
     private String content;
 
-    // 사용자가 적용한 AI 피드백 버전
+    // 사용자가 적용한 AI 피드백 버전. 그 버전이 삭제되면 실제 content는 그대로 두고 참조만 끊는다.
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "applied_feedback_id")
+    @OnDelete(action = OnDeleteAction.SET_NULL)
     private PortfolioAiFeedback appliedFeedback;
 
     @Column(name = "display_order", nullable = false)

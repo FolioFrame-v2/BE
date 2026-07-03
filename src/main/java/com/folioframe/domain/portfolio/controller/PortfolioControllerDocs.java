@@ -135,20 +135,6 @@ public interface PortfolioControllerDocs {
     );
 
     @Operation(
-            summary = "포트폴리오 저장(발행)",
-            description = "작성 완료된 포트폴리오를 저장합니다. EditStatus가 PUBLISHED로 변경되고 선택한 템플릿의 useCount가 1 증가합니다."
-    )
-    @ApiResponses({
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "저장 성공"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "해당 포트폴리오에 접근 권한이 없습니다."),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "포트폴리오를 찾을 수 없습니다.")
-    })
-    ResponseEntity<ApiResponse<PortfolioResDTO>> publish(
-            @Parameter(description = "포트폴리오 ID", required = true) @PathVariable Long portfolioId,
-            @Parameter(description = "인증된 회원 ID", required = true) @RequestHeader("X-Member-Id") Long memberId
-    );
-
-    @Operation(
             summary = "포트폴리오 삭제",
             description = "포트폴리오를 삭제합니다. 본인 포트폴리오만 삭제 가능합니다."
     )

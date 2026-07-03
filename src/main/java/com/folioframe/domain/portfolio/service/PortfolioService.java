@@ -7,7 +7,6 @@ import com.folioframe.domain.portfolio.dto.response.PortfolioDetailResDTO;
 import com.folioframe.domain.portfolio.dto.response.PortfolioResDTO;
 import com.folioframe.domain.portfolio.dto.response.PortfolioSummaryResDTO;
 import com.folioframe.domain.common.dto.response.TechstackResDTO;
-import com.folioframe.domain.portfolio.enums.EditStatus;
 import com.folioframe.domain.portfolio.enums.PortfolioSortType;
 import com.folioframe.global.dto.PageRequest;
 import com.folioframe.global.dto.PageResponse;
@@ -120,8 +119,8 @@ public class PortfolioService {
         // 비로그인 시 상위 3개만 반환 (프론트에서 회원가입 유도)
         PageRequest effectiveRequest = (memberId == null) ? PageRequest.of(1, 3) : pageRequest;
         return PageResponse.of(
-                portfolioRepository.findAllByVisibilityAndEditStatus(
-                                PortfolioVisibility.PUBLIC, EditStatus.PUBLISHED,
+                portfolioRepository.findAllByVisibility(
+                                PortfolioVisibility.PUBLIC,
                                 effectiveRequest.toPageable(sortType.getSort()))
                         .map(PortfolioSummaryResDTO::from)
         );
@@ -174,15 +173,6 @@ public class PortfolioService {
         Portfolio portfolio = findPortfolio(portfolioId);
         validateOwnership(portfolio, memberId);
         portfolio.changeVisibility(request.visibility());
-        return PortfolioResDTO.from(portfolio, getTechstacks(portfolio));
-    }
-
-    @Transactional
-    public PortfolioResDTO publish(Long portfolioId, Long memberId) {
-        Portfolio portfolio = findPortfolio(portfolioId);
-        validateOwnership(portfolio, memberId);
-        portfolio.publish();
-        portfolio.getTemplate().increaseUseCount();
         return PortfolioResDTO.from(portfolio, getTechstacks(portfolio));
     }
 
