@@ -11,7 +11,6 @@ import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 
 import java.util.List;
 
@@ -30,7 +29,7 @@ public interface PortfolioCareerControllerDocs {
     })
     ResponseEntity<ApiResponse<CareerResDTO>> create(
             @Parameter(description = "포트폴리오 ID", required = true) @PathVariable Long portfolioId,
-            @Parameter(description = "인증된 회원 ID", required = true) @RequestHeader("X-Member-Id") Long memberId,
+            Long memberId,
             @Valid @RequestBody CareerReqDTO request
     );
 
@@ -59,7 +58,7 @@ public interface PortfolioCareerControllerDocs {
     ResponseEntity<ApiResponse<CareerResDTO>> update(
             @Parameter(description = "포트폴리오 ID", required = true) @PathVariable Long portfolioId,
             @Parameter(description = "경력 ID", required = true) @PathVariable Long careerId,
-            @Parameter(description = "인증된 회원 ID", required = true) @RequestHeader("X-Member-Id") Long memberId,
+            Long memberId,
             @Valid @RequestBody CareerReqDTO request
     );
 
@@ -76,6 +75,6 @@ public interface PortfolioCareerControllerDocs {
     ResponseEntity<ApiResponse<Void>> delete(
             @Parameter(description = "포트폴리오 ID", required = true) @PathVariable Long portfolioId,
             @Parameter(description = "경력 ID", required = true) @PathVariable Long careerId,
-            @Parameter(description = "인증된 회원 ID", required = true) @RequestHeader("X-Member-Id") Long memberId
+            Long memberId
     );
 }

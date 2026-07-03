@@ -5,6 +5,7 @@ import com.folioframe.domain.portfolio.dto.response.EducationResDTO;
 import com.folioframe.domain.portfolio.exception.code.PortfolioSuccessCode;
 import com.folioframe.domain.portfolio.service.PortfolioEducationService;
 import com.folioframe.global.apiPayload.ApiResponse;
+import com.folioframe.global.auth.CurrentMemberId;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -24,7 +25,7 @@ public class PortfolioEducationController implements PortfolioEducationControlle
     @PostMapping
     public ResponseEntity<ApiResponse<EducationResDTO>> create(
             @PathVariable Long portfolioId,
-            @RequestHeader("X-Member-Id") Long memberId,
+            @CurrentMemberId Long memberId,
             @Valid @RequestBody EducationReqDTO request) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.onSuccess(PortfolioSuccessCode.EDUCATION_CREATED,
@@ -45,7 +46,7 @@ public class PortfolioEducationController implements PortfolioEducationControlle
     public ResponseEntity<ApiResponse<EducationResDTO>> update(
             @PathVariable Long portfolioId,
             @PathVariable Long educationId,
-            @RequestHeader("X-Member-Id") Long memberId,
+            @CurrentMemberId Long memberId,
             @Valid @RequestBody EducationReqDTO request) {
         return ResponseEntity.ok(
                 ApiResponse.onSuccess(PortfolioSuccessCode.EDUCATION_UPDATED,
@@ -57,7 +58,7 @@ public class PortfolioEducationController implements PortfolioEducationControlle
     public ResponseEntity<ApiResponse<Void>> delete(
             @PathVariable Long portfolioId,
             @PathVariable Long educationId,
-            @RequestHeader("X-Member-Id") Long memberId) {
+            @CurrentMemberId Long memberId) {
         educationService.delete(portfolioId, educationId, memberId);
         return ResponseEntity.ok(ApiResponse.onSuccess(PortfolioSuccessCode.EDUCATION_DELETED, null));
     }

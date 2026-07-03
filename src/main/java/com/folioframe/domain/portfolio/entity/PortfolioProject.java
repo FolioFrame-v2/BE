@@ -55,4 +55,8 @@ public class PortfolioProject extends BaseEntity {
         this.startedAt = startedAt;
         this.endedAt = endedAt;
     }
+
+    public void updateContent(String content) {
+        this.content = content;
+    }
 }

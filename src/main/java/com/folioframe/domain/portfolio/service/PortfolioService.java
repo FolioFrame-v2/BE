@@ -1,5 +1,6 @@
 package com.folioframe.domain.portfolio.service;
 
+import com.folioframe.domain.portfolio.dto.ai.AiFieldInputDTO;
 import com.folioframe.domain.portfolio.dto.request.PortfolioCreateReqDTO;
 import com.folioframe.domain.portfolio.dto.request.PortfolioUpdateReqDTO;
 import com.folioframe.domain.portfolio.dto.request.PortfolioVisibilityReqDTO;
@@ -7,8 +8,13 @@ import com.folioframe.domain.portfolio.dto.response.PortfolioDetailResDTO;
 import com.folioframe.domain.portfolio.dto.response.PortfolioResDTO;
 import com.folioframe.domain.portfolio.dto.response.PortfolioSummaryResDTO;
 import com.folioframe.domain.common.dto.response.TechstackResDTO;
-import com.folioframe.domain.portfolio.enums.EditStatus;
+import com.folioframe.domain.portfolio.entity.PortfolioAiFeedback;
+import com.folioframe.domain.portfolio.entity.PortfolioAiField;
+import com.folioframe.domain.portfolio.enums.AiFeedbackStatus;
+import com.folioframe.domain.portfolio.enums.AiFieldTargetType;
 import com.folioframe.domain.portfolio.enums.PortfolioSortType;
+import com.folioframe.domain.portfolio.repository.PortfolioAiFeedbackRepository;
+import com.folioframe.domain.portfolio.repository.PortfolioAiFieldRepository;
 import com.folioframe.global.dto.PageRequest;
 import com.folioframe.global.dto.PageResponse;
 import com.folioframe.domain.portfolio.entity.Portfolio;
@@ -41,10 +47,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -63,6 +72,8 @@ public class PortfolioService {
     private final ProjectTechstackRepository projectTechstackRepository;
     private final PortfolioTechstackRepository portfolioTechstackRepository;
     private final TechstackRepository techstackRepository;
+    private final PortfolioAiFeedbackRepository portfolioAiFeedbackRepository;
+    private final PortfolioAiFieldRepository portfolioAiFieldRepository;
 
     @Transactional
     public PortfolioResDTO create(Long memberId, PortfolioCreateReqDTO request) {
@@ -91,6 +102,7 @@ public class PortfolioService {
                 .map(tf -> PortfolioField.builder()
                         .portfolio(portfolio)
                         .title(tf.getTitle())
+                        .description(tf.getDescription())
                         .content("")
                         .displayOrder(tf.getDisplayOrder())
                         .build())
@@ -108,7 +120,7 @@ public class PortfolioService {
     public PageResponse<PortfolioSummaryResDTO> getList(Long memberId, PageRequest pageRequest) {
         TalentProfile talentProfile = findTalentProfile(memberId);
         return PageResponse.of(
-                portfolioRepository.findAllByTalentProfileOrderByUpdatedAtDesc(talentProfile, pageRequest.toPageable())
+                portfolioRepository.findAllByTalentProfileAndConfirmedAtIsNotNullOrderByUpdatedAtDesc(talentProfile, pageRequest.toPageable())
                         .map(PortfolioSummaryResDTO::from)
         );
     }
@@ -119,18 +131,21 @@ public class PortfolioService {
         // 비로그인 시 상위 3개만 반환 (프론트에서 회원가입 유도)
         PageRequest effectiveRequest = (memberId == null) ? PageRequest.of(1, 3) : pageRequest;
         return PageResponse.of(
-                portfolioRepository.findAllByVisibilityAndEditStatus(
-                                PortfolioVisibility.PUBLIC, EditStatus.PUBLISHED,
+                portfolioRepository.findAllByVisibilityAndConfirmedAtIsNotNull(
+                                PortfolioVisibility.PUBLIC,
                                 effectiveRequest.toPageable(sortType.getSort()))
                         .map(PortfolioSummaryResDTO::from)
         );
     }
 
+    // 공개/비공개 "선택"만으로는(게시하기 전) 남에게 보이면 안 되므로, PUBLIC이어도 확정
+    // (confirmedAt) 전이면 소유자만 접근 가능하도록 막는다.
     @Transactional(readOnly = true)
     public PortfolioDetailResDTO getDetail(Long portfolioId, Long memberId) {
         Portfolio portfolio = findPortfolio(portfolioId);
 
-        if (portfolio.getVisibility() != PortfolioVisibility.PUBLIC) {
+        boolean publiclyVisible = portfolio.getVisibility() == PortfolioVisibility.PUBLIC && portfolio.getConfirmedAt() != null;
+        if (!publiclyVisible) {
             validateOwnership(portfolio, memberId);
         }
 
@@ -142,7 +157,7 @@ public class PortfolioService {
         Portfolio portfolio = portfolioRepository.findByPublicSlug(publicSlug)
                 .orElseThrow(() -> new PortfolioException(PortfolioErrorCode.PORTFOLIO_NOT_FOUND));
 
-        if (portfolio.getVisibility() == PortfolioVisibility.PRIVATE) {
+        if (portfolio.getVisibility() != PortfolioVisibility.PUBLIC || portfolio.getConfirmedAt() == null) {
             throw new PortfolioException(PortfolioErrorCode.PORTFOLIO_ACCESS_DENIED);
         }
 
@@ -177,15 +192,6 @@ public class PortfolioService {
     }
 
     @Transactional
-    public PortfolioResDTO publish(Long portfolioId, Long memberId) {
-        Portfolio portfolio = findPortfolio(portfolioId);
-        validateOwnership(portfolio, memberId);
-        portfolio.publish();
-        portfolio.getTemplate().increaseUseCount();
-        return PortfolioResDTO.from(portfolio, getTechstacks(portfolio));
-    }
-
-    @Transactional
     public void delete(Long portfolioId, Long memberId) {
         Portfolio portfolio = findPortfolio(portfolioId);
         validateOwnership(portfolio, memberId);
@@ -201,6 +207,105 @@ public class PortfolioService {
         portfolio.markSaved();
 
         return techstacks.stream().map(TechstackResDTO::from).toList();
+    }
+
+    // 저장 확정. 편집 화면의 "저장" 버튼이 호출한다. 원본(v0) 스냅샷이 아직 없으면 함께 만들고,
+    // 이미 있으면(AI 첨삭을 먼저 요청해 확정된 경우 포함) 상태 변화 없이 그대로 확정 처리한다.
+    @Transactional
+    public PortfolioResDTO confirmSave(Long portfolioId, Long memberId) {
+        Portfolio portfolio = findPortfolio(portfolioId);
+        validateOwnership(portfolio, memberId);
+
+        ensureOriginalSnapshot(portfolio);
+
+        return PortfolioResDTO.from(portfolio, getTechstacks(portfolio));
+    }
+
+    // 방치 정리 스케줄러가 호출한다. cutoff보다 오래 전에 생성됐지만 한 번도 확정되지 않은
+    // (저장/AI첨삭/게시 중 아무것도 하지 않은) 포트폴리오를 정리한다.
+    @Transactional
+    public int cleanupAbandonedDrafts(LocalDateTime cutoff) {
+        return portfolioRepository.deleteAbandonedDrafts(cutoff);
+    }
+
+    // AI 첨삭을 처음 요청하는 순간(PortfolioAiFeedbackService.generate) 또는 "저장" 클릭 시,
+    // 그 시점의 라이브 콘텐츠를 원본(version=0)으로 스냅샷 떠둔다. 이미 있으면 아무 일도 하지
+    // 않지만, 어느 경로든 도달했다는 것 자체가 "저장 확정"이므로 confirmSave()는 항상 호출한다.
+    @Transactional
+    void ensureOriginalSnapshot(Portfolio portfolio) {
+        if (portfolioAiFeedbackRepository.findByPortfolioAndVersionAndParentFeedbackIsNull(portfolio, 0).isPresent()) {
+            portfolio.confirmSave();
+            return;
+        }
+
+        TalentProfile talentProfile = portfolio.getTalentProfile();
+        List<PortfolioField> customFields = portfolioFieldRepository.findAllByPortfolioOrderByDisplayOrder(portfolio);
+        List<PortfolioProject> projects = projectRepository.findAllByPortfolioOrderByCreatedAtDesc(portfolio);
+        Map<Long, PortfolioField> fieldById = customFields.stream()
+                .collect(Collectors.toMap(PortfolioField::getId, Function.identity()));
+        Map<Long, PortfolioProject> projectById = projects.stream()
+                .collect(Collectors.toMap(PortfolioProject::getId, Function.identity()));
+
+        PortfolioAiFeedback origin = portfolioAiFeedbackRepository.save(PortfolioAiFeedback.builder()
+                .portfolio(portfolio)
+                .member(talentProfile.getMember())
+                .version(0)
+                .status(AiFeedbackStatus.SUCCESS)
+                .finalizedAt(LocalDateTime.now())
+                .build());
+
+        List<AiFieldInputDTO> inputs = buildFieldInputs(portfolio, talentProfile,
+                new ArrayList<>(fieldById.values()), new ArrayList<>(projectById.values()));
+
+        List<PortfolioAiField> originFields = inputs.stream()
+                .map(input -> PortfolioAiField.builder()
+                        .feedback(origin)
+                        .targetType(input.fieldType())
+                        .portfolioField(input.fieldType() == AiFieldTargetType.CUSTOM_FIELD ? fieldById.get(input.fieldId()) : null)
+                        .portfolioProject(input.fieldType() == AiFieldTargetType.PROJECT_SUMMARY ? projectById.get(input.fieldId()) : null)
+                        .resolvedText(input.content())
+                        .build())
+                .toList();
+        portfolioAiFieldRepository.saveAll(originFields);
+
+        portfolio.confirmSave();
+    }
+
+    // 현재 라이브 콘텐츠(포트폴리오 한줄소개/상세설명, 프로필 소개, 커스텀 필드, 프로젝트 요약)를
+    // AI 입력/원본 스냅샷 형식으로 변환한다. 빈 값인 필드는 대상에서 제외한다.
+    List<AiFieldInputDTO> buildFieldInputs(
+            Portfolio portfolio,
+            TalentProfile talentProfile,
+            List<PortfolioField> customFields,
+            List<PortfolioProject> projects
+    ) {
+        List<AiFieldInputDTO> inputs = new ArrayList<>();
+
+        addIfPresent(inputs, portfolio.getId(), AiFieldTargetType.PORTFOLIO_ONE_LINER,
+                AiFieldTargetType.PORTFOLIO_ONE_LINER.getLabel(), null, portfolio.getOneLiner());
+        addIfPresent(inputs, portfolio.getId(), AiFieldTargetType.PORTFOLIO_DESCRIPTION,
+                AiFieldTargetType.PORTFOLIO_DESCRIPTION.getLabel(), null, portfolio.getDescription());
+        addIfPresent(inputs, talentProfile.getId(), AiFieldTargetType.PROFILE_ONE_LINER,
+                AiFieldTargetType.PROFILE_ONE_LINER.getLabel(), null, talentProfile.getOneLiner());
+
+        for (PortfolioProject project : projects) {
+            addIfPresent(inputs, project.getId(), AiFieldTargetType.PROJECT_SUMMARY,
+                    project.getTitle(), null, project.getContent());
+        }
+        for (PortfolioField field : customFields) {
+            addIfPresent(inputs, field.getId(), AiFieldTargetType.CUSTOM_FIELD,
+                    field.getTitle(), field.getDescription(), field.getContent());
+        }
+
+        return inputs;
+    }
+
+    private void addIfPresent(List<AiFieldInputDTO> inputs, Long fieldId, AiFieldTargetType type,
+                              String title, String description, String content) {
+        if (content == null || content.isBlank()) {
+            return;
+        }
+        inputs.add(new AiFieldInputDTO(fieldId, type, title, description, content));
     }
 
     private PortfolioDetailResDTO toDetailResDTO(Portfolio portfolio) {

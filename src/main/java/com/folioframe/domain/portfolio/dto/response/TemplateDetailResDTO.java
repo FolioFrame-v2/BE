@@ -2,6 +2,7 @@ package com.folioframe.domain.portfolio.dto.response;
 
 import com.folioframe.domain.portfolio.entity.PortfolioTemplate;
 import com.folioframe.domain.portfolio.entity.TemplateField;
+import com.folioframe.domain.portfolio.enums.TemplateLayoutKey;
 
 import java.util.List;
 
@@ -9,7 +10,7 @@ public record TemplateDetailResDTO(
         Long id,
         String name,
         String description,
-        String thumbnailUrl,
+        TemplateLayoutKey layoutKey,
         int useCount,
         List<TemplateFieldResDTO> fields
 ) {
@@ -18,7 +19,7 @@ public record TemplateDetailResDTO(
                 template.getId(),
                 template.getName(),
                 template.getDescription(),
-                template.getThumbnailUrl(),
+                template.getLayoutKey(),
                 template.getUseCount(),
                 fields.stream().map(TemplateFieldResDTO::from).toList()
         );

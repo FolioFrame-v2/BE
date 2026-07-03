@@ -7,6 +7,7 @@ import com.folioframe.domain.common.dto.response.TechstackResDTO;
 import com.folioframe.domain.portfolio.exception.code.PortfolioSuccessCode;
 import com.folioframe.domain.portfolio.service.PortfolioProjectService;
 import com.folioframe.global.apiPayload.ApiResponse;
+import com.folioframe.global.auth.CurrentMemberId;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -26,7 +27,7 @@ public class PortfolioProjectController implements PortfolioProjectControllerDoc
     @PostMapping
     public ResponseEntity<ApiResponse<ProjectResDTO>> create(
             @PathVariable Long portfolioId,
-            @RequestHeader("X-Member-Id") Long memberId,
+            @CurrentMemberId Long memberId,
             @Valid @RequestBody ProjectReqDTO request) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.onSuccess(PortfolioSuccessCode.PROJECT_CREATED,
@@ -47,7 +48,7 @@ public class PortfolioProjectController implements PortfolioProjectControllerDoc
     public ResponseEntity<ApiResponse<ProjectResDTO>> update(
             @PathVariable Long portfolioId,
             @PathVariable Long projectId,
-            @RequestHeader("X-Member-Id") Long memberId,
+            @CurrentMemberId Long memberId,
             @Valid @RequestBody ProjectReqDTO request) {
         return ResponseEntity.ok(
                 ApiResponse.onSuccess(PortfolioSuccessCode.PROJECT_UPDATED,
@@ -59,7 +60,7 @@ public class PortfolioProjectController implements PortfolioProjectControllerDoc
     public ResponseEntity<ApiResponse<Void>> delete(
             @PathVariable Long portfolioId,
             @PathVariable Long projectId,
-            @RequestHeader("X-Member-Id") Long memberId) {
+            @CurrentMemberId Long memberId) {
         projectService.delete(portfolioId, projectId, memberId);
         return ResponseEntity.ok(ApiResponse.onSuccess(PortfolioSuccessCode.PROJECT_DELETED, null));
     }
@@ -69,7 +70,7 @@ public class PortfolioProjectController implements PortfolioProjectControllerDoc
     public ResponseEntity<ApiResponse<List<TechstackResDTO>>> updateTechstacks(
             @PathVariable Long portfolioId,
             @PathVariable Long projectId,
-            @RequestHeader("X-Member-Id") Long memberId,
+            @CurrentMemberId Long memberId,
             @Valid @RequestBody TechstackIdsReqDTO request) {
         return ResponseEntity.ok(
                 ApiResponse.onSuccess(PortfolioSuccessCode.PROJECT_TECHSTACKS_UPDATED,

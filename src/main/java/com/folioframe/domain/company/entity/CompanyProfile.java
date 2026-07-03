@@ -24,8 +24,9 @@ public class CompanyProfile extends BaseEntity {
     @JoinColumn(name = "member_id", nullable = false, unique = true)
     private Member member;
 
+    // 회원가입 시점엔 사업자번호만 받고, 지역은 이후 회사 프로필 완성 단계에서 채워짐
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "region_id", nullable = false)
+    @JoinColumn(name = "region_id")
     private Region region;
 
     @Column(name = "company_name", nullable = false, length = 100)
@@ -50,4 +51,8 @@ public class CompanyProfile extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "verification_status", nullable = false)
     private VerificationStatus verificationStatus = VerificationStatus.PENDING;
+
+    public void updateVerificationStatus(VerificationStatus verificationStatus) {
+        this.verificationStatus = verificationStatus;
+    }
 }

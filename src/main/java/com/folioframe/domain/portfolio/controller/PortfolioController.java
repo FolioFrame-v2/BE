@@ -12,6 +12,7 @@ import com.folioframe.domain.portfolio.exception.code.PortfolioSuccessCode;
 import com.folioframe.domain.portfolio.service.PortfolioService;
 import com.folioframe.domain.portfolio.enums.PortfolioSortType;
 import com.folioframe.global.apiPayload.ApiResponse;
+import com.folioframe.global.auth.CurrentMemberId;
 import com.folioframe.global.dto.PageRequest;
 import com.folioframe.global.dto.PageResponse;
 import jakarta.validation.Valid;
@@ -32,7 +33,7 @@ public class PortfolioController implements PortfolioControllerDocs {
     @Override
     @PostMapping
     public ResponseEntity<ApiResponse<PortfolioResDTO>> create(
-            @RequestHeader("X-Member-Id") Long memberId,
+            @CurrentMemberId Long memberId,
             @Valid @RequestBody PortfolioCreateReqDTO request) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.onSuccess(PortfolioSuccessCode.PORTFOLIO_CREATED,
@@ -42,7 +43,7 @@ public class PortfolioController implements PortfolioControllerDocs {
     @Override
     @GetMapping
     public ResponseEntity<ApiResponse<PageResponse<PortfolioSummaryResDTO>>> getList(
-            @RequestHeader("X-Member-Id") Long memberId,
+            @CurrentMemberId Long memberId,
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "4") Integer size) {
         return ResponseEntity.ok(
@@ -56,7 +57,7 @@ public class PortfolioController implements PortfolioControllerDocs {
             @RequestParam(required = false) PortfolioSortType sort,
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "9") Integer size,
-            @RequestHeader(value = "X-Member-Id", required = false) Long memberId) {
+            @CurrentMemberId(required = false) Long memberId) {
         return ResponseEntity.ok(
                 ApiResponse.onSuccess(PortfolioSuccessCode.PORTFOLIO_LIST_FOUND,
                         portfolioService.getPublicList(sort, PageRequest.of(page, size), memberId)));
@@ -66,7 +67,7 @@ public class PortfolioController implements PortfolioControllerDocs {
     @GetMapping("/{portfolioId}")
     public ResponseEntity<ApiResponse<PortfolioDetailResDTO>> getDetail(
             @PathVariable Long portfolioId,
-            @RequestHeader("X-Member-Id") Long memberId) {
+            @CurrentMemberId(required = false) Long memberId) {
         return ResponseEntity.ok(
                 ApiResponse.onSuccess(PortfolioSuccessCode.PORTFOLIO_DETAIL_FOUND,
                         portfolioService.getDetail(portfolioId, memberId)));
@@ -85,7 +86,7 @@ public class PortfolioController implements PortfolioControllerDocs {
     @PatchMapping("/{portfolioId}")
     public ResponseEntity<ApiResponse<PortfolioResDTO>> update(
             @PathVariable Long portfolioId,
-            @RequestHeader("X-Member-Id") Long memberId,
+            @CurrentMemberId Long memberId,
             @Valid @RequestBody PortfolioUpdateReqDTO request) {
         return ResponseEntity.ok(
                 ApiResponse.onSuccess(PortfolioSuccessCode.PORTFOLIO_UPDATED,
@@ -93,10 +94,20 @@ public class PortfolioController implements PortfolioControllerDocs {
     }
 
     @Override
+    @PostMapping("/{portfolioId}/save")
+    public ResponseEntity<ApiResponse<PortfolioResDTO>> confirmSave(
+            @PathVariable Long portfolioId,
+            @CurrentMemberId Long memberId) {
+        return ResponseEntity.ok(
+                ApiResponse.onSuccess(PortfolioSuccessCode.PORTFOLIO_SAVE_CONFIRMED,
+                        portfolioService.confirmSave(portfolioId, memberId)));
+    }
+
+    @Override
     @PatchMapping("/{portfolioId}/visibility")
     public ResponseEntity<ApiResponse<PortfolioResDTO>> changeVisibility(
             @PathVariable Long portfolioId,
-            @RequestHeader("X-Member-Id") Long memberId,
+            @CurrentMemberId Long memberId,
             @Valid @RequestBody PortfolioVisibilityReqDTO request) {
         return ResponseEntity.ok(
                 ApiResponse.onSuccess(PortfolioSuccessCode.PORTFOLIO_VISIBILITY_CHANGED,
@@ -104,20 +115,10 @@ public class PortfolioController implements PortfolioControllerDocs {
     }
 
     @Override
-    @PatchMapping("/{portfolioId}/publish")
-    public ResponseEntity<ApiResponse<PortfolioResDTO>> publish(
-            @PathVariable Long portfolioId,
-            @RequestHeader("X-Member-Id") Long memberId) {
-        return ResponseEntity.ok(
-                ApiResponse.onSuccess(PortfolioSuccessCode.PORTFOLIO_PUBLISHED,
-                        portfolioService.publish(portfolioId, memberId)));
-    }
-
-    @Override
     @DeleteMapping("/{portfolioId}")
     public ResponseEntity<ApiResponse<Void>> delete(
             @PathVariable Long portfolioId,
-            @RequestHeader("X-Member-Id") Long memberId) {
+            @CurrentMemberId Long memberId) {
         portfolioService.delete(portfolioId, memberId);
         return ResponseEntity.ok(ApiResponse.onSuccess(PortfolioSuccessCode.PORTFOLIO_DELETED, null));
     }
@@ -126,7 +127,7 @@ public class PortfolioController implements PortfolioControllerDocs {
     @PatchMapping("/{portfolioId}/techstacks")
     public ResponseEntity<ApiResponse<List<TechstackResDTO>>> updateTechstacks(
             @PathVariable Long portfolioId,
-            @RequestHeader("X-Member-Id") Long memberId,
+            @CurrentMemberId Long memberId,
             @Valid @RequestBody TechstackIdsReqDTO request) {
         return ResponseEntity.ok(
                 ApiResponse.onSuccess(PortfolioSuccessCode.PORTFOLIO_TECHSTACKS_UPDATED,

@@ -19,7 +19,6 @@ import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
@@ -37,7 +36,7 @@ public interface PortfolioControllerDocs {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "회원, 탤런트 프로필, 템플릿 또는 기술스택을 찾을 수 없습니다.")
     })
     ResponseEntity<ApiResponse<PortfolioResDTO>> create(
-            @Parameter(description = "인증된 회원 ID", required = true) @RequestHeader("X-Member-Id") Long memberId,
+            Long memberId,
             @Valid @RequestBody PortfolioCreateReqDTO request
     );
 
@@ -50,7 +49,7 @@ public interface PortfolioControllerDocs {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "회원 또는 탤런트 프로필을 찾을 수 없습니다.")
     })
     ResponseEntity<ApiResponse<PageResponse<PortfolioSummaryResDTO>>> getList(
-            @Parameter(description = "인증된 회원 ID", required = true) @RequestHeader("X-Member-Id") Long memberId,
+            Long memberId,
             @Parameter(description = "페이지 번호 (1부터 시작, 기본값: 1)") @RequestParam(defaultValue = "1") Integer page,
             @Parameter(description = "페이지 크기 (기본값: 4)") @RequestParam(defaultValue = "4") Integer size
     );
@@ -68,7 +67,7 @@ public interface PortfolioControllerDocs {
             @Parameter(description = "정렬 (LATEST / POPULAR / MOST_VIEWED, 기본값: LATEST)") @RequestParam(required = false) PortfolioSortType sort,
             @Parameter(description = "페이지 번호 (1부터 시작, 기본값: 1)") @RequestParam(defaultValue = "1") Integer page,
             @Parameter(description = "페이지 크기 (기본값: 9)") @RequestParam(defaultValue = "9") Integer size,
-            @Parameter(description = "인증된 회원 ID (선택 — 미전달 시 상위 3개만 반환)") @RequestHeader(value = "X-Member-Id", required = false) Long memberId
+            Long memberId
     );
 
     @Operation(
@@ -82,7 +81,7 @@ public interface PortfolioControllerDocs {
     })
     ResponseEntity<ApiResponse<PortfolioDetailResDTO>> getDetail(
             @Parameter(description = "포트폴리오 ID", required = true) @PathVariable Long portfolioId,
-            @Parameter(description = "인증된 회원 ID", required = true) @RequestHeader("X-Member-Id") Long memberId
+            Long memberId
     );
 
     @Operation(
@@ -110,8 +109,26 @@ public interface PortfolioControllerDocs {
     })
     ResponseEntity<ApiResponse<PortfolioResDTO>> update(
             @Parameter(description = "포트폴리오 ID", required = true) @PathVariable Long portfolioId,
-            @Parameter(description = "인증된 회원 ID", required = true) @RequestHeader("X-Member-Id") Long memberId,
+            Long memberId,
             @Valid @RequestBody PortfolioUpdateReqDTO request
+    );
+
+    @Operation(
+            summary = "포트폴리오 저장 확정",
+            description = "편집 화면의 '저장' 버튼이 호출합니다. 아직 확정된 적 없는 초안을 확정 상태로 전환하고, " +
+                    "원본(v0) 스냅샷이 없으면 지금 라이브 콘텐츠 기준으로 함께 생성합니다. 확정되지 않은 포트폴리오는 " +
+                    "마이페이지 목록에 노출되지 않고, 일정 시간이 지나면 서버가 자동으로 정리합니다 — 이 API를 호출해야 " +
+                    "그 대상에서 제외됩니다. 이미 확정된 포트폴리오(또는 AI 첨삭을 먼저 요청했거나 게시한 적이 있는 " +
+                    "포트폴리오)에 다시 호출해도 상태 변화 없이 그대로 응답합니다(멱등)."
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "저장 확정 성공"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "해당 포트폴리오에 접근 권한이 없습니다."),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "포트폴리오를 찾을 수 없습니다.")
+    })
+    ResponseEntity<ApiResponse<PortfolioResDTO>> confirmSave(
+            @Parameter(description = "포트폴리오 ID", required = true) @PathVariable Long portfolioId,
+            Long memberId
     );
 
     @Operation(
@@ -130,22 +147,8 @@ public interface PortfolioControllerDocs {
     })
     ResponseEntity<ApiResponse<PortfolioResDTO>> changeVisibility(
             @Parameter(description = "포트폴리오 ID", required = true) @PathVariable Long portfolioId,
-            @Parameter(description = "인증된 회원 ID", required = true) @RequestHeader("X-Member-Id") Long memberId,
+            Long memberId,
             @Valid @RequestBody PortfolioVisibilityReqDTO request
-    );
-
-    @Operation(
-            summary = "포트폴리오 저장(발행)",
-            description = "작성 완료된 포트폴리오를 저장합니다. EditStatus가 PUBLISHED로 변경되고 선택한 템플릿의 useCount가 1 증가합니다."
-    )
-    @ApiResponses({
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "저장 성공"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "해당 포트폴리오에 접근 권한이 없습니다."),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "포트폴리오를 찾을 수 없습니다.")
-    })
-    ResponseEntity<ApiResponse<PortfolioResDTO>> publish(
-            @Parameter(description = "포트폴리오 ID", required = true) @PathVariable Long portfolioId,
-            @Parameter(description = "인증된 회원 ID", required = true) @RequestHeader("X-Member-Id") Long memberId
     );
 
     @Operation(
@@ -159,7 +162,7 @@ public interface PortfolioControllerDocs {
     })
     ResponseEntity<ApiResponse<Void>> delete(
             @Parameter(description = "포트폴리오 ID", required = true) @PathVariable Long portfolioId,
-            @Parameter(description = "인증된 회원 ID", required = true) @RequestHeader("X-Member-Id") Long memberId
+            Long memberId
     );
 
     @Operation(
@@ -173,7 +176,7 @@ public interface PortfolioControllerDocs {
     })
     ResponseEntity<ApiResponse<List<TechstackResDTO>>> updateTechstacks(
             @Parameter(description = "포트폴리오 ID", required = true) @PathVariable Long portfolioId,
-            @Parameter(description = "인증된 회원 ID", required = true) @RequestHeader("X-Member-Id") Long memberId,
+            Long memberId,
             @Valid @RequestBody TechstackIdsReqDTO request
     );
 }

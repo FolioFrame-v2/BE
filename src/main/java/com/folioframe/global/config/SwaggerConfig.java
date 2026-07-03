@@ -11,7 +11,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class SwaggerConfig {
 
-    private static final String MEMBER_ID_HEADER = "X-Member-Id";
+    private static final String BEARER_AUTH = "Bearer Authentication";
 
     @Bean
     public OpenAPI openAPI() {
@@ -20,12 +20,14 @@ public class SwaggerConfig {
                         .title("FolioFrame API")
                         .description("FolioFrame 포트폴리오 서비스 API 문서")
                         .version("v1.0.0"))
-                .addSecurityItem(new SecurityRequirement().addList(MEMBER_ID_HEADER))
+                .addSecurityItem(new SecurityRequirement().addList(BEARER_AUTH))
                 .components(new Components()
-                        .addSecuritySchemes(MEMBER_ID_HEADER, new SecurityScheme()
-                                .name(MEMBER_ID_HEADER)
-                                .type(SecurityScheme.Type.APIKEY)
+                        .addSecuritySchemes(BEARER_AUTH, new SecurityScheme()
+                                .type(SecurityScheme.Type.HTTP)
+                                .scheme("bearer")
+                                .bearerFormat("JWT")
                                 .in(SecurityScheme.In.HEADER)
-                                .description("인증된 회원 ID (임시 인증 방식 — JWT 도입 전)")));
+                                .name("Authorization")
+                                .description("로그인 시 발급받은 access token을 입력하세요.")));
     }
 }

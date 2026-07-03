@@ -25,8 +25,9 @@ public class Member extends BaseEntity {
     @Column(name = "member_name", nullable = false, length = 50)
     private String name;
 
-    // LOCAL 회원은 필수, GOOGLE 소셜 로그인 회원은 null 가능
-    @Column(name = "login_id", unique = true, length = 20)
+    // LOCAL 회원은 아이디, GOOGLE 소셜 로그인 회원은 이메일이 그대로 들어감(로그인/JWT subject로 공용 사용)
+    // 단, 소셜 로그인 회원 조회는 이 값이 아니라 provider+providerId로 함
+    @Column(name = "login_id", unique = true, length = 255)
     private String loginId;
 
     @Column(name = "email", length = 100)
@@ -39,7 +40,7 @@ public class Member extends BaseEntity {
     @Column(name = "password", length = 255)
     private String password;
 
-    @Column(name = "phone", length = 20)
+    @Column(name = "phone", unique = true, length = 20)
     private String phone;
 
     @Enumerated(EnumType.STRING)
