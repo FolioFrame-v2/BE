@@ -41,6 +41,16 @@ public class AuthController {
         return ApiResponse.onSuccess(AuthSuccessCode.CHECK_ID_SUCCESS, authService.checkId(request.getLoginId()));
     }
 
+    @Operation(summary = "휴대폰번호 중복 확인", description = "입력한 휴대폰번호가 이미 사용 중인지 확인합니다.")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "사용 가능한 휴대폰번호입니다."),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409", description = "이미 사용 중인 휴대폰번호입니다.")
+    })
+    @PostMapping("/check-phone")
+    public ApiResponse<CheckPhoneResDTO> checkPhone(@RequestBody CheckPhoneReqDTO request) {
+        return ApiResponse.onSuccess(AuthSuccessCode.CHECK_PHONE_SUCCESS, authService.checkPhone(request.getPhone()));
+    }
+
     @Operation(summary = "로그인", description = "이메일과 비밀번호로 로그인하고 토큰을 발급받습니다.")
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "로그인에 성공했습니다."),
@@ -52,16 +62,7 @@ public class AuthController {
         return ApiResponse.onSuccess(AuthSuccessCode.LOGIN_SUCCESS, authService.login(request));
     }
 
-    @Operation(summary = "로그아웃", description = "현재 사용 중인 Access Token을 만료 처리합니다.")
-    @ApiResponses({
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "로그아웃에 성공하였습니다."),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "유효하지 않거나 만료된 토큰입니다.")
-    })
-    @PostMapping("/logout")
-    public ApiResponse<Void> logout(@RequestHeader("Authorization") String accessToken) {
-        authService.logout(accessToken);
-        return ApiResponse.onSuccess(AuthSuccessCode.LOGOUT_SUCCESS, null);
-    }
+    // 로그아웃(POST /api/auth/logout)은 SecurityConfig의 Spring Security logout 필터(JwtLogoutHandler)가 처리함
 
     @Operation(summary = "토큰 재발급", description = "만료된 Access Token을 Refresh Token을 이용해 새로 발급받습니다.")
     @ApiResponses({

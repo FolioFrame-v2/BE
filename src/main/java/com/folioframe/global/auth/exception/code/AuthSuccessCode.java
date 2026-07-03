@@ -13,6 +13,7 @@ public enum AuthSuccessCode implements BaseSuccessCode {
     LOGOUT_SUCCESS(HttpStatus.OK,"LOGOUT_SUCCESS","성공적으로 로그아웃 되었습니다."),
     REFRESH_SUCCESS(HttpStatus.OK, "REFRESH_SUCCESS", "토큰 재발급에 성공하였습니다."),
     CHECK_ID_SUCCESS(HttpStatus.OK, "CHECK_ID_SUCCESS", "사용 가능한 아이디입니다."),
+    CHECK_PHONE_SUCCESS(HttpStatus.OK, "CHECK_PHONE_SUCCESS", "사용 가능한 휴대폰번호입니다."),
     TERMS_FOUND_SUCCESS(HttpStatus.OK, "TERMS_FOUND_SUCCESS", "약관 상세 조회가 완료되었습니다.")
     ;
     private final HttpStatus status;
