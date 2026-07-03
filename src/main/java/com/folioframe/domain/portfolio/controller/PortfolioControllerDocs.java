@@ -115,6 +115,24 @@ public interface PortfolioControllerDocs {
     );
 
     @Operation(
+            summary = "포트폴리오 저장 확정",
+            description = "편집 화면의 '저장' 버튼이 호출합니다. 아직 확정된 적 없는 초안을 확정 상태로 전환하고, " +
+                    "원본(v0) 스냅샷이 없으면 지금 라이브 콘텐츠 기준으로 함께 생성합니다. 확정되지 않은 포트폴리오는 " +
+                    "마이페이지 목록에 노출되지 않고, 일정 시간이 지나면 서버가 자동으로 정리합니다 — 이 API를 호출해야 " +
+                    "그 대상에서 제외됩니다. 이미 확정된 포트폴리오(또는 AI 첨삭을 먼저 요청했거나 게시한 적이 있는 " +
+                    "포트폴리오)에 다시 호출해도 상태 변화 없이 그대로 응답합니다(멱등)."
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "저장 확정 성공"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "해당 포트폴리오에 접근 권한이 없습니다."),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "포트폴리오를 찾을 수 없습니다.")
+    })
+    ResponseEntity<ApiResponse<PortfolioResDTO>> confirmSave(
+            @Parameter(description = "포트폴리오 ID", required = true) @PathVariable Long portfolioId,
+            @Parameter(description = "인증된 회원 ID", required = true) @RequestHeader("X-Member-Id") Long memberId
+    );
+
+    @Operation(
             summary = "포트폴리오 공개 설정 변경",
             description = """
                     포트폴리오 공개 범위를 변경합니다. 본인 포트폴리오만 변경 가능합니다.

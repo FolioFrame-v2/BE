@@ -24,6 +24,7 @@ public record PortfolioResDTO(
         int bookmarkCount,
         LocalDateTime lastSavedAt,
         LocalDateTime publishedAt,
+        LocalDateTime confirmedAt,
         LocalDateTime createdAt,
         LocalDateTime updatedAt,
         List<TechstackResDTO> techstacks
@@ -44,6 +45,7 @@ public record PortfolioResDTO(
                 portfolio.getBookmarkCount(),
                 portfolio.getLastSavedAt(),
                 portfolio.getPublishedAt(),
+                portfolio.getConfirmedAt(),
                 portfolio.getCreatedAt(),
                 portfolio.getUpdatedAt(),
                 techstacks.stream().map(TechstackResDTO::from).toList()

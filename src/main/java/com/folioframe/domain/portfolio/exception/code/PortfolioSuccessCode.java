@@ -16,6 +16,7 @@ public enum PortfolioSuccessCode implements BaseSuccessCode {
     PORTFOLIO_VISIBILITY_CHANGED(HttpStatus.OK, "PORTFOLIO200_4", "포트폴리오 공개 설정이 변경되었습니다."),
     PORTFOLIO_DELETED(HttpStatus.OK, "PORTFOLIO200_6", "포트폴리오가 삭제되었습니다."),
     PORTFOLIO_TECHSTACKS_UPDATED(HttpStatus.OK, "PORTFOLIO200_7", "포트폴리오 기술스택이 수정되었습니다."),
+    PORTFOLIO_SAVE_CONFIRMED(HttpStatus.OK, "PORTFOLIO200_8", "포트폴리오 저장이 확정되었습니다."),
 
     EDUCATION_CREATED(HttpStatus.CREATED, "EDUCATION201_1", "학력 정보가 등록되었습니다."),
     EDUCATION_LIST_FOUND(HttpStatus.OK, "EDUCATION200_1", "학력 목록을 조회했습니다."),

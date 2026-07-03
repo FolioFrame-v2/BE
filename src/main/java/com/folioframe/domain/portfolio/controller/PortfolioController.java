@@ -93,6 +93,16 @@ public class PortfolioController implements PortfolioControllerDocs {
     }
 
     @Override
+    @PostMapping("/{portfolioId}/save")
+    public ResponseEntity<ApiResponse<PortfolioResDTO>> confirmSave(
+            @PathVariable Long portfolioId,
+            @RequestHeader("X-Member-Id") Long memberId) {
+        return ResponseEntity.ok(
+                ApiResponse.onSuccess(PortfolioSuccessCode.PORTFOLIO_SAVE_CONFIRMED,
+                        portfolioService.confirmSave(portfolioId, memberId)));
+    }
+
+    @Override
     @PatchMapping("/{portfolioId}/visibility")
     public ResponseEntity<ApiResponse<PortfolioResDTO>> changeVisibility(
             @PathVariable Long portfolioId,
