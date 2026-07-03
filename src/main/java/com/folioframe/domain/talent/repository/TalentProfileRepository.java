@@ -5,7 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
 
-public interface TalentProfileRepository extends JpaRepository<TalentProfile, Long> {
+public interface TalentProfileRepository extends JpaRepository<TalentProfile, Long>, TalentProfileRepositoryCustom {
 
     Optional<TalentProfile> findByMemberId(Long memberId);
 }

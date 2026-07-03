@@ -3,6 +3,7 @@ package com.folioframe.domain.talent.entity;
 import com.folioframe.domain.common.entity.Region;
 import com.folioframe.domain.common.enums.CareerLevel;
 import com.folioframe.domain.member.entity.Member;
+import com.folioframe.domain.talent.dto.request.TalentProfileUpdateRequest;
 import com.folioframe.domain.talent.enums.ProfileVisibility;
 import com.folioframe.global.entity.BaseEntity;
 import jakarta.persistence.*;
@@ -61,6 +62,9 @@ public class TalentProfile extends BaseEntity {
     @JoinColumn(name = "region_id", nullable = false)
     private Region region;
 
+    @Column(name = "job_seeking_status", length = 50)
+    private String jobSeekingStatus;
+
     @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(name = "profile_visibility", nullable = false)
@@ -68,5 +72,29 @@ public class TalentProfile extends BaseEntity {
 
     public void updateOneLiner(String oneLiner) {
         this.oneLiner = oneLiner;
+    }
+
+    @Builder.Default
+    @Column(name = "view_count")
+    private Integer viewCount = 0;
+
+    @Builder.Default
+    @Column(name = "bookmark_count")
+    private Integer bookmarkCount = 0;
+
+    public void updateProfile(TalentProfileUpdateRequest request, Region region) {
+        this.profileImageUrl = request.getProfileImageUrl();
+        this.jobTitle = request.getJobTitle();
+        this.oneLiner = request.getOneLiner();
+        this.contactEmail = request.getContactEmail();
+        this.githubUrl = request.getGithubUrl();
+        this.portfolioWebsite = request.getPortfolioWebsite();
+        this.currentCompany = request.getCurrentCompany();
+        this.currentPosition = request.getCurrentPosition();
+        this.careerYears = request.getCareerYears();
+        this.careerLevel = request.getCareerLevel();
+        this.region = region;
+        this.jobSeekingStatus = request.getJobSeekingStatus();
+        this.profileVisibility = request.getProfileVisibility();
     }
 }
