@@ -10,6 +10,7 @@ import com.folioframe.domain.portfolio.entity.PortfolioEducation;
 import com.folioframe.domain.portfolio.entity.PortfolioField;
 import com.folioframe.domain.portfolio.entity.PortfolioProject;
 import com.folioframe.domain.portfolio.enums.PortfolioVisibility;
+import com.folioframe.domain.portfolio.enums.TemplateLayoutKey;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -20,6 +21,7 @@ public record PortfolioDetailResDTO(
         Long talentProfileId,
         Long templateId,
         String templateName,
+        TemplateLayoutKey templateLayoutKey,
         String title,
         JobRole jobRole,
         String oneLiner,
@@ -55,6 +57,7 @@ public record PortfolioDetailResDTO(
                 portfolio.getTalentProfile().getId(),
                 portfolio.getTemplate().getId(),
                 portfolio.getTemplate().getName(),
+                portfolio.getTemplate().getLayoutKey(),
                 portfolio.getTitle(),
                 portfolio.getJobRole(),
                 portfolio.getOneLiner(),

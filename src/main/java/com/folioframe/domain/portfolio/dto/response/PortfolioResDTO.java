@@ -5,6 +5,7 @@ import com.folioframe.domain.common.entity.Techstack;
 import com.folioframe.domain.common.enums.JobRole;
 import com.folioframe.domain.portfolio.entity.Portfolio;
 import com.folioframe.domain.portfolio.enums.PortfolioVisibility;
+import com.folioframe.domain.portfolio.enums.TemplateLayoutKey;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -14,6 +15,7 @@ public record PortfolioResDTO(
         Long talentProfileId,
         Long templateId,
         String templateName,
+        TemplateLayoutKey templateLayoutKey,
         String title,
         JobRole jobRole,
         String oneLiner,
@@ -35,6 +37,7 @@ public record PortfolioResDTO(
                 portfolio.getTalentProfile().getId(),
                 portfolio.getTemplate() != null ? portfolio.getTemplate().getId() : null,
                 portfolio.getTemplate() != null ? portfolio.getTemplate().getName() : null,
+                portfolio.getTemplate() != null ? portfolio.getTemplate().getLayoutKey() : null,
                 portfolio.getTitle(),
                 portfolio.getJobRole(),
                 portfolio.getOneLiner(),
