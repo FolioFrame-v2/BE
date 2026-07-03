@@ -10,6 +10,7 @@ import java.util.List;
 public class SignupReqDTO {
     private String loginId;
     private String password;
+    private String name;
     private MemberType memberType;
     private List<Long> agreedTerms;
 }

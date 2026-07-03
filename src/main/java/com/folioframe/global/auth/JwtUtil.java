@@ -23,9 +23,9 @@ public class JwtUtil {
     private final Duration refreshExpiration;
 
     public JwtUtil(
-            @Value("${jwt.token.secret-key}") String secret,
-            @Value("${jwt.token.expiration.access}") Long accessExpiration,
-            @Value("${jwt.token.expiration.refresh}") Long refreshExpiration
+            @Value("${JWT_TOKEN_SECRET_KEY}") String secret,
+            @Value("${jwt.token.expiration.access}") Long accessExpiration, // application.yml의 경로와 일치
+            @Value("${jwt.token.expiration.refresh}") Long refreshExpiration // application.yml의 경로와 일치
     ) {
         this.secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
         this.accessExpiration = Duration.ofMillis(accessExpiration);

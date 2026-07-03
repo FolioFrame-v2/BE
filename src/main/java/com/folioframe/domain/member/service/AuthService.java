@@ -12,10 +12,16 @@ import com.folioframe.domain.member.repository.MemberRepository;
 import com.folioframe.global.auth.JwtUtil;
 import com.folioframe.global.auth.exception.AuthException;
 import com.folioframe.global.auth.exception.code.AuthErrorCode;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import javax.sql.DataSource;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 
 @Service
 @RequiredArgsConstructor
@@ -26,9 +32,37 @@ public class AuthService {
     private final MemberAgreementRepository memberAgreementRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
+    private final DataSource dataSource;
+
+    @PostConstruct
+    public void check() throws Exception {
+        Connection conn = dataSource.getConnection();
+
+        System.out.println("URL = " + conn.getMetaData().getURL());
+        System.out.println("USER = " + conn.getMetaData().getUserName());
+
+        ResultSet rs = conn.prepareStatement("select count(*) from terms").executeQuery();
+        rs.next();
+        System.out.println("RAW JDBC COUNT = " + rs.getInt(1));
+    }
 
     @Transactional
     public SignupResDTO signup(SignupReqDTO req) {
+
+        try {
+            System.out.println(
+                    "DB URL = " +
+                            dataSource.getConnection().getMetaData().getURL()
+            );
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+
+        System.out.println("agreedTerms = " + req.getAgreedTerms());
+        System.out.println("terms count = " + termsRepository.count());
+        System.out.println("findById(1) = " + termsRepository.findById(1L));
+
         if (memberRepository.existsByLoginId(req.getLoginId())) {
             throw new AuthException(AuthErrorCode.DUPLICATE_ID);
         }
@@ -36,6 +70,7 @@ public class AuthService {
         Member member = Member.builder()
                 .loginId(req.getLoginId())
                 .password(passwordEncoder.encode(req.getPassword()))
+                .name(req.getName())
                 .memberType(req.getMemberType())
                 .build();
         memberRepository.save(member);
