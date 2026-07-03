@@ -8,9 +8,22 @@ spring:
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:dev}
 
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            scope:
+              - email
+              - profile
+
 server:
   port: ${SERVER_PORT:8080}
 
+app:
+  oauth2:
+    frontend-redirect-url: http://localhost:5173
 ai-service:
   base-url: ${AI_SERVICE_BASE_URL:http://localhost:8000}
 
