@@ -1,6 +1,6 @@
 package com.folioframe.global.config;
 
-import com.folioframe.domain.token.repository.BlacklistedTokenRepository;
+import com.folioframe.domain.token.service.TokenService;
 import com.folioframe.global.auth.*;
 import com.folioframe.global.auth.exception.code.AuthErrorCode;
 import com.folioframe.global.auth.exception.code.AuthSuccessCode;
@@ -10,6 +10,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -34,7 +35,7 @@ public class SecurityConfig {
     private final CustomOAuth2UserService customOAuth2UserService;
     private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
     private final JwtLogoutHandler jwtLogoutHandler;
-    private final BlacklistedTokenRepository blacklistedTokenRepository;
+    private final TokenService tokenService;
     private final FilterResponseUtils filterResponseUtils;
 
     @Bean
@@ -59,6 +60,16 @@ public class SecurityConfig {
                                 "/swagger-ui.html",
                                 "/v3/api-docs/**"
                         ).permitAll()
+                        // 비로그인 사용자도 조회 가능한 공개 API — 순서상 더 구체적인 경로를 와일드카드 경로보다 먼저 선언
+                        .requestMatchers(HttpMethod.GET,
+                                "/api/v1/portfolios/public",
+                                "/api/v1/portfolios/slug/*",
+                                "/api/v1/portfolios/*",
+                                "/api/v1/activities",
+                                "/api/portfolio-templates",
+                                "/api/portfolio-templates/*"
+                        ).permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/activities/*/views").permitAll()
                         .anyRequest().authenticated()
                 )
 
@@ -68,7 +79,7 @@ public class SecurityConfig {
                         .successHandler(oAuth2AuthenticationSuccessHandler)
                 )
 
-                .addFilterBefore(new JwtAuthenticationFilter(jwtUtil, customUserDetailsService, blacklistedTokenRepository, filterResponseUtils),
+                .addFilterBefore(new JwtAuthenticationFilter(jwtUtil, customUserDetailsService, tokenService, filterResponseUtils),
                         org.springframework.security.web.authentication.logout.LogoutFilter.class)
 
                 .logout(logout -> logout

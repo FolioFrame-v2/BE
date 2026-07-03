@@ -6,6 +6,7 @@ import com.folioframe.domain.activity.enums.ActivitySortType;
 import com.folioframe.domain.activity.exception.code.ActivitySuccessCode;
 import com.folioframe.domain.activity.service.ActivityService;
 import com.folioframe.global.apiPayload.ApiResponse;
+import com.folioframe.global.auth.CurrentMemberId;
 import com.folioframe.global.dto.PageRequest;
 import com.folioframe.global.dto.PageResponse;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +27,7 @@ public class ActivityController implements ActivityControllerDocs {
             @RequestParam(required = false) ActivitySortType sort,
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "9") Integer size,
-            @RequestHeader(value = "X-Member-Id", required = false) Long memberId) {
+            @CurrentMemberId(required = false) Long memberId) {
         PageResponse<ActivityResDTO> result = activityService.getActivities(category, sort, PageRequest.of(page, size), memberId);
         return ResponseEntity.ok(ApiResponse.onSuccess(ActivitySuccessCode.ACTIVITY_LIST_FOUND, result));
     }
@@ -43,7 +44,7 @@ public class ActivityController implements ActivityControllerDocs {
     public ResponseEntity<ApiResponse<PageResponse<ActivityResDTO>>> getBookmarkedActivities(
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "9") Integer size,
-            @RequestHeader("X-Member-Id") Long memberId) {
+            @CurrentMemberId Long memberId) {
         PageResponse<ActivityResDTO> result = activityService.getBookmarkedActivities(memberId, PageRequest.of(page, size));
         return ResponseEntity.ok(ApiResponse.onSuccess(ActivitySuccessCode.ACTIVITY_BOOKMARKED_LIST_FOUND, result));
     }

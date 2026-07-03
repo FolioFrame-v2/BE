@@ -8,18 +8,33 @@ spring:
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:dev}
 
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+
   security:
     oauth2:
       client:
         registration:
           google:
             client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
             scope:
               - email
               - profile
 
 server:
   port: ${SERVER_PORT:8080}
+
+# 배포 레포(FolioFrame_Deploy)의 .env.example과 변수명을 맞춤(JWT_SECRET/JWT_ACCESS_EXPIRATION/JWT_REFRESH_EXPIRATION)
+jwt:
+  token:
+    secret-key: ${JWT_SECRET}
+    expiration:
+      access: ${JWT_ACCESS_EXPIRATION:3600000}
+      refresh: ${JWT_REFRESH_EXPIRATION:604800000}
 
 app:
   oauth2:

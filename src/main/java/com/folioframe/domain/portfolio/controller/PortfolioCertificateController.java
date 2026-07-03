@@ -5,6 +5,7 @@ import com.folioframe.domain.portfolio.dto.response.CertificateResDTO;
 import com.folioframe.domain.portfolio.exception.code.PortfolioSuccessCode;
 import com.folioframe.domain.portfolio.service.PortfolioCertificateService;
 import com.folioframe.global.apiPayload.ApiResponse;
+import com.folioframe.global.auth.CurrentMemberId;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -24,7 +25,7 @@ public class PortfolioCertificateController implements PortfolioCertificateContr
     @PostMapping
     public ResponseEntity<ApiResponse<CertificateResDTO>> create(
             @PathVariable Long portfolioId,
-            @RequestHeader("X-Member-Id") Long memberId,
+            @CurrentMemberId Long memberId,
             @Valid @RequestBody CertificateReqDTO request) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.onSuccess(PortfolioSuccessCode.CERTIFICATE_CREATED,
@@ -45,7 +46,7 @@ public class PortfolioCertificateController implements PortfolioCertificateContr
     public ResponseEntity<ApiResponse<CertificateResDTO>> update(
             @PathVariable Long portfolioId,
             @PathVariable Long certificateId,
-            @RequestHeader("X-Member-Id") Long memberId,
+            @CurrentMemberId Long memberId,
             @Valid @RequestBody CertificateReqDTO request) {
         return ResponseEntity.ok(
                 ApiResponse.onSuccess(PortfolioSuccessCode.CERTIFICATE_UPDATED,
@@ -57,7 +58,7 @@ public class PortfolioCertificateController implements PortfolioCertificateContr
     public ResponseEntity<ApiResponse<Void>> delete(
             @PathVariable Long portfolioId,
             @PathVariable Long certificateId,
-            @RequestHeader("X-Member-Id") Long memberId) {
+            @CurrentMemberId Long memberId) {
         certificateService.delete(portfolioId, certificateId, memberId);
         return ResponseEntity.ok(ApiResponse.onSuccess(PortfolioSuccessCode.CERTIFICATE_DELETED, null));
     }

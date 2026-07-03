@@ -11,7 +11,6 @@ import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 
 import java.util.List;
 
@@ -43,7 +42,7 @@ public interface PortfolioFieldControllerDocs {
     ResponseEntity<ApiResponse<PortfolioFieldResDTO>> updateContent(
             @Parameter(description = "포트폴리오 ID", required = true) @PathVariable Long portfolioId,
             @Parameter(description = "필드 ID", required = true) @PathVariable Long fieldId,
-            @Parameter(description = "인증된 회원 ID", required = true) @RequestHeader("X-Member-Id") Long memberId,
+            Long memberId,
             @Valid @RequestBody PortfolioFieldUpdateReqDTO request
     );
 }

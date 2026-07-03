@@ -7,7 +7,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestHeader;
 
 @Tag(name = "Activity Bookmark", description = "대외활동 북마크 등록·취소 API")
 public interface ActivityBookmarkControllerDocs {
@@ -23,7 +22,7 @@ public interface ActivityBookmarkControllerDocs {
     })
     ResponseEntity<ApiResponse<Void>> bookmark(
             @Parameter(description = "대외활동 ID", required = true) @PathVariable Long activityId,
-            @Parameter(description = "인증된 회원 ID", required = true) @RequestHeader("X-Member-Id") Long memberId
+            Long memberId
     );
 
     @Operation(
@@ -36,6 +35,6 @@ public interface ActivityBookmarkControllerDocs {
     })
     ResponseEntity<ApiResponse<Void>> cancelBookmark(
             @Parameter(description = "대외활동 ID", required = true) @PathVariable Long activityId,
-            @Parameter(description = "인증된 회원 ID", required = true) @RequestHeader("X-Member-Id") Long memberId
+            Long memberId
     );
 }
