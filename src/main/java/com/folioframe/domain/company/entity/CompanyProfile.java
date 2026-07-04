@@ -49,6 +49,9 @@ public class CompanyProfile extends BaseEntity {
     @Column(name = "company_intro", columnDefinition = "TEXT")
     private String companyIntro;
 
+    @Column(name = "employee_size", length = 50)
+    private String employeeSize;
+
     @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(name = "verification_status", nullable = false)
@@ -59,7 +62,7 @@ public class CompanyProfile extends BaseEntity {
     }
 
     public void updateProfile(String companyName, String businessNumber, Industry industry,
-                              String websiteUrl, String logoUrl, String companyIntro, Region region) {
+                              String websiteUrl, String logoUrl, String companyIntro, Region region, String employeeSize) {
         this.companyName = companyName;
         this.businessNumber = businessNumber;
         this.industry = industry;
@@ -67,5 +70,6 @@ public class CompanyProfile extends BaseEntity {
         this.logoUrl = logoUrl;
         this.companyIntro = companyIntro;
         this.region = region;
+        this.employeeSize = employeeSize;
     }
 }
