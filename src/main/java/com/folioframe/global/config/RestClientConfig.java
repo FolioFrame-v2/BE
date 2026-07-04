@@ -15,6 +15,9 @@ public class RestClientConfig {
     @Value("${ai-service.base-url}")
     private String aiServiceBaseUrl;
 
+    @Value("${ai-service.api-key}")
+    private String aiServiceApiKey;
+
     @Bean
     public RestClient aiServiceRestClient() {
         SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
@@ -24,6 +27,7 @@ public class RestClientConfig {
         return RestClient.builder()
                 .baseUrl(aiServiceBaseUrl)
                 .requestFactory(requestFactory)
+                .defaultHeader("X-API-Key", aiServiceApiKey)
                 .build();
     }
 }
