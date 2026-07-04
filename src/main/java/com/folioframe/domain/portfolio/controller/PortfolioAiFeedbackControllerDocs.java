@@ -52,13 +52,16 @@ public interface PortfolioAiFeedbackControllerDocs {
 
     @Operation(
             summary = "최근 AI 첨삭 결과 조회",
-            description = "포트폴리오에 대해 가장 최근에 생성된(버전 번호가 가장 큰) AI 첨삭 결과를 조회합니다. " +
+            description = "포트폴리오 편집 화면 진입 시 기본으로 불러올 버전을 조회합니다. \"가장 최근에 생성된\" 버전이 " +
+                    "아니라 \"가장 최근에 실제로 수정/저장된\" 버전(원본, 최상위 버전, 자식 수정본 통틀어)을 반환합니다 — " +
+                    "AI 첨삭을 새로 받았는지와 무관하게, 필드 선택/직접수정으로 마지막에 손댄 버전을 그대로 이어서 보여주기 " +
+                    "위함입니다. AI 첨삭을 한 번도 요청한 적 없으면 지금 라이브 콘텐츠를 읽기 전용으로 보여줍니다(항상 200). " +
                     "응답의 published는 이 버전이 지금 실제로 게시 중인지를 나타냅니다."
     )
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "해당 포트폴리오에 접근 권한이 없습니다."),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "포트폴리오 또는 AI 첨삭 결과를 찾을 수 없습니다.")
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "포트폴리오를 찾을 수 없습니다.")
     })
     ResponseEntity<ApiResponse<PortfolioAiFeedbackResDTO>> getLatest(
             @Parameter(description = "포트폴리오 ID", required = true) @PathVariable Long portfolioId,
