@@ -48,8 +48,9 @@ public class JobPostingService {
     private final JobPostingTechStackRepository jobPostingTechStackRepository;
 
     @Transactional
-    public Long createJobPosting(JobPostingReqDTO request, Long companyId) {
-        CompanyProfile company = companyProfileRepository.findById(companyId)
+    public Long createJobPosting(JobPostingReqDTO request, Long memberId) {
+
+        CompanyProfile company = companyProfileRepository.findByMemberId(memberId)
                 .orElseThrow(() -> new GeneralException(JobErrorCode.FORBIDDEN_ACCESS));
 
         Region region = regionRepository.findById(request.regionId())
@@ -168,11 +169,15 @@ public class JobPostingService {
     }
 
     @Transactional
-    public LocalDateTime updateJobPosting(Long jobPostingId, JobPostingReqDTO request, Long companyId) {
+    public LocalDateTime updateJobPosting(Long jobPostingId, JobPostingReqDTO request, Long memberId) {
+
+        CompanyProfile company = companyProfileRepository.findByMemberId(memberId)
+                .orElseThrow(() -> new GeneralException(JobErrorCode.FORBIDDEN_ACCESS));
+
         JobPosting jobPosting = jobPostingRepository.findById(jobPostingId)
                 .orElseThrow(() -> new GeneralException(JobErrorCode.JOB_POSTING_NOT_FOUND));
 
-        if (!jobPosting.getCompanyProfile().getId().equals(companyId)) {
+        if (!jobPosting.getCompanyProfile().getId().equals(company.getId())) {
             throw new GeneralException(JobErrorCode.FORBIDDEN_ACCESS);
         }
 
@@ -189,11 +194,15 @@ public class JobPostingService {
     }
 
     @Transactional
-    public void deleteJobPosting(Long jobPostingId, Long companyId) {
+    public void deleteJobPosting(Long jobPostingId, Long memberId) {
+
+        CompanyProfile company = companyProfileRepository.findByMemberId(memberId)
+                .orElseThrow(() -> new GeneralException(JobErrorCode.FORBIDDEN_ACCESS));
+
         JobPosting jobPosting = jobPostingRepository.findById(jobPostingId)
                 .orElseThrow(() -> new GeneralException(JobErrorCode.JOB_POSTING_NOT_FOUND));
 
-        if (!jobPosting.getCompanyProfile().getId().equals(companyId)) {
+        if (!jobPosting.getCompanyProfile().getId().equals(company.getId())) {
             throw new GeneralException(JobErrorCode.FORBIDDEN_ACCESS);
         }
 

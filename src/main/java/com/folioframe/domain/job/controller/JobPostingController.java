@@ -6,6 +6,7 @@ import com.folioframe.domain.job.dto.response.JobPostingListResDTO;
 import com.folioframe.domain.job.exception.code.JobSuccessCode;
 import com.folioframe.domain.job.service.JobPostingService;
 import com.folioframe.global.apiPayload.ApiResponse;
+import com.folioframe.global.auth.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -14,6 +15,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -31,12 +33,15 @@ public class JobPostingController {
     @PostMapping
     public ResponseEntity<ApiResponse<Map<String, Long>>> createJobPosting(
             @Valid @RequestBody JobPostingReqDTO request,
-            @RequestAttribute("companyId") Long companyId) {
+            @AuthenticationPrincipal CustomUserDetails user) {
+
+        Long companyId = user.member().getId();
 
         Long jobPostingId = jobPostingService.createJobPosting(request, companyId);
 
         return ResponseEntity.status(JobSuccessCode.JOB_POSTING_CREATED.getStatus())
-                .body(ApiResponse.onSuccess(JobSuccessCode.JOB_POSTING_CREATED, Map.of("jobPostingId", jobPostingId)));
+                .body(ApiResponse.onSuccess(JobSuccessCode.JOB_POSTING_CREATED,
+                        Map.of("jobPostingId", jobPostingId)));
     }
 
     @Operation(summary = "채용 공고 목록 조회", description = "키워드와 지역 필터를 사용하여 채용 공고 목록을 페이징 조회합니다.")
@@ -46,19 +51,28 @@ public class JobPostingController {
             @RequestParam(required = false) Long regionId,
             @PageableDefault(size = 10) Pageable pageable) {
 
-        Page<JobPostingListResDTO> response = jobPostingService.getJobPostings(keyword, regionId, pageable);
-        return ResponseEntity.ok(ApiResponse.onSuccess(JobSuccessCode.JOB_POSTING_LIST_FETCHED, response));
+        Page<JobPostingListResDTO> response =
+                jobPostingService.getJobPostings(keyword, regionId, pageable);
+
+        return ResponseEntity.ok(
+                ApiResponse.onSuccess(JobSuccessCode.JOB_POSTING_LIST_FETCHED, response)
+        );
     }
 
     @Operation(summary = "채용 공고 상세 조회", description = "특정 채용 공고의 상세 정보를 조회합니다.")
     @GetMapping("/{jobPostingId}")
     public ResponseEntity<ApiResponse<JobPostingDetailResDTO>> getJobPostingDetail(
             @PathVariable Long jobPostingId,
-            @RequestAttribute(value = "memberId", required = false) Long memberId) {
+            @AuthenticationPrincipal CustomUserDetails user) {
 
-        JobPostingDetailResDTO response = jobPostingService.getJobPostingDetail(jobPostingId, memberId);
+        Long memberId = (user != null) ? user.member().getId() : null;
 
-        return ResponseEntity.ok(ApiResponse.onSuccess(JobSuccessCode.JOB_POSTING_FETCHED, response));
+        JobPostingDetailResDTO response =
+                jobPostingService.getJobPostingDetail(jobPostingId, memberId);
+
+        return ResponseEntity.ok(
+                ApiResponse.onSuccess(JobSuccessCode.JOB_POSTING_FETCHED, response)
+        );
     }
 
     @Operation(summary = "채용 공고 수정", description = "등록된 채용 공고 정보를 수정합니다.")
@@ -66,19 +80,26 @@ public class JobPostingController {
     public ResponseEntity<ApiResponse<Map<String, Object>>> updateJobPosting(
             @PathVariable Long jobPostingId,
             @Valid @RequestBody JobPostingReqDTO request,
-            @RequestAttribute("companyId") Long companyId) {
+            @AuthenticationPrincipal CustomUserDetails user) {
 
-        LocalDateTime updatedAt = jobPostingService.updateJobPosting(jobPostingId, request, companyId);
+        Long companyId = user.member().getId();
 
-        return ResponseEntity.ok(ApiResponse.onSuccess(JobSuccessCode.JOB_POSTING_UPDATED,
-                Map.of("jobPostingId", jobPostingId, "updatedAt", updatedAt)));
+        LocalDateTime updatedAt =
+                jobPostingService.updateJobPosting(jobPostingId, request, companyId);
+
+        return ResponseEntity.ok(
+                ApiResponse.onSuccess(JobSuccessCode.JOB_POSTING_UPDATED,
+                        Map.of("jobPostingId", jobPostingId, "updatedAt", updatedAt))
+        );
     }
 
     @Operation(summary = "채용 공고 삭제", description = "특정 채용 공고를 삭제합니다. 지원자가 있을 경우 삭제가 불가능합니다.")
     @DeleteMapping("/{jobPostingId}")
     public ResponseEntity<ApiResponse<Void>> deleteJobPosting(
             @PathVariable Long jobPostingId,
-            @RequestAttribute("companyId") Long companyId) {
+            @AuthenticationPrincipal CustomUserDetails user) {
+
+        Long companyId = user.member().getId();
 
         jobPostingService.deleteJobPosting(jobPostingId, companyId);
 
@@ -90,10 +111,15 @@ public class JobPostingController {
     @PostMapping("/{jobPostingId}/bookmarks")
     public ResponseEntity<ApiResponse<Map<String, Object>>> toggleBookmark(
             @PathVariable Long jobPostingId,
-            @RequestAttribute("memberId") Long memberId) {
+            @AuthenticationPrincipal CustomUserDetails user) {
 
-        Map<String, Object> response = jobPostingService.toggleBookmark(jobPostingId, memberId);
+        Long memberId = user.member().getId();
 
-        return ResponseEntity.ok(ApiResponse.onSuccess(JobSuccessCode.JOB_POSTING_BOOKMARK_TOGGLED, response));
+        Map<String, Object> response =
+                jobPostingService.toggleBookmark(jobPostingId, memberId);
+
+        return ResponseEntity.ok(
+                ApiResponse.onSuccess(JobSuccessCode.JOB_POSTING_BOOKMARK_TOGGLED, response)
+        );
     }
 }
