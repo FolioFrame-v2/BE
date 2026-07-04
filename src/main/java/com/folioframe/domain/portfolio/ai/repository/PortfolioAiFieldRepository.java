@@ -1,7 +1,7 @@
-package com.folioframe.domain.portfolio.repository;
+package com.folioframe.domain.portfolio.ai.repository;
 
-import com.folioframe.domain.portfolio.entity.PortfolioAiFeedback;
-import com.folioframe.domain.portfolio.entity.PortfolioAiField;
+import com.folioframe.domain.portfolio.ai.entity.PortfolioAiFeedback;
+import com.folioframe.domain.portfolio.ai.entity.PortfolioAiField;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

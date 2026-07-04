@@ -1,6 +1,12 @@
 package com.folioframe.domain.portfolio.service;
 
-import com.folioframe.domain.portfolio.dto.ai.AiFieldInputDTO;
+import com.folioframe.domain.portfolio.ai.dto.client.AiFieldInputDTO;
+import com.folioframe.domain.portfolio.ai.entity.PortfolioAiFeedback;
+import com.folioframe.domain.portfolio.ai.entity.PortfolioAiField;
+import com.folioframe.domain.portfolio.ai.enums.AiFeedbackStatus;
+import com.folioframe.domain.portfolio.ai.enums.AiFieldTargetType;
+import com.folioframe.domain.portfolio.ai.repository.PortfolioAiFeedbackRepository;
+import com.folioframe.domain.portfolio.ai.repository.PortfolioAiFieldRepository;
 import com.folioframe.domain.portfolio.dto.request.PortfolioCreateReqDTO;
 import com.folioframe.domain.portfolio.dto.request.PortfolioUpdateReqDTO;
 import com.folioframe.domain.portfolio.dto.request.PortfolioVisibilityReqDTO;
@@ -9,13 +15,7 @@ import com.folioframe.domain.portfolio.dto.response.PortfolioMyListResDTO;
 import com.folioframe.domain.portfolio.dto.response.PortfolioPublicListResDTO;
 import com.folioframe.domain.portfolio.dto.response.PortfolioResDTO;
 import com.folioframe.domain.common.dto.response.TechstackResDTO;
-import com.folioframe.domain.portfolio.entity.PortfolioAiFeedback;
-import com.folioframe.domain.portfolio.entity.PortfolioAiField;
-import com.folioframe.domain.portfolio.enums.AiFeedbackStatus;
-import com.folioframe.domain.portfolio.enums.AiFieldTargetType;
 import com.folioframe.domain.portfolio.enums.PortfolioSortType;
-import com.folioframe.domain.portfolio.repository.PortfolioAiFeedbackRepository;
-import com.folioframe.domain.portfolio.repository.PortfolioAiFieldRepository;
 import com.folioframe.global.dto.PageRequest;
 import com.folioframe.global.dto.PageResponse;
 import com.folioframe.domain.portfolio.entity.Portfolio;
@@ -243,7 +243,7 @@ public class PortfolioService {
     // 그 시점의 라이브 콘텐츠를 원본(version=0)으로 스냅샷 떠둔다. 이미 있으면 아무 일도 하지
     // 않지만, 어느 경로든 도달했다는 것 자체가 "저장 확정"이므로 confirmSave()는 항상 호출한다.
     @Transactional
-    void ensureOriginalSnapshot(Portfolio portfolio) {
+    public void ensureOriginalSnapshot(Portfolio portfolio) {
         if (portfolioAiFeedbackRepository.findByPortfolioAndVersionAndParentFeedbackIsNull(portfolio, 0).isPresent()) {
             portfolio.confirmSave();
             return;
@@ -284,7 +284,7 @@ public class PortfolioService {
 
     // 현재 라이브 콘텐츠(포트폴리오 한줄소개/상세설명, 프로필 소개, 커스텀 필드, 프로젝트 요약)를
     // AI 입력/원본 스냅샷 형식으로 변환한다. 빈 값인 필드는 대상에서 제외한다.
-    List<AiFieldInputDTO> buildFieldInputs(
+    public List<AiFieldInputDTO> buildFieldInputs(
             Portfolio portfolio,
             TalentProfile talentProfile,
             List<PortfolioField> customFields,
@@ -383,12 +383,12 @@ public class PortfolioService {
                 .orElseThrow(() -> new GeneralException(GeneralErrorCode.NOT_FOUND));
     }
 
-    Portfolio findPortfolio(Long portfolioId) {
+    public Portfolio findPortfolio(Long portfolioId) {
         return portfolioRepository.findById(portfolioId)
                 .orElseThrow(() -> new PortfolioException(PortfolioErrorCode.PORTFOLIO_NOT_FOUND));
     }
 
-    void validateOwnership(Portfolio portfolio, Long memberId) {
+    public void validateOwnership(Portfolio portfolio, Long memberId) {
         if (!portfolio.getTalentProfile().getMember().getId().equals(memberId)) {
             throw new PortfolioException(PortfolioErrorCode.PORTFOLIO_ACCESS_DENIED);
         }

@@ -1,6 +1,6 @@
-package com.folioframe.domain.portfolio.dto.request;
+package com.folioframe.domain.portfolio.ai.dto.request;
 
-import com.folioframe.domain.portfolio.enums.AiChosenType;
+import com.folioframe.domain.portfolio.ai.enums.AiChosenType;
 import jakarta.validation.constraints.NotNull;
 
 public record AiFieldChooseReqDTO(

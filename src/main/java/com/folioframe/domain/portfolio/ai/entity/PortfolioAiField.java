@@ -1,7 +1,9 @@
-package com.folioframe.domain.portfolio.entity;
+package com.folioframe.domain.portfolio.ai.entity;
 
-import com.folioframe.domain.portfolio.enums.AiChosenType;
-import com.folioframe.domain.portfolio.enums.AiFieldTargetType;
+import com.folioframe.domain.portfolio.ai.enums.AiChosenType;
+import com.folioframe.domain.portfolio.ai.enums.AiFieldTargetType;
+import com.folioframe.domain.portfolio.entity.PortfolioField;
+import com.folioframe.domain.portfolio.entity.PortfolioProject;
 import com.folioframe.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;

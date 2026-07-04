@@ -1,11 +1,11 @@
-package com.folioframe.domain.portfolio.controller;
+package com.folioframe.domain.portfolio.ai.controller;
 
-import com.folioframe.domain.portfolio.dto.request.AiFeedbackRenameReqDTO;
-import com.folioframe.domain.portfolio.dto.request.AiFieldChooseReqDTO;
-import com.folioframe.domain.portfolio.dto.request.AiFieldEditReqDTO;
-import com.folioframe.domain.portfolio.dto.response.AiFieldResultDTO;
-import com.folioframe.domain.portfolio.dto.response.PortfolioAiFeedbackResDTO;
-import com.folioframe.domain.portfolio.dto.response.PortfolioAiFeedbackVersionResDTO;
+import com.folioframe.domain.portfolio.ai.dto.request.AiFeedbackRenameReqDTO;
+import com.folioframe.domain.portfolio.ai.dto.request.AiFieldChooseReqDTO;
+import com.folioframe.domain.portfolio.ai.dto.request.AiFieldEditReqDTO;
+import com.folioframe.domain.portfolio.ai.dto.response.AiFieldResultDTO;
+import com.folioframe.domain.portfolio.ai.dto.response.PortfolioAiFeedbackResDTO;
+import com.folioframe.domain.portfolio.ai.dto.response.PortfolioAiFeedbackVersionResDTO;
 import com.folioframe.global.apiPayload.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;

@@ -1,7 +1,7 @@
-package com.folioframe.domain.portfolio.dto.ai;
+package com.folioframe.domain.portfolio.ai.dto.client;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.folioframe.domain.portfolio.enums.AiFieldTargetType;
+import com.folioframe.domain.portfolio.ai.enums.AiFieldTargetType;
 
 // FolioFrame_AI(FastAPI)의 FieldRevision 스키마와 1:1 대응
 public record AiFieldRevisionDTO(

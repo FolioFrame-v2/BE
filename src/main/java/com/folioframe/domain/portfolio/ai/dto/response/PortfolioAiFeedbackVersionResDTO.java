@@ -1,6 +1,6 @@
-package com.folioframe.domain.portfolio.dto.response;
+package com.folioframe.domain.portfolio.ai.dto.response;
 
-import com.folioframe.domain.portfolio.entity.PortfolioAiFeedback;
+import com.folioframe.domain.portfolio.ai.entity.PortfolioAiFeedback;
 
 import java.time.LocalDateTime;
 import java.util.List;
