@@ -46,4 +46,8 @@ public class MatchingRequest extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     private MatchingStatus status = MatchingStatus.PROPOSED;
+
+    public void changeStatus(MatchingStatus newStatus) {
+        this.status = newStatus;
+    }
 }
