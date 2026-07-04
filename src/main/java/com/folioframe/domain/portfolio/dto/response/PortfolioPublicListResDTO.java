@@ -13,7 +13,6 @@ import java.util.List;
 public record PortfolioPublicListResDTO(
         Long id,
         String title,
-        String authorProfileImageUrl,
         String authorName,
         RegionResDTO authorRegion,
         CareerLevel careerLevel,
@@ -27,7 +26,6 @@ public record PortfolioPublicListResDTO(
         return new PortfolioPublicListResDTO(
                 portfolio.getId(),
                 portfolio.getTitle(),
-                talentProfile.getProfileImageUrl(),
                 talentProfile.getMember().getName(),
                 RegionResDTO.from(talentProfile.getRegion()),
                 talentProfile.getCareerLevel(),
