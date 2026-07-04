@@ -122,7 +122,7 @@ public class PortfolioService {
     public PageResponse<PortfolioMyListResDTO> getList(Long memberId, PageRequest pageRequest) {
         TalentProfile talentProfile = findTalentProfile(memberId);
         return PageResponse.of(
-                portfolioRepository.findAllByTalentProfileAndConfirmedAtIsNotNullOrderByUpdatedAtDesc(talentProfile, pageRequest.toPageable())
+                portfolioRepository.findAllByTalentProfileAndConfirmedAtIsNotNullOrderByLastSavedAtDesc(talentProfile, pageRequest.toPageable())
                         .map(PortfolioMyListResDTO::from)
         );
     }

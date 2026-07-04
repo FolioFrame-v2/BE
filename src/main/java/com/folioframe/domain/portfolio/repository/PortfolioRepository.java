@@ -15,7 +15,7 @@ import java.util.Optional;
 
 public interface PortfolioRepository extends JpaRepository<Portfolio, Long> {
 
-    Page<Portfolio> findAllByTalentProfileAndConfirmedAtIsNotNullOrderByUpdatedAtDesc(TalentProfile talentProfile, Pageable pageable);
+    Page<Portfolio> findAllByTalentProfileAndConfirmedAtIsNotNullOrderByLastSavedAtDesc(TalentProfile talentProfile, Pageable pageable);
 
     @Query(value = """
             SELECT p FROM Portfolio p

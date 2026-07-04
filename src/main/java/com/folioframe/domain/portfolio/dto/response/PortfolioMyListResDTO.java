@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 public record PortfolioMyListResDTO(
         Long id,
         String title,
-        LocalDateTime updatedAt,
+        LocalDateTime lastSavedAt,
         int viewCount,
         PortfolioVisibility visibility
 ) {
@@ -16,7 +16,7 @@ public record PortfolioMyListResDTO(
         return new PortfolioMyListResDTO(
                 portfolio.getId(),
                 portfolio.getTitle(),
-                portfolio.getUpdatedAt(),
+                portfolio.getLastSavedAt(),
                 portfolio.getViewCount(),
                 portfolio.getVisibility()
         );

@@ -44,7 +44,8 @@ public interface PortfolioControllerDocs {
     @Operation(
             summary = "내 포트폴리오 목록 조회 (마이페이지)",
             description = "본인이 작성한 포트폴리오 목록을 최근 수정순으로 페이지 단위 조회합니다. (2×2, 기본 4개/페이지)\n\n" +
-                    "제목, 마지막 수정일(updatedAt), 조회수, 공개/비공개 여부만 반환합니다."
+                    "제목, 마지막 저장일(lastSavedAt), 조회수, 공개/비공개 여부만 반환합니다. AI 첨삭 버전과 무관하게 " +
+                    "라이브 콘텐츠가 실제로 마지막 저장된 시각입니다."
     )
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공"),
