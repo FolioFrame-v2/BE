@@ -17,6 +17,7 @@ public class CompanyProfileResDTO {
     private String websiteUrl;
     private String logoUrl;
     private String companyIntro;
+    private String employeeSize;
     private Long regionId;
     private VerificationStatus verificationStatus;
     private LocalDateTime createdAt;

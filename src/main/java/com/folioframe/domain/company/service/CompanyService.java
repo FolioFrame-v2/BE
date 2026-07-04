@@ -55,6 +55,7 @@ public class CompanyService {
                 .websiteUrl(request.getWebsiteUrl())
                 .logoUrl(request.getLogoUrl())
                 .companyIntro(request.getCompanyIntro())
+                .employeeSize(request.getEmployeeSize())
                 .region(region)
                 .verificationStatus(VerificationStatus.PENDING)
                 .build();
@@ -108,7 +109,8 @@ public class CompanyService {
                 request.getWebsiteUrl(),
                 request.getLogoUrl(),
                 request.getCompanyIntro(),
-                region
+                region,
+                request.getEmployeeSize()
         );
 
         return convertToResDTO(companyProfile);
@@ -140,6 +142,7 @@ public class CompanyService {
                 .websiteUrl(profile.getWebsiteUrl())
                 .logoUrl(profile.getLogoUrl())
                 .companyIntro(profile.getCompanyIntro())
+                .employeeSize(profile.getEmployeeSize())
                 .regionId(regionId)
                 .verificationStatus(profile.getVerificationStatus())
                 .createdAt(profile.getCreatedAt())

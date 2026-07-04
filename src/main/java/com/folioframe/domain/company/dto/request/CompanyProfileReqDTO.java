@@ -27,4 +27,6 @@ public class CompanyProfileReqDTO {
 
     @NotNull(message = "지역 ID는 필수 입력값입니다.")
     private Long regionId;
+
+    private String employeeSize;
 }
