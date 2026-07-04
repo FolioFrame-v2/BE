@@ -1,6 +1,7 @@
 package com.folioframe.domain.portfolio.entity;
 
 import com.folioframe.domain.common.enums.JobRole;
+import com.folioframe.domain.portfolio.ai.entity.PortfolioAiFeedback;
 import com.folioframe.domain.portfolio.enums.PortfolioVisibility;
 import com.folioframe.domain.talent.entity.TalentProfile;
 import com.folioframe.global.entity.BaseEntity;

@@ -11,7 +11,8 @@ public enum ActivityField {
     EDUTECH("에듀테크"),
     LIFESTYLE("라이프스타일"),
     OPEN_SOURCE("오픈소스"),
-    INFRA("인프라");
+    INFRA("인프라"),
+    ETC("기타");
 
     private final String label;
 }

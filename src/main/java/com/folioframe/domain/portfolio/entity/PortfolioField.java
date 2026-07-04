@@ -1,5 +1,6 @@
 package com.folioframe.domain.portfolio.entity;
 
+import com.folioframe.domain.portfolio.ai.entity.PortfolioAiFeedback;
 import com.folioframe.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;

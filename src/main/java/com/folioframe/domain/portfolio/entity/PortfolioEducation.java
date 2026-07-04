@@ -1,6 +1,7 @@
 package com.folioframe.domain.portfolio.entity;
 
 import com.folioframe.domain.portfolio.enums.DegreeType;
+import com.folioframe.domain.portfolio.enums.EducationStatus;
 import com.folioframe.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
@@ -40,22 +41,20 @@ public class PortfolioEducation extends BaseEntity {
     @Column(name = "started_at")
     private LocalDate startedAt;
 
-    // null 이면 재학중
     @Column(name = "ended_at")
     private LocalDate endedAt;
 
-    // false 이면 재학중·중퇴
-    @Builder.Default
-    @Column(name = "graduated", nullable = false)
-    private boolean graduated = true;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    private EducationStatus status;
 
     public void update(String schoolName, String major, DegreeType degree,
-                       LocalDate startedAt, LocalDate endedAt, boolean graduated) {
+                       LocalDate startedAt, LocalDate endedAt, EducationStatus status) {
         this.schoolName = schoolName;
         this.major = major;
         this.degree = degree;
         this.startedAt = startedAt;
         this.endedAt = endedAt;
-        this.graduated = graduated;
+        this.status = status;
     }
 }

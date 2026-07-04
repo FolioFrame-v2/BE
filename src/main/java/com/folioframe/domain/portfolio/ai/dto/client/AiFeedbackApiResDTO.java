@@ -1,4 +1,4 @@
-package com.folioframe.domain.portfolio.dto.ai;
+package com.folioframe.domain.portfolio.ai.dto.client;
 
 import java.util.List;
 

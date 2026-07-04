@@ -1,7 +1,8 @@
-package com.folioframe.domain.portfolio.entity;
+package com.folioframe.domain.portfolio.ai.entity;
 
 import com.folioframe.domain.member.entity.Member;
-import com.folioframe.domain.portfolio.enums.AiFeedbackStatus;
+import com.folioframe.domain.portfolio.ai.enums.AiFeedbackStatus;
+import com.folioframe.domain.portfolio.entity.Portfolio;
 import com.folioframe.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;

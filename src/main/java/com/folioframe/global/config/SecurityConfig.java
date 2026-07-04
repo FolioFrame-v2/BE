@@ -67,8 +67,8 @@ public class SecurityConfig {
                                 "/api/v1/portfolios/slug/*",
                                 "/api/v1/portfolios/*",
                                 "/api/v1/activities",
-                                "/api/portfolio-templates",
-                                "/api/portfolio-templates/*"
+                                "/api/v1/portfolio-templates",
+                                "/api/v1/portfolio-templates/*"
                         ).permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/activities/*/views").permitAll()
                         .anyRequest().authenticated()

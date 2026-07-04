@@ -12,7 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/portfolio-templates")
+@RequestMapping("/api/v1/portfolio-templates")
 @RequiredArgsConstructor
 public class PortfolioTemplateController implements PortfolioTemplateControllerDocs {
 

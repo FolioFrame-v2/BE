@@ -3,6 +3,7 @@ package com.folioframe.domain.activity.entity;
 import com.folioframe.domain.activity.enums.ActivityCategory;
 import com.folioframe.domain.activity.enums.ActivityField;
 import com.folioframe.domain.activity.enums.ActivityTeamSize;
+import com.folioframe.domain.common.entity.Region;
 import com.folioframe.domain.common.enums.JobRole;
 import com.folioframe.global.entity.BaseEntity;
 import jakarta.persistence.*;
@@ -33,8 +34,9 @@ public class Activity extends BaseEntity {
     @Column(name = "organizer", length = 200)
     private String organizer;
 
-    @Column(name = "region", length = 100)
-    private String region;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "region_id")
+    private Region region;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "part")

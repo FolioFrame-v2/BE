@@ -22,9 +22,9 @@ public class RegionController implements RegionControllerDocs {
 
     @Override
     @GetMapping
-    public ResponseEntity<ApiResponse<List<RegionResDTO>>> search(
-            @RequestParam(required = false) String keyword) {
+    public ResponseEntity<ApiResponse<List<RegionResDTO>>> getRegions(
+            @RequestParam(required = false) Long parentId) {
         return ResponseEntity.ok(
-                ApiResponse.onSuccess(GeneralSuccessCode.OK, regionService.search(keyword)));
+                ApiResponse.onSuccess(GeneralSuccessCode.OK, regionService.getRegions(parentId)));
     }
 }

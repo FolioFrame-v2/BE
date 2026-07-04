@@ -31,7 +31,7 @@ public interface PortfolioProjectControllerDocs {
     })
     ResponseEntity<ApiResponse<ProjectResDTO>> create(
             @Parameter(description = "포트폴리오 ID", required = true) @PathVariable Long portfolioId,
-            Long memberId,
+            @Parameter(hidden = true) Long memberId,
             @Valid @RequestBody ProjectReqDTO request
     );
 
@@ -60,7 +60,7 @@ public interface PortfolioProjectControllerDocs {
     ResponseEntity<ApiResponse<ProjectResDTO>> update(
             @Parameter(description = "포트폴리오 ID", required = true) @PathVariable Long portfolioId,
             @Parameter(description = "프로젝트 ID", required = true) @PathVariable Long projectId,
-            Long memberId,
+            @Parameter(hidden = true) Long memberId,
             @Valid @RequestBody ProjectReqDTO request
     );
 
@@ -77,7 +77,7 @@ public interface PortfolioProjectControllerDocs {
     ResponseEntity<ApiResponse<Void>> delete(
             @Parameter(description = "포트폴리오 ID", required = true) @PathVariable Long portfolioId,
             @Parameter(description = "프로젝트 ID", required = true) @PathVariable Long projectId,
-            Long memberId
+            @Parameter(hidden = true) Long memberId
     );
 
     @Operation(
@@ -93,7 +93,7 @@ public interface PortfolioProjectControllerDocs {
     ResponseEntity<ApiResponse<List<TechstackResDTO>>> updateTechstacks(
             @Parameter(description = "포트폴리오 ID", required = true) @PathVariable Long portfolioId,
             @Parameter(description = "프로젝트 ID", required = true) @PathVariable Long projectId,
-            Long memberId,
+            @Parameter(hidden = true) Long memberId,
             @Valid @RequestBody TechstackIdsReqDTO request
     );
 }

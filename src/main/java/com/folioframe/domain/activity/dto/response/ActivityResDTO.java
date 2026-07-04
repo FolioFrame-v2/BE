@@ -1,6 +1,7 @@
 package com.folioframe.domain.activity.dto.response;
 
 import com.folioframe.domain.activity.entity.Activity;
+import com.folioframe.domain.common.dto.response.RegionResDTO;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -14,7 +15,7 @@ public class ActivityResDTO {
     private String title;
     private String category;
     private String organizer;
-    private String region;
+    private RegionResDTO region;
     private String part;
     private String field;
     private String teamSize;
@@ -32,7 +33,7 @@ public class ActivityResDTO {
                 .title(activity.getTitle())
                 .category(activity.getCategory().getLabel())
                 .organizer(activity.getOrganizer())
-                .region(activity.getRegion())
+                .region(activity.getRegion() != null ? RegionResDTO.from(activity.getRegion()) : null)
                 .part(activity.getPart() != null ? activity.getPart().getLabel() : null)
                 .field(activity.getField() != null ? activity.getField().getLabel() : null)
                 .teamSize(activity.getTeamSize() != null ? activity.getTeamSize().getLabel() : null)

@@ -1,8 +1,8 @@
-package com.folioframe.domain.portfolio.dto.response;
+package com.folioframe.domain.portfolio.ai.dto.response;
 
-import com.folioframe.domain.portfolio.entity.PortfolioAiField;
-import com.folioframe.domain.portfolio.enums.AiChosenType;
-import com.folioframe.domain.portfolio.enums.AiFieldTargetType;
+import com.folioframe.domain.portfolio.ai.entity.PortfolioAiField;
+import com.folioframe.domain.portfolio.ai.enums.AiChosenType;
+import com.folioframe.domain.portfolio.ai.enums.AiFieldTargetType;
 
 public record AiFieldResultDTO(
         Long id,

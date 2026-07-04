@@ -19,7 +19,7 @@ public interface PortfolioEducationControllerDocs {
 
     @Operation(
             summary = "학력 등록",
-            description = "포트폴리오에 학력을 등록합니다. endedAt이 null이면 재학 중으로 처리됩니다."
+            description = "포트폴리오에 학력을 등록합니다. status는 ENROLLED(재학중), ON_LEAVE(휴학), GRADUATED(졸업), DROPPED_OUT(중퇴), COMPLETED(수료) 중 하나입니다."
     )
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "등록 성공"),
@@ -29,7 +29,7 @@ public interface PortfolioEducationControllerDocs {
     })
     ResponseEntity<ApiResponse<EducationResDTO>> create(
             @Parameter(description = "포트폴리오 ID", required = true) @PathVariable Long portfolioId,
-            Long memberId,
+            @Parameter(hidden = true) Long memberId,
             @Valid @RequestBody EducationReqDTO request
     );
 
@@ -58,7 +58,7 @@ public interface PortfolioEducationControllerDocs {
     ResponseEntity<ApiResponse<EducationResDTO>> update(
             @Parameter(description = "포트폴리오 ID", required = true) @PathVariable Long portfolioId,
             @Parameter(description = "학력 ID", required = true) @PathVariable Long educationId,
-            Long memberId,
+            @Parameter(hidden = true) Long memberId,
             @Valid @RequestBody EducationReqDTO request
     );
 
@@ -75,6 +75,6 @@ public interface PortfolioEducationControllerDocs {
     ResponseEntity<ApiResponse<Void>> delete(
             @Parameter(description = "포트폴리오 ID", required = true) @PathVariable Long portfolioId,
             @Parameter(description = "학력 ID", required = true) @PathVariable Long educationId,
-            Long memberId
+            @Parameter(hidden = true) Long memberId
     );
 }

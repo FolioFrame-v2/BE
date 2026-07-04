@@ -1,7 +1,9 @@
 package com.folioframe.domain.portfolio.dto.request;
 
 import com.folioframe.domain.portfolio.enums.DegreeType;
+import com.folioframe.domain.portfolio.enums.EducationStatus;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 import java.time.LocalDate;
@@ -21,5 +23,6 @@ public record EducationReqDTO(
 
         LocalDate endedAt,
 
-        boolean graduated
+        @NotNull(message = "학력 상태는 필수입니다.")
+        EducationStatus status
 ) {}

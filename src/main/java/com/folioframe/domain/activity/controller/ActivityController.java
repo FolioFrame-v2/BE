@@ -2,7 +2,9 @@ package com.folioframe.domain.activity.controller;
 
 import com.folioframe.domain.activity.dto.response.ActivityResDTO;
 import com.folioframe.domain.activity.enums.ActivityCategory;
+import com.folioframe.domain.activity.enums.ActivityField;
 import com.folioframe.domain.activity.enums.ActivitySortType;
+import com.folioframe.domain.activity.enums.ActivityTeamSize;
 import com.folioframe.domain.activity.exception.code.ActivitySuccessCode;
 import com.folioframe.domain.activity.service.ActivityService;
 import com.folioframe.global.apiPayload.ApiResponse;
@@ -23,12 +25,17 @@ public class ActivityController implements ActivityControllerDocs {
     @Override
     @GetMapping
     public ResponseEntity<ApiResponse<PageResponse<ActivityResDTO>>> getActivities(
+            @RequestParam(required = false) String keyword,
             @RequestParam(required = false) ActivityCategory category,
+            @RequestParam(required = false) Long regionId,
+            @RequestParam(required = false) ActivityField field,
+            @RequestParam(required = false) ActivityTeamSize teamSize,
             @RequestParam(required = false) ActivitySortType sort,
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "9") Integer size,
             @CurrentMemberId(required = false) Long memberId) {
-        PageResponse<ActivityResDTO> result = activityService.getActivities(category, sort, PageRequest.of(page, size), memberId);
+        PageResponse<ActivityResDTO> result = activityService.getActivities(
+                keyword, category, regionId, field, teamSize, sort, PageRequest.of(page, size), memberId);
         return ResponseEntity.ok(ApiResponse.onSuccess(ActivitySuccessCode.ACTIVITY_LIST_FOUND, result));
     }
 

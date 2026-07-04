@@ -5,8 +5,9 @@ import com.folioframe.domain.portfolio.dto.request.PortfolioUpdateReqDTO;
 import com.folioframe.domain.portfolio.dto.request.PortfolioVisibilityReqDTO;
 import com.folioframe.domain.portfolio.dto.request.TechstackIdsReqDTO;
 import com.folioframe.domain.portfolio.dto.response.PortfolioDetailResDTO;
+import com.folioframe.domain.portfolio.dto.response.PortfolioMyListResDTO;
+import com.folioframe.domain.portfolio.dto.response.PortfolioPublicListResDTO;
 import com.folioframe.domain.portfolio.dto.response.PortfolioResDTO;
-import com.folioframe.domain.portfolio.dto.response.PortfolioSummaryResDTO;
 import com.folioframe.domain.common.dto.response.TechstackResDTO;
 import com.folioframe.domain.portfolio.exception.code.PortfolioSuccessCode;
 import com.folioframe.domain.portfolio.service.PortfolioService;
@@ -42,7 +43,7 @@ public class PortfolioController implements PortfolioControllerDocs {
 
     @Override
     @GetMapping
-    public ResponseEntity<ApiResponse<PageResponse<PortfolioSummaryResDTO>>> getList(
+    public ResponseEntity<ApiResponse<PageResponse<PortfolioMyListResDTO>>> getList(
             @CurrentMemberId Long memberId,
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "4") Integer size) {
@@ -53,7 +54,7 @@ public class PortfolioController implements PortfolioControllerDocs {
 
     @Override
     @GetMapping("/public")
-    public ResponseEntity<ApiResponse<PageResponse<PortfolioSummaryResDTO>>> getPublicList(
+    public ResponseEntity<ApiResponse<PageResponse<PortfolioPublicListResDTO>>> getPublicList(
             @RequestParam(required = false) PortfolioSortType sort,
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "9") Integer size,

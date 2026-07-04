@@ -1,4 +1,4 @@
-package com.folioframe.domain.portfolio.dto.request;
+package com.folioframe.domain.portfolio.ai.dto.request;
 
 import jakarta.validation.constraints.NotNull;
 

@@ -22,7 +22,7 @@ public interface PortfolioBookmarkControllerDocs {
     })
     ResponseEntity<ApiResponse<Void>> bookmark(
             @Parameter(description = "포트폴리오 ID", required = true) @PathVariable Long portfolioId,
-            Long memberId
+            @Parameter(hidden = true) Long memberId
     );
 
     @Operation(
@@ -35,6 +35,6 @@ public interface PortfolioBookmarkControllerDocs {
     })
     ResponseEntity<ApiResponse<Void>> cancelBookmark(
             @Parameter(description = "포트폴리오 ID", required = true) @PathVariable Long portfolioId,
-            Long memberId
+            @Parameter(hidden = true) Long memberId
     );
 }
