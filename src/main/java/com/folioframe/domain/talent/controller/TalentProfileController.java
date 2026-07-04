@@ -1,6 +1,7 @@
 package com.folioframe.domain.talent.controller;
 
 import com.folioframe.domain.common.enums.CareerLevel;
+import com.folioframe.domain.job.enums.EmploymentType;
 import com.folioframe.domain.common.enums.JobRole;
 import com.folioframe.domain.talent.dto.request.TalentProfileCreateRequest;
 import com.folioframe.domain.talent.dto.request.TalentProfileUpdateRequest;
@@ -30,7 +31,7 @@ public class TalentProfileController {
     public ApiResponse<Map<String, Long>> createProfile(
             @RequestBody TalentProfileCreateRequest request) {
 
-        Long memberId = 1L; // TODO: Security Context 연동
+        Long memberId = 1L;
         Long talentProfileId = talentProfileService.createProfile(memberId, request);
 
         return ApiResponse.onSuccess(TalentProfileSuccessCode.PROFILE_CREATED, Map.of("talentProfileId", talentProfileId));
@@ -40,7 +41,7 @@ public class TalentProfileController {
     @GetMapping("/me")
     public ApiResponse<TalentProfileResponse> getMyProfile() {
 
-        Long memberId = 1L; // TODO: Security Context 연동
+        Long memberId = 1L;
         TalentProfileResponse profile = talentProfileService.getMyProfile(memberId);
 
         return ApiResponse.onSuccess(TalentProfileSuccessCode.PROFILE_READ_SUCCESS, profile);
@@ -51,7 +52,7 @@ public class TalentProfileController {
     public ApiResponse<TalentProfileResponse> updateProfile(
             @RequestBody TalentProfileUpdateRequest request) {
 
-        Long memberId = 1L; // TODO: Security Context 연동
+        Long memberId = 1L;
         TalentProfileResponse updatedProfile = talentProfileService.updateProfile(memberId, request);
 
         return ApiResponse.onSuccess(TalentProfileSuccessCode.PROFILE_UPDATE_SUCCESS, updatedProfile);
@@ -62,7 +63,7 @@ public class TalentProfileController {
     public ApiResponse<TalentProfileSearchResponse> searchProfiles(
             @RequestParam(required = false, defaultValue = "LATEST") String sort,
             @RequestParam(required = false) CareerLevel career,
-            @RequestParam(required = false) String employment,
+            @RequestParam(required = false) EmploymentType employment,
             @RequestParam(required = false) String techStack,
             @RequestParam(required = false) JobRole job,
             Pageable pageable) {

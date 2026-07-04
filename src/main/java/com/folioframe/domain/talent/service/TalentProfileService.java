@@ -1,31 +1,27 @@
 package com.folioframe.domain.talent.service;
 
 import com.folioframe.domain.common.entity.Region;
+import com.folioframe.domain.common.entity.Tag;
 import com.folioframe.domain.common.entity.Techstack;
 import com.folioframe.domain.common.enums.CareerLevel;
 import com.folioframe.domain.common.enums.JobRole;
 import com.folioframe.domain.common.repository.RegionRepository;
+import com.folioframe.domain.common.repository.TagRepository;
 import com.folioframe.domain.common.repository.TechstackRepository;
+import com.folioframe.domain.job.enums.EmploymentType;
 import com.folioframe.domain.member.entity.Member;
 import com.folioframe.domain.member.repository.MemberRepository;
 import com.folioframe.domain.talent.dto.request.TalentProfileCreateRequest;
 import com.folioframe.domain.talent.dto.request.TalentProfileUpdateRequest;
-import com.folioframe.domain.talent.dto.response.TalentProfileResponse;
-import com.folioframe.domain.talent.dto.response.TalentProfileSearchResponse;
-import com.folioframe.domain.talent.dto.response.TalentProfileSimpleResponse;
-import com.folioframe.domain.talent.dto.response.TalentTagResponse;
-import com.folioframe.domain.talent.dto.response.TalentTechStackResponse;
-import com.folioframe.domain.common.entity.Tag;
+import com.folioframe.domain.talent.dto.response.*;
 import com.folioframe.domain.talent.entity.TalentProfile;
 import com.folioframe.domain.talent.entity.TalentTag;
 import com.folioframe.domain.talent.entity.TalentTechstack;
 import com.folioframe.domain.talent.exception.code.TalentProfileErrorCode;
-import com.folioframe.domain.common.repository.TagRepository;
 import com.folioframe.domain.talent.repository.TalentProfileRepository;
 import com.folioframe.domain.talent.repository.TalentTagRepository;
 import com.folioframe.domain.talent.repository.TalentTechstackRepository;
 import com.folioframe.global.apiPayload.exception.GeneralException;
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -43,10 +39,8 @@ public class TalentProfileService {
     private final TalentProfileRepository talentProfileRepository;
     private final MemberRepository memberRepository;
     private final RegionRepository regionRepository;
-
     private final TechstackRepository techstackRepository;
     private final TalentTechstackRepository talentTechstackRepository;
-
     private final TagRepository tagRepository;
     private final TalentTagRepository talentTagRepository;
 
@@ -64,19 +58,24 @@ public class TalentProfileService {
 
         TalentProfile profile = TalentProfile.builder()
                 .member(member)
-                .profileImageUrl(request.getProfileImageUrl())
-                .jobTitle(request.getJobTitle())
-                .oneLiner(request.getOneLiner())
+                .name(request.getName())
+                .region(region)
                 .contactEmail(request.getContactEmail())
+                .phoneNumber(request.getPhoneNumber())
+                .age(request.getAge())
+                .gender(request.getGender())
                 .githubUrl(request.getGithubUrl())
                 .portfolioWebsite(request.getPortfolioWebsite())
-                .currentCompany(request.getCurrentCompany())
-                .currentPosition(request.getCurrentPosition())
-                .careerYears(request.getCareerYears())
+                .linkedinUrl(request.getLinkedinUrl())
+                .applicationField(request.getApplicationField())
+                .jobRole(request.getJobRole())
                 .careerLevel(request.getCareerLevel())
-                .region(region)
-                .jobSeekingStatus(request.getJobSeekingStatus())
+                .employmentType(request.getEmploymentType())
+                .oneLiner(request.getOneLiner())
+                .introduction(request.getIntroduction())
                 .profileVisibility(request.getProfileVisibility())
+                .profileImageUrl(request.getProfileImageUrl())
+                .jobSeekingStatus(request.getJobSeekingStatus())
                 .build();
 
         TalentProfile savedProfile = talentProfileRepository.save(profile);
@@ -110,15 +109,15 @@ public class TalentProfileService {
         return convertToProfileResponse(profile);
     }
 
-    public TalentProfileSearchResponse searchProfiles(String sort, CareerLevel career, String employment, String techStack, JobRole job, Pageable pageable) {
-
+    public TalentProfileSearchResponse searchProfiles(String sort, CareerLevel career, EmploymentType employment, String techStack, JobRole job, Pageable pageable) {
         Page<TalentProfileSimpleResponse> pageResult = talentProfileRepository.searchDynamic(sort, career, employment, techStack, job, pageable);
 
         return TalentProfileSearchResponse.builder()
                 .searchCondition(TalentProfileSearchResponse.SearchConditionResponse.builder()
                         .sort(sort)
-                        .career(career != null ? career.getDisplayName() : null)
-                        .job(job != null ? job.getLabel() : null)
+                        .career(career != null ? career.name() : null)
+                        .job(job != null ? job.name() : null)
+                        .employment(employment != null ? employment.name() : null)
                         .build())
                 .content(pageResult.getContent())
                 .pageable(TalentProfileSearchResponse.PageableResponse.builder()
@@ -175,30 +174,31 @@ public class TalentProfileService {
 
     private TalentProfileResponse convertToProfileResponse(TalentProfile profile) {
         List<TalentTechStackResponse> techStacks = talentTechstackRepository.findAllByTalentProfile(profile)
-                .stream()
-                .map(tt -> new TalentTechStackResponse(tt.getTechstack().getId(), tt.getTechstack().getName()))
-                .collect(Collectors.toList());
+                .stream().map(tt -> new TalentTechStackResponse(tt.getTechstack().getId(), tt.getTechstack().getName())).collect(Collectors.toList());
 
         List<TalentTagResponse> tags = talentTagRepository.findAllByTalentProfile(profile)
-                .stream()
-                .map(tt -> new TalentTagResponse(tt.getTag().getId(), tt.getTag().getName()))
-                .collect(Collectors.toList());
+                .stream().map(tt -> new TalentTagResponse(tt.getTag().getId(), tt.getTag().getName())).collect(Collectors.toList());
 
         return TalentProfileResponse.builder()
                 .talentProfileId(profile.getId())
-                .profileImageUrl(profile.getProfileImageUrl())
-                .jobTitle(profile.getJobTitle())
-                .oneLiner(profile.getOneLiner())
+                .name(profile.getName())
+                .regionId(profile.getRegion().getId())
                 .contactEmail(profile.getContactEmail())
+                .phoneNumber(profile.getPhoneNumber())
+                .age(profile.getAge())
+                .gender(profile.getGender())
                 .githubUrl(profile.getGithubUrl())
                 .portfolioWebsite(profile.getPortfolioWebsite())
-                .currentCompany(profile.getCurrentCompany())
-                .currentPosition(profile.getCurrentPosition())
-                .careerYears(profile.getCareerYears())
+                .linkedinUrl(profile.getLinkedinUrl())
+                .applicationField(profile.getApplicationField())
+                .jobRole(profile.getJobRole())
                 .careerLevel(profile.getCareerLevel())
-                .regionId(profile.getRegion() != null ? profile.getRegion().getId() : null)
-                .jobSeekingStatus(profile.getJobSeekingStatus())
+                .employmentType(profile.getEmploymentType())
+                .oneLiner(profile.getOneLiner())
+                .introduction(profile.getIntroduction())
                 .profileVisibility(profile.getProfileVisibility())
+                .profileImageUrl(profile.getProfileImageUrl())
+                .jobSeekingStatus(profile.getJobSeekingStatus())
                 .createdAt(profile.getCreatedAt() != null ? profile.getCreatedAt().toString() : null)
                 .updatedAt(profile.getUpdatedAt() != null ? profile.getUpdatedAt().toString() : null)
                 .techStacks(techStacks)

@@ -2,6 +2,7 @@ package com.folioframe.domain.talent.repository;
 
 import com.folioframe.domain.common.enums.CareerLevel;
 import com.folioframe.domain.common.enums.JobRole;
+import com.folioframe.domain.job.enums.EmploymentType;
 import com.folioframe.domain.talent.dto.response.TalentProfileSimpleResponse;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
@@ -18,10 +19,8 @@ import org.springframework.util.StringUtils;
 import java.util.List;
 
 import static com.folioframe.domain.talent.entity.QTalentProfile.talentProfile;
-import static com.folioframe.domain.member.entity.QMember.member;
 import static com.folioframe.domain.talent.entity.QTalentTechstack.talentTechstack;
 import static com.folioframe.domain.common.entity.QTechstack.techstack;
-import static com.folioframe.domain.talent.entity.QTalentJobRole.talentJobRole;
 import static com.querydsl.core.group.GroupBy.groupBy;
 import static com.querydsl.core.group.GroupBy.list;
 
@@ -33,15 +32,16 @@ public class TalentProfileRepositoryImpl implements TalentProfileRepositoryCusto
 
     @Override
     public Page<TalentProfileSimpleResponse> searchDynamic(
-            // String에서 CareerLevel, JobRole 타입으로 변경
-            String sort, CareerLevel career, String employment, String techStack, JobRole job, Pageable pageable) {
+            String sort, CareerLevel career, EmploymentType employment, String techStack, JobRole job, Pageable pageable) {
 
         List<Long> profileIds = queryFactory
                 .select(talentProfile.id)
                 .from(talentProfile)
                 .where(
                         careerEq(career),
-                        jobEq(job)
+                        jobEq(job),
+                        employmentEq(employment),
+                        techStackEq(techStack)
                 )
                 .orderBy(getSortOrder(sort))
                 .offset(pageable.getOffset())
@@ -57,13 +57,14 @@ public class TalentProfileRepositoryImpl implements TalentProfileRepositoryCusto
                 .from(talentProfile)
                 .where(
                         careerEq(career),
-                        jobEq(job)
+                        jobEq(job),
+                        employmentEq(employment),
+                        techStackEq(techStack)
                 )
                 .fetchOne();
 
         List<TalentProfileSimpleResponse> content = queryFactory
                 .from(talentProfile)
-                .leftJoin(talentProfile.member, member)
                 .leftJoin(talentTechstack).on(talentTechstack.talentProfile.eq(talentProfile))
                 .leftJoin(talentTechstack.techstack, techstack)
                 .where(talentProfile.id.in(profileIds))
@@ -72,8 +73,9 @@ public class TalentProfileRepositoryImpl implements TalentProfileRepositoryCusto
                         groupBy(talentProfile.id).list(
                                 Projections.constructor(TalentProfileSimpleResponse.class,
                                         talentProfile.id,
-                                        member.name,
-                                        talentProfile.jobTitle,
+                                        talentProfile.name,
+                                        talentProfile.oneLiner,
+                                        talentProfile.jobRole.stringValue(),
                                         talentProfile.careerLevel.stringValue(),
                                         list(techstack.name),
                                         talentProfile.viewCount,
@@ -85,27 +87,32 @@ public class TalentProfileRepositoryImpl implements TalentProfileRepositoryCusto
         return new PageImpl<>(content, pageable, total != null ? total : 0L);
     }
 
-    // =========================================================================
-    // 파라미터가 Enum으로 바뀌면서 매핑 로직이 초간단하게 변함
-    // =========================================================================
-
     private BooleanExpression careerEq(CareerLevel career) {
-        // null이 아니면 바로 career_level 일치 조건 반환
         return career != null ? talentProfile.careerLevel.eq(career) : null;
     }
 
     private BooleanExpression jobEq(JobRole job) {
-        // null이 아니면 서브쿼리를 통한 job_role 일치 조건 반환
-        return job != null ? JPAExpressions.selectOne()
-                .from(talentJobRole)
-                .where(talentJobRole.talentProfile.eq(talentProfile)
-                        .and(talentJobRole.jobRole.eq(job)))
-                .exists() : null;
+        return job != null ? talentProfile.jobRole.eq(job) : null;
+    }
+
+    private BooleanExpression employmentEq(EmploymentType employment) {
+        return employment != null ? talentProfile.employmentType.eq(employment) : null;
+    }
+
+    private BooleanExpression techStackEq(String techStack) {
+        if (!StringUtils.hasText(techStack)) return null;
+
+        return talentProfile.id.in(
+                JPAExpressions.select(talentTechstack.talentProfile.id)
+                        .from(talentTechstack)
+                        .join(talentTechstack.techstack, techstack)
+                        .where(techstack.name.eq(techStack))
+        );
     }
 
     private OrderSpecifier<?> getSortOrder(String sort) {
         if (!StringUtils.hasText(sort)) {
-            return talentProfile.createdAt.desc(); // 기본 정렬: 최신순
+            return talentProfile.createdAt.desc();
         }
 
         return switch (sort.toUpperCase()) {
