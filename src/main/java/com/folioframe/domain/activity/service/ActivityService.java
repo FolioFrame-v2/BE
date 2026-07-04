@@ -3,11 +3,14 @@ package com.folioframe.domain.activity.service;
 import com.folioframe.domain.activity.dto.response.ActivityResDTO;
 import com.folioframe.domain.activity.entity.Activity;
 import com.folioframe.domain.activity.enums.ActivityCategory;
+import com.folioframe.domain.activity.enums.ActivityField;
 import com.folioframe.domain.activity.enums.ActivitySortType;
+import com.folioframe.domain.activity.enums.ActivityTeamSize;
 import com.folioframe.domain.activity.exception.ActivityException;
 import com.folioframe.domain.activity.exception.code.ActivityErrorCode;
 import com.folioframe.domain.activity.repository.ActivityBookmarkRepository;
 import com.folioframe.domain.activity.repository.ActivityRepository;
+import com.folioframe.domain.activity.repository.ActivitySpecification;
 import com.folioframe.domain.member.entity.Member;
 import com.folioframe.domain.member.exception.MemberException;
 import com.folioframe.domain.member.exception.code.MemberErrorCode;
@@ -30,16 +33,14 @@ public class ActivityService {
     private final ActivityBookmarkRepository activityBookmarkRepository;
     private final MemberRepository memberRepository;
 
-    public PageResponse<ActivityResDTO> getActivities(ActivityCategory category, ActivitySortType sortType, PageRequest pageRequest, Long memberId) {
+    public PageResponse<ActivityResDTO> getActivities(String keyword, ActivityCategory category, Long regionId,
+                                                        ActivityField field, ActivityTeamSize teamSize,
+                                                        ActivitySortType sortType, PageRequest pageRequest, Long memberId) {
         if (sortType == null) sortType = ActivitySortType.LATEST;
         org.springframework.data.domain.PageRequest pageable = pageRequest.toPageable(sortType.getSort());
 
-        Page<Activity> activityPage;
-        if (category != null) {
-            activityPage = activityRepository.findAllByCategory(category, pageable);
-        } else {
-            activityPage = activityRepository.findAll(pageable);
-        }
+        Page<Activity> activityPage = activityRepository.findAll(
+                ActivitySpecification.search(keyword, category, regionId, field, teamSize), pageable);
 
         Set<Long> bookmarkedIds = getBookmarkedActivityIds(memberId);
 
