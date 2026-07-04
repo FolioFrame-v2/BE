@@ -4,6 +4,7 @@ import com.folioframe.domain.common.enums.CareerLevel;
 import com.folioframe.domain.common.enums.Gender;
 import com.folioframe.domain.common.enums.JobRole;
 import com.folioframe.domain.job.enums.EmploymentType;
+import com.folioframe.domain.job.enums.JobSeekingStatus;
 import com.folioframe.domain.talent.enums.ProfileVisibility;
 import lombok.Builder;
 import lombok.Getter;
@@ -34,12 +35,10 @@ public class TalentProfileResponse {
     private String introduction;
 
     private ProfileVisibility profileVisibility;
-    private String profileImageUrl;
-    private String jobSeekingStatus;
+    private JobSeekingStatus jobSeekingStatus;
 
     private String createdAt;
     private String updatedAt;
 
     private List<TalentTechStackResponse> techStacks;
-    private List<TalentTagResponse> tags;
 }

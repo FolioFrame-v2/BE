@@ -5,6 +5,7 @@ import com.folioframe.domain.common.enums.CareerLevel;
 import com.folioframe.domain.common.enums.Gender;
 import com.folioframe.domain.common.enums.JobRole;
 import com.folioframe.domain.job.enums.EmploymentType;
+import com.folioframe.domain.job.enums.JobSeekingStatus;
 import com.folioframe.domain.member.entity.Member;
 import com.folioframe.domain.talent.dto.request.TalentProfileUpdateRequest;
 import com.folioframe.domain.talent.enums.ProfileVisibility;
@@ -84,11 +85,9 @@ public class TalentProfile extends BaseEntity {
     @Column(name = "profile_visibility", nullable = false)
     private ProfileVisibility profileVisibility = ProfileVisibility.PRIVATE;
 
-    @Column(name = "profile_image_url", length = 500)
-    private String profileImageUrl;
-
-    @Column(name = "job_seeking_status", length = 50)
-    private String jobSeekingStatus;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "job_seeking_status", nullable = false)
+    private JobSeekingStatus jobSeekingStatus;
 
     @Builder.Default
     @Column(name = "view_count")
@@ -119,7 +118,6 @@ public class TalentProfile extends BaseEntity {
         this.introduction = request.getIntroduction();
 
         this.profileVisibility = request.getProfileVisibility();
-        this.profileImageUrl = request.getProfileImageUrl();
         this.jobSeekingStatus = request.getJobSeekingStatus();
     }
 

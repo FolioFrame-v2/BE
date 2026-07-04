@@ -7,13 +7,17 @@ import com.folioframe.domain.talent.dto.request.TalentProfileCreateRequest;
 import com.folioframe.domain.talent.dto.request.TalentProfileUpdateRequest;
 import com.folioframe.domain.talent.dto.response.TalentProfileResponse;
 import com.folioframe.domain.talent.dto.response.TalentProfileSearchResponse;
+import com.folioframe.domain.talent.exception.code.TalentProfileErrorCode;
 import com.folioframe.domain.talent.exception.code.TalentProfileSuccessCode;
 import com.folioframe.domain.talent.service.TalentProfileService;
 import com.folioframe.global.apiPayload.ApiResponse;
+import com.folioframe.global.apiPayload.exception.GeneralException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -29,7 +33,18 @@ public class TalentProfileController {
     @Operation(summary = "인재 프로필 등록 API", description = "새로운 인재 프로필을 등록합니다.")
     @PostMapping
     public ApiResponse<Map<String, Long>> createProfile(
-            @RequestBody TalentProfileCreateRequest request) {
+            @Valid @RequestBody TalentProfileCreateRequest request,
+            BindingResult bindingResult) {
+
+        // 에러 발생 시 무조건 콘솔에 출력
+        if (bindingResult.hasErrors()) {
+            bindingResult.getFieldErrors().forEach(error -> {
+                System.out.println(">>> [에러 필드]: " + error.getField());
+                System.out.println(">>> [에러 메시지]: " + error.getDefaultMessage());
+                System.out.println(">>> [입력된 값]: " + error.getRejectedValue());
+            });
+            throw new GeneralException(TalentProfileErrorCode.INVALID_INPUT);
+        }
 
         Long memberId = 1L;
         Long talentProfileId = talentProfileService.createProfile(memberId, request);

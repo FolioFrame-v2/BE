@@ -4,6 +4,7 @@ import com.folioframe.domain.common.enums.CareerLevel;
 import com.folioframe.domain.common.enums.Gender;
 import com.folioframe.domain.common.enums.JobRole;
 import com.folioframe.domain.job.enums.EmploymentType;
+import com.folioframe.domain.job.enums.JobSeekingStatus;
 import com.folioframe.domain.talent.enums.ProfileVisibility;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -54,7 +55,6 @@ public class TalentProfileUpdateRequest {
     @NotNull(message = "프로필 공개 범위를 선택해주세요.")
     private ProfileVisibility profileVisibility;
 
-    private String profileImageUrl;
-    private String jobSeekingStatus;
-    private List<Long> tagIds;
+    @NotNull(message = "구직 상태를 선택해주세요.")
+    private JobSeekingStatus jobSeekingStatus;
 }
