@@ -1,4 +1,4 @@
-package com.folioframe.domain.portfolio.enums;
+package com.folioframe.domain.portfolio.ai.enums;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

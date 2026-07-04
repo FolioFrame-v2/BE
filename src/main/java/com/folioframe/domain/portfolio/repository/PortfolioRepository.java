@@ -15,9 +15,18 @@ import java.util.Optional;
 
 public interface PortfolioRepository extends JpaRepository<Portfolio, Long> {
 
-    Page<Portfolio> findAllByTalentProfileAndConfirmedAtIsNotNullOrderByUpdatedAtDesc(TalentProfile talentProfile, Pageable pageable);
+    Page<Portfolio> findAllByTalentProfileAndConfirmedAtIsNotNullOrderByLastSavedAtDesc(TalentProfile talentProfile, Pageable pageable);
 
-    Page<Portfolio> findAllByVisibilityAndConfirmedAtIsNotNull(PortfolioVisibility visibility, Pageable pageable);
+    @Query(value = """
+            SELECT p FROM Portfolio p
+            JOIN FETCH p.talentProfile tp
+            JOIN FETCH tp.member
+            JOIN FETCH tp.region r
+            LEFT JOIN FETCH r.parent
+            WHERE p.visibility = :visibility AND p.confirmedAt IS NOT NULL
+            """,
+            countQuery = "SELECT COUNT(p) FROM Portfolio p WHERE p.visibility = :visibility AND p.confirmedAt IS NOT NULL")
+    Page<Portfolio> findAllByVisibilityAndConfirmedAtIsNotNull(@Param("visibility") PortfolioVisibility visibility, Pageable pageable);
 
     Optional<Portfolio> findByPublicSlug(String publicSlug);
 

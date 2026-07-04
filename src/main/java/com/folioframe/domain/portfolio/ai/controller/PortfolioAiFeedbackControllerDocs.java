@@ -1,11 +1,11 @@
-package com.folioframe.domain.portfolio.controller;
+package com.folioframe.domain.portfolio.ai.controller;
 
-import com.folioframe.domain.portfolio.dto.request.AiFeedbackRenameReqDTO;
-import com.folioframe.domain.portfolio.dto.request.AiFieldChooseReqDTO;
-import com.folioframe.domain.portfolio.dto.request.AiFieldEditReqDTO;
-import com.folioframe.domain.portfolio.dto.response.AiFieldResultDTO;
-import com.folioframe.domain.portfolio.dto.response.PortfolioAiFeedbackResDTO;
-import com.folioframe.domain.portfolio.dto.response.PortfolioAiFeedbackVersionResDTO;
+import com.folioframe.domain.portfolio.ai.dto.request.AiFeedbackRenameReqDTO;
+import com.folioframe.domain.portfolio.ai.dto.request.AiFieldChooseReqDTO;
+import com.folioframe.domain.portfolio.ai.dto.request.AiFieldEditReqDTO;
+import com.folioframe.domain.portfolio.ai.dto.response.AiFieldResultDTO;
+import com.folioframe.domain.portfolio.ai.dto.response.PortfolioAiFeedbackResDTO;
+import com.folioframe.domain.portfolio.ai.dto.response.PortfolioAiFeedbackVersionResDTO;
 import com.folioframe.global.apiPayload.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -47,22 +47,25 @@ public interface PortfolioAiFeedbackControllerDocs {
             @Parameter(description = "포트폴리오 ID", required = true) @PathVariable Long portfolioId,
             @Parameter(description = "첨삭 기준이 될 최상위 버전 번호(원본은 0). 생략하면 0(원본)") @RequestParam(required = false) Integer sourceVersion,
             @Parameter(description = "첨삭 기준이 될 자식(수정본) 버전 번호. 없으면 최상위 버전을 기준으로 함") @RequestParam(required = false) Integer sourceSubVersion,
-            Long memberId
+            @Parameter(hidden = true) Long memberId
     );
 
     @Operation(
             summary = "최근 AI 첨삭 결과 조회",
-            description = "포트폴리오에 대해 가장 최근에 생성된(버전 번호가 가장 큰) AI 첨삭 결과를 조회합니다. " +
+            description = "포트폴리오 편집 화면 진입 시 기본으로 불러올 버전을 조회합니다. \"가장 최근에 생성된\" 버전이 " +
+                    "아니라 \"가장 최근에 실제로 수정/저장된\" 버전(원본, 최상위 버전, 자식 수정본 통틀어)을 반환합니다 — " +
+                    "AI 첨삭을 새로 받았는지와 무관하게, 필드 선택/직접수정으로 마지막에 손댄 버전을 그대로 이어서 보여주기 " +
+                    "위함입니다. AI 첨삭을 한 번도 요청한 적 없으면 지금 라이브 콘텐츠를 읽기 전용으로 보여줍니다(항상 200). " +
                     "응답의 published는 이 버전이 지금 실제로 게시 중인지를 나타냅니다."
     )
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "해당 포트폴리오에 접근 권한이 없습니다."),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "포트폴리오 또는 AI 첨삭 결과를 찾을 수 없습니다.")
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "포트폴리오를 찾을 수 없습니다.")
     })
     ResponseEntity<ApiResponse<PortfolioAiFeedbackResDTO>> getLatest(
             @Parameter(description = "포트폴리오 ID", required = true) @PathVariable Long portfolioId,
-            Long memberId
+            @Parameter(hidden = true) Long memberId
     );
 
     @Operation(
@@ -73,7 +76,10 @@ public interface PortfolioAiFeedbackControllerDocs {
                     "돌려주며, 각 최상위 버전 항목의 revisions에는 '수정본 만들기'로 생성된 자식 버전들이 subVersion " +
                     "오름차순으로 담깁니다. 각 항목의 published는 그 버전이 지금 실제로 게시 중인지를 나타내며(FE에서 파란 " +
                     "테두리로 표시할 때 사용), 한 포트폴리오에는 항상 최대 하나의 항목만 published=true입니다. label은 " +
-                    "사용자가 이름 변경 API로 직접 지정한 표시 이름이며, null이면 FE가 번호로부터 기본 이름을 생성해서 보여줘야 합니다."
+                    "사용자가 이름 변경 API로 직접 지정한 표시 이름이며, null이면 FE가 번호로부터 기본 이름을 생성해서 보여줘야 합니다. " +
+                    "createdAt은 그 버전이 처음 생성된 시각이고, lastModifiedAt은 AI 첨삭 수신 여부와 무관하게 필드 선택/직접수정 " +
+                    "등으로 실제 내용이 마지막으로 바뀐 시각입니다(한 번도 안 바뀌었으면 createdAt과 동일). FE는 이 lastModifiedAt " +
+                    "하나만 표시하면 됩니다 — 처음엔 생성 시각과 같다가 수정 시 자동으로 갱신됩니다."
     )
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공"),
@@ -82,7 +88,7 @@ public interface PortfolioAiFeedbackControllerDocs {
     })
     ResponseEntity<ApiResponse<List<PortfolioAiFeedbackVersionResDTO>>> getVersions(
             @Parameter(description = "포트폴리오 ID", required = true) @PathVariable Long portfolioId,
-            Long memberId
+            @Parameter(hidden = true) Long memberId
     );
 
     @Operation(
@@ -99,7 +105,7 @@ public interface PortfolioAiFeedbackControllerDocs {
     })
     ResponseEntity<ApiResponse<PortfolioAiFeedbackResDTO>> getOriginal(
             @Parameter(description = "포트폴리오 ID", required = true) @PathVariable Long portfolioId,
-            Long memberId
+            @Parameter(hidden = true) Long memberId
     );
 
     @Operation(
@@ -120,7 +126,7 @@ public interface PortfolioAiFeedbackControllerDocs {
             @Parameter(description = "포트폴리오 ID", required = true) @PathVariable Long portfolioId,
             @Parameter(description = "조회할 최상위 버전 번호", required = true) @PathVariable Integer version,
             @Parameter(description = "조회할 자식(수정본) 버전 번호. 없으면 최상위 버전을 조회") @RequestParam(required = false) Integer subVersion,
-            Long memberId
+            @Parameter(hidden = true) Long memberId
     );
 
     @Operation(
@@ -140,7 +146,7 @@ public interface PortfolioAiFeedbackControllerDocs {
             @Parameter(description = "포트폴리오 ID", required = true) @PathVariable Long portfolioId,
             @Parameter(description = "저장할 최상위 버전 번호", required = true) @PathVariable Integer version,
             @Parameter(description = "저장할 자식(수정본) 버전 번호. 없으면 최상위 버전을 저장") @RequestParam(required = false) Integer subVersion,
-            Long memberId
+            @Parameter(hidden = true) Long memberId
     );
 
     @Operation(
@@ -163,7 +169,7 @@ public interface PortfolioAiFeedbackControllerDocs {
             @Parameter(description = "포트폴리오 ID", required = true) @PathVariable Long portfolioId,
             @Parameter(description = "수정본을 만들 최상위 버전 번호", required = true) @PathVariable Integer version,
             @Parameter(description = "내용을 이어받을 기존 형제 자식의 subVersion. 없으면 최상위 버전에서 시작") @RequestParam(required = false) Integer subVersion,
-            Long memberId
+            @Parameter(hidden = true) Long memberId
     );
 
     @Operation(
@@ -194,7 +200,7 @@ public interface PortfolioAiFeedbackControllerDocs {
             @Parameter(description = "포트폴리오 ID", required = true) @PathVariable Long portfolioId,
             @Parameter(description = "게시할 최상위 버전 번호(원본은 0)", required = true) @PathVariable Integer version,
             @Parameter(description = "게시할 자식(수정본) 버전 번호. 없으면 최상위 버전을 게시") @RequestParam(required = false) Integer subVersion,
-            Long memberId
+            @Parameter(hidden = true) Long memberId
     );
 
     @Operation(
@@ -215,7 +221,7 @@ public interface PortfolioAiFeedbackControllerDocs {
             @Parameter(description = "포트폴리오 ID", required = true) @PathVariable Long portfolioId,
             @Parameter(description = "이름을 바꿀 최상위 버전 번호(원본은 0)", required = true) @PathVariable Integer version,
             @Parameter(description = "이름을 바꿀 자식(수정본) 버전 번호. 없으면 최상위 버전을 변경") @RequestParam(required = false) Integer subVersion,
-            Long memberId,
+            @Parameter(hidden = true) Long memberId,
             @Valid @RequestBody AiFeedbackRenameReqDTO request
     );
 
@@ -238,7 +244,7 @@ public interface PortfolioAiFeedbackControllerDocs {
             @Parameter(description = "포트폴리오 ID", required = true) @PathVariable Long portfolioId,
             @Parameter(description = "삭제할 최상위 버전 번호", required = true) @PathVariable Integer version,
             @Parameter(description = "삭제할 자식(수정본) 버전 번호. 없으면 최상위 버전(+ 모든 자식)을 삭제") @RequestParam(required = false) Integer subVersion,
-            Long memberId
+            @Parameter(hidden = true) Long memberId
     );
 
     @Operation(
@@ -258,7 +264,7 @@ public interface PortfolioAiFeedbackControllerDocs {
     ResponseEntity<ApiResponse<AiFieldResultDTO>> chooseField(
             @Parameter(description = "포트폴리오 ID", required = true) @PathVariable Long portfolioId,
             @Parameter(description = "AI 첨삭 필드 ID (PortfolioAiField.id)", required = true) @PathVariable Long aiFieldId,
-            Long memberId,
+            @Parameter(hidden = true) Long memberId,
             @Valid @RequestBody AiFieldChooseReqDTO request
     );
 
@@ -277,7 +283,7 @@ public interface PortfolioAiFeedbackControllerDocs {
     ResponseEntity<ApiResponse<AiFieldResultDTO>> editField(
             @Parameter(description = "포트폴리오 ID", required = true) @PathVariable Long portfolioId,
             @Parameter(description = "AI 첨삭 필드 ID (PortfolioAiField.id)", required = true) @PathVariable Long aiFieldId,
-            Long memberId,
+            @Parameter(hidden = true) Long memberId,
             @Valid @RequestBody AiFieldEditReqDTO request
     );
 }

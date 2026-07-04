@@ -2,6 +2,7 @@ package com.folioframe.domain.portfolio.dto.response;
 
 import com.folioframe.domain.portfolio.entity.PortfolioEducation;
 import com.folioframe.domain.portfolio.enums.DegreeType;
+import com.folioframe.domain.portfolio.enums.EducationStatus;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -14,7 +15,7 @@ public record EducationResDTO(
         DegreeType degree,
         LocalDate startedAt,
         LocalDate endedAt,
-        boolean graduated,
+        EducationStatus status,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {
@@ -27,7 +28,7 @@ public record EducationResDTO(
                 education.getDegree(),
                 education.getStartedAt(),
                 education.getEndedAt(),
-                education.isGraduated(),
+                education.getStatus(),
                 education.getCreatedAt(),
                 education.getUpdatedAt()
         );

@@ -1,27 +1,28 @@
-package com.folioframe.domain.portfolio.service;
+package com.folioframe.domain.portfolio.ai.service;
 
-import com.folioframe.domain.portfolio.dto.ai.AiFeedbackApiReqDTO;
-import com.folioframe.domain.portfolio.dto.ai.AiFeedbackApiResDTO;
-import com.folioframe.domain.portfolio.dto.ai.AiFieldInputDTO;
-import com.folioframe.domain.portfolio.dto.ai.AiFieldRevisionDTO;
-import com.folioframe.domain.portfolio.dto.response.PortfolioAiFeedbackResDTO;
-import com.folioframe.domain.portfolio.dto.response.PortfolioAiFeedbackVersionResDTO;
-import com.folioframe.domain.portfolio.dto.response.AiFieldResultDTO;
+import com.folioframe.domain.portfolio.ai.dto.client.AiFeedbackApiReqDTO;
+import com.folioframe.domain.portfolio.ai.dto.client.AiFeedbackApiResDTO;
+import com.folioframe.domain.portfolio.ai.dto.client.AiFieldInputDTO;
+import com.folioframe.domain.portfolio.ai.dto.client.AiFieldRevisionDTO;
+import com.folioframe.domain.portfolio.ai.dto.response.PortfolioAiFeedbackResDTO;
+import com.folioframe.domain.portfolio.ai.dto.response.PortfolioAiFeedbackVersionResDTO;
+import com.folioframe.domain.portfolio.ai.dto.response.AiFieldResultDTO;
+import com.folioframe.domain.portfolio.ai.entity.PortfolioAiFeedback;
+import com.folioframe.domain.portfolio.ai.entity.PortfolioAiField;
+import com.folioframe.domain.portfolio.ai.enums.AiChosenType;
+import com.folioframe.domain.portfolio.ai.enums.AiFeedbackStatus;
+import com.folioframe.domain.portfolio.ai.enums.AiFieldTargetType;
+import com.folioframe.domain.portfolio.ai.repository.PortfolioAiFeedbackRepository;
+import com.folioframe.domain.portfolio.ai.repository.PortfolioAiFieldRepository;
 import com.folioframe.domain.portfolio.entity.Portfolio;
-import com.folioframe.domain.portfolio.entity.PortfolioAiFeedback;
-import com.folioframe.domain.portfolio.entity.PortfolioAiField;
 import com.folioframe.domain.portfolio.entity.PortfolioField;
 import com.folioframe.domain.portfolio.entity.PortfolioProject;
-import com.folioframe.domain.portfolio.enums.AiChosenType;
-import com.folioframe.domain.portfolio.enums.AiFeedbackStatus;
-import com.folioframe.domain.portfolio.enums.AiFieldTargetType;
 import com.folioframe.domain.portfolio.enums.PortfolioVisibility;
 import com.folioframe.domain.portfolio.exception.PortfolioException;
 import com.folioframe.domain.portfolio.exception.code.PortfolioErrorCode;
-import com.folioframe.domain.portfolio.repository.PortfolioAiFeedbackRepository;
-import com.folioframe.domain.portfolio.repository.PortfolioAiFieldRepository;
 import com.folioframe.domain.portfolio.repository.PortfolioFieldRepository;
 import com.folioframe.domain.portfolio.repository.PortfolioProjectRepository;
+import com.folioframe.domain.portfolio.service.PortfolioService;
 import com.folioframe.domain.talent.entity.TalentProfile;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -132,15 +133,33 @@ public class PortfolioAiFeedbackService {
         return PortfolioAiFeedbackResDTO.of(feedback, fieldResults, false);
     }
 
+    // 편집 화면 진입 시 기본으로 불러올 버전 조회. "가장 최근에 생성된" 버전이 아니라 "가장 최근에
+    // 실제로 수정/저장된" 버전을 찾는다 — AI 첨삭을 새로 받았는지와 무관하게, 필드 선택/직접수정으로
+    // 마지막에 손댄 버전(원본이든 자식 수정본이든)을 그대로 이어서 보여주기 위함이다.
     @Transactional(readOnly = true)
     public PortfolioAiFeedbackResDTO getLatest(Long portfolioId, Long memberId) {
         Portfolio portfolio = portfolioService.findPortfolio(portfolioId);
         portfolioService.validateOwnership(portfolio, memberId);
 
-        PortfolioAiFeedback feedback = feedbackRepository.findTopByPortfolioAndParentFeedbackIsNullOrderByVersionDesc(portfolio)
+        List<PortfolioAiFeedback> topLevelFeedbacks = feedbackRepository.findAllByPortfolioAndParentFeedbackIsNullOrderByVersionAsc(portfolio);
+        if (topLevelFeedbacks.isEmpty()) {
+            // AI 첨삭을 한 번도 요청한 적 없음: 라이브 콘텐츠가 곧 유일한 "버전"이다.
+            return buildLiveOriginalResponse(portfolio);
+        }
+
+        List<PortfolioAiFeedback> allFeedbacks = new ArrayList<>(topLevelFeedbacks);
+        for (PortfolioAiFeedback feedback : topLevelFeedbacks) {
+            allFeedbacks.addAll(feedbackRepository.findAllByParentFeedbackOrderBySubVersionAsc(feedback));
+        }
+
+        Map<Long, List<PortfolioAiField>> fieldsByFeedbackId = aiFieldRepository.findAllByFeedbackIn(allFeedbacks).stream()
+                .collect(Collectors.groupingBy(field -> field.getFeedback().getId()));
+
+        PortfolioAiFeedback mostRecentlyModified = allFeedbacks.stream()
+                .max(java.util.Comparator.comparing(feedback -> lastModifiedAt(feedback, fieldsByFeedbackId)))
                 .orElseThrow(() -> new PortfolioException(PortfolioErrorCode.AI_FEEDBACK_NOT_FOUND));
 
-        return toResDTO(feedback);
+        return toResDTO(mostRecentlyModified);
     }
 
     @Transactional(readOnly = true)
@@ -161,19 +180,44 @@ public class PortfolioAiFeedbackService {
         if (topLevelFeedbacks.isEmpty()) {
             // AI 첨삭을 한 번도 요청한 적 없음: 원본을 라이브 콘텐츠 기준 가상 항목으로만 보여준다.
             boolean publishedAsIs = isPublishedWithoutVersion(portfolio);
-            return List.of(PortfolioAiFeedbackVersionResDTO.original(publishedAsIs));
+            return List.of(PortfolioAiFeedbackVersionResDTO.original(publishedAsIs, portfolio.getLastSavedAt()));
         }
 
         Long publishedId = portfolio.getPublishedFeedback() != null ? portfolio.getPublishedFeedback().getId() : null;
 
+        Map<Long, List<PortfolioAiFeedback>> revisionsByParentId = new java.util.HashMap<>();
+        List<PortfolioAiFeedback> allFeedbacks = new ArrayList<>(topLevelFeedbacks);
+        for (PortfolioAiFeedback feedback : topLevelFeedbacks) {
+            List<PortfolioAiFeedback> revisions = feedbackRepository.findAllByParentFeedbackOrderBySubVersionAsc(feedback);
+            revisionsByParentId.put(feedback.getId(), revisions);
+            allFeedbacks.addAll(revisions);
+        }
+
+        Map<Long, List<PortfolioAiField>> fieldsByFeedbackId = aiFieldRepository.findAllByFeedbackIn(allFeedbacks).stream()
+                .collect(Collectors.groupingBy(field -> field.getFeedback().getId()));
+
         List<PortfolioAiFeedbackVersionResDTO> results = new ArrayList<>();
         for (PortfolioAiFeedback feedback : topLevelFeedbacks) {
-            List<PortfolioAiFeedbackVersionResDTO> revisions = feedbackRepository.findAllByParentFeedbackOrderBySubVersionAsc(feedback).stream()
-                    .map(revision -> PortfolioAiFeedbackVersionResDTO.from(revision, List.of(), revision.getId().equals(publishedId)))
+            List<PortfolioAiFeedbackVersionResDTO> revisions = revisionsByParentId.get(feedback.getId()).stream()
+                    .map(revision -> PortfolioAiFeedbackVersionResDTO.from(
+                            revision, lastModifiedAt(revision, fieldsByFeedbackId), List.of(), revision.getId().equals(publishedId)))
                     .toList();
-            results.add(PortfolioAiFeedbackVersionResDTO.from(feedback, revisions, feedback.getId().equals(publishedId)));
+            results.add(PortfolioAiFeedbackVersionResDTO.from(
+                    feedback, lastModifiedAt(feedback, fieldsByFeedbackId), revisions, feedback.getId().equals(publishedId)));
         }
         return results;
+    }
+
+    // AI 첨삭 수신 여부와 무관하게, 필드 선택/직접수정으로 실제 내용이 마지막으로 바뀐 시각(필드들의 updatedAt과
+    // feedback 자체의 updatedAt 중 가장 나중 시각)을 계산한다.
+    private LocalDateTime lastModifiedAt(PortfolioAiFeedback feedback, Map<Long, List<PortfolioAiField>> fieldsByFeedbackId) {
+        LocalDateTime latest = feedback.getUpdatedAt();
+        for (PortfolioAiField field : fieldsByFeedbackId.getOrDefault(feedback.getId(), List.of())) {
+            if (field.getUpdatedAt().isAfter(latest)) {
+                latest = field.getUpdatedAt();
+            }
+        }
+        return latest;
     }
 
     // "원본" 조회. AI 첨삭을 이미 시작했다면 그 순간 스냅샷 떠둔 독립 버전(version=0)을 그대로 보여주고,

@@ -42,7 +42,7 @@ public interface PortfolioFieldControllerDocs {
     ResponseEntity<ApiResponse<PortfolioFieldResDTO>> updateContent(
             @Parameter(description = "포트폴리오 ID", required = true) @PathVariable Long portfolioId,
             @Parameter(description = "필드 ID", required = true) @PathVariable Long fieldId,
-            Long memberId,
+            @Parameter(hidden = true) Long memberId,
             @Valid @RequestBody PortfolioFieldUpdateReqDTO request
     );
 }

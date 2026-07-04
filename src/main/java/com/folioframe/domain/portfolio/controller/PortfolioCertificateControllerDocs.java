@@ -29,7 +29,7 @@ public interface PortfolioCertificateControllerDocs {
     })
     ResponseEntity<ApiResponse<CertificateResDTO>> create(
             @Parameter(description = "포트폴리오 ID", required = true) @PathVariable Long portfolioId,
-            Long memberId,
+            @Parameter(hidden = true) Long memberId,
             @Valid @RequestBody CertificateReqDTO request
     );
 
@@ -58,7 +58,7 @@ public interface PortfolioCertificateControllerDocs {
     ResponseEntity<ApiResponse<CertificateResDTO>> update(
             @Parameter(description = "포트폴리오 ID", required = true) @PathVariable Long portfolioId,
             @Parameter(description = "자격증 ID", required = true) @PathVariable Long certificateId,
-            Long memberId,
+            @Parameter(hidden = true) Long memberId,
             @Valid @RequestBody CertificateReqDTO request
     );
 
@@ -75,6 +75,6 @@ public interface PortfolioCertificateControllerDocs {
     ResponseEntity<ApiResponse<Void>> delete(
             @Parameter(description = "포트폴리오 ID", required = true) @PathVariable Long portfolioId,
             @Parameter(description = "자격증 ID", required = true) @PathVariable Long certificateId,
-            Long memberId
+            @Parameter(hidden = true) Long memberId
     );
 }

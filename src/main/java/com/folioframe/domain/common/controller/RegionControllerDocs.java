@@ -11,23 +11,22 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
-@Tag(name = "Region", description = "지역 검색 API")
+@Tag(name = "Region", description = "지역 목록 조회 API")
 public interface RegionControllerDocs {
 
     @Operation(
-            summary = "지역 검색",
+            summary = "지역 목록 조회 (시/도 → 시/군/구 드롭다운)",
             description = """
-                    지역을 검색합니다(대소문자 무시, 부분 일치). keyword가 없으면 선택 가능한 전체 지역을 반환합니다.
-                    상위 지역명("서울")과 하위 지역명("강남·서초·양재")을 합친 전체 경로(예: "서울 강남·서초·양재")를 기준으로 검색하므로,
-                    "서울"만 입력해도 서울의 하위 지역이 모두 걸리고 "강남"까지 입력하면 좁혀집니다.
-                    상위 지역 자체("서울", "경기" 등)는 선택 불가 항목이라 검색 결과에 나오지 않고, 항상 하위(리프) 지역만 반환됩니다.
+                    시/도 → 시/군/구 2단계 드롭다운 UI에 사용합니다. 대외활동/공고 지역 필터, 프로필 지역 등록 모두 동일하게 이 API를 씁니다.
+                    - `parentId` 미입력: 최상위 시/도 목록(서울/경기/인천/부산/대구/광주/원격)을 반환합니다. 1단계 드롭다운에 사용합니다.
+                    - `parentId={시/도 ID}`: 그 시/도 하위의 시/군/구 목록(전체 포함)을 반환합니다. 2단계 드롭다운에 사용합니다.
                     새 지역을 등록하는 기능은 없습니다 — 관리자가 미리 정의한 목록 안에서만 선택 가능합니다.
                     """
     )
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공")
     })
-    ResponseEntity<ApiResponse<List<RegionResDTO>>> search(
-            @Parameter(description = "검색어") @RequestParam(required = false) String keyword
+    ResponseEntity<ApiResponse<List<RegionResDTO>>> getRegions(
+            @Parameter(description = "이 시/도 ID 하위의 시/군/구 목록 반환. 미입력 시 최상위 시/도 목록 반환") @RequestParam(required = false) Long parentId
     );
 }

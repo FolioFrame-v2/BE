@@ -32,7 +32,7 @@ public class PortfolioEducationService {
                 .degree(request.degree())
                 .startedAt(request.startedAt())
                 .endedAt(request.endedAt())
-                .graduated(request.graduated())
+                .status(request.status())
                 .build();
         educationRepository.save(education);
         portfolio.markSaved();
@@ -63,7 +63,7 @@ public class PortfolioEducationService {
                 request.degree(),
                 request.startedAt(),
                 request.endedAt(),
-                request.graduated()
+                request.status()
         );
         portfolio.markSaved();
 
