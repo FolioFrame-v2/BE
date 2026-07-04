@@ -5,8 +5,9 @@ import com.folioframe.domain.portfolio.dto.request.PortfolioCreateReqDTO;
 import com.folioframe.domain.portfolio.dto.request.PortfolioUpdateReqDTO;
 import com.folioframe.domain.portfolio.dto.request.PortfolioVisibilityReqDTO;
 import com.folioframe.domain.portfolio.dto.response.PortfolioDetailResDTO;
+import com.folioframe.domain.portfolio.dto.response.PortfolioMyListResDTO;
+import com.folioframe.domain.portfolio.dto.response.PortfolioPublicListResDTO;
 import com.folioframe.domain.portfolio.dto.response.PortfolioResDTO;
-import com.folioframe.domain.portfolio.dto.response.PortfolioSummaryResDTO;
 import com.folioframe.domain.common.dto.response.TechstackResDTO;
 import com.folioframe.domain.portfolio.entity.PortfolioAiFeedback;
 import com.folioframe.domain.portfolio.entity.PortfolioAiField;
@@ -44,6 +45,7 @@ import com.folioframe.global.apiPayload.exception.GeneralException;
 import com.folioframe.domain.common.entity.Techstack;
 import com.folioframe.domain.common.repository.TechstackRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -117,25 +119,34 @@ public class PortfolioService {
     }
 
     @Transactional(readOnly = true)
-    public PageResponse<PortfolioSummaryResDTO> getList(Long memberId, PageRequest pageRequest) {
+    public PageResponse<PortfolioMyListResDTO> getList(Long memberId, PageRequest pageRequest) {
         TalentProfile talentProfile = findTalentProfile(memberId);
         return PageResponse.of(
                 portfolioRepository.findAllByTalentProfileAndConfirmedAtIsNotNullOrderByUpdatedAtDesc(talentProfile, pageRequest.toPageable())
-                        .map(PortfolioSummaryResDTO::from)
+                        .map(PortfolioMyListResDTO::from)
         );
     }
 
     @Transactional(readOnly = true)
-    public PageResponse<PortfolioSummaryResDTO> getPublicList(PortfolioSortType sortType, PageRequest pageRequest, Long memberId) {
+    public PageResponse<PortfolioPublicListResDTO> getPublicList(PortfolioSortType sortType, PageRequest pageRequest, Long memberId) {
         if (sortType == null) sortType = PortfolioSortType.LATEST;
         // 비로그인 시 상위 3개만 반환 (프론트에서 회원가입 유도)
         PageRequest effectiveRequest = (memberId == null) ? PageRequest.of(1, 3) : pageRequest;
-        return PageResponse.of(
-                portfolioRepository.findAllByVisibilityAndConfirmedAtIsNotNull(
-                                PortfolioVisibility.PUBLIC,
-                                effectiveRequest.toPageable(sortType.getSort()))
-                        .map(PortfolioSummaryResDTO::from)
-        );
+        Page<Portfolio> portfolioPage = portfolioRepository.findAllByVisibilityAndConfirmedAtIsNotNull(
+                PortfolioVisibility.PUBLIC,
+                effectiveRequest.toPageable(sortType.getSort()));
+
+        Map<Long, List<Techstack>> techstacksByPortfolioId = portfolioTechstackRepository
+                .findAllByPortfolioInWithTechstack(portfolioPage.getContent())
+                .stream()
+                .collect(Collectors.groupingBy(
+                        pt -> pt.getPortfolio().getId(),
+                        Collectors.mapping(PortfolioTechstack::getTechstack, Collectors.toList())
+                ));
+
+        return PageResponse.of(portfolioPage, portfolioPage.getContent().stream()
+                .map(p -> PortfolioPublicListResDTO.from(p, techstacksByPortfolioId.getOrDefault(p.getId(), List.of())))
+                .toList());
     }
 
     // 공개/비공개 "선택"만으로는(게시하기 전) 남에게 보이면 안 되므로, PUBLIC이어도 확정

@@ -5,8 +5,9 @@ import com.folioframe.domain.portfolio.dto.request.PortfolioUpdateReqDTO;
 import com.folioframe.domain.portfolio.dto.request.PortfolioVisibilityReqDTO;
 import com.folioframe.domain.portfolio.dto.request.TechstackIdsReqDTO;
 import com.folioframe.domain.portfolio.dto.response.PortfolioDetailResDTO;
+import com.folioframe.domain.portfolio.dto.response.PortfolioMyListResDTO;
+import com.folioframe.domain.portfolio.dto.response.PortfolioPublicListResDTO;
 import com.folioframe.domain.portfolio.dto.response.PortfolioResDTO;
-import com.folioframe.domain.portfolio.dto.response.PortfolioSummaryResDTO;
 import com.folioframe.domain.common.dto.response.TechstackResDTO;
 import com.folioframe.domain.portfolio.enums.PortfolioSortType;
 import com.folioframe.global.apiPayload.ApiResponse;
@@ -42,13 +43,14 @@ public interface PortfolioControllerDocs {
 
     @Operation(
             summary = "내 포트폴리오 목록 조회 (마이페이지)",
-            description = "본인이 작성한 포트폴리오 목록을 최근 수정순으로 페이지 단위 조회합니다. (2×2, 기본 4개/페이지)"
+            description = "본인이 작성한 포트폴리오 목록을 최근 수정순으로 페이지 단위 조회합니다. (2×2, 기본 4개/페이지)\n\n" +
+                    "제목, 마지막 수정일(updatedAt), 조회수, 공개/비공개 여부만 반환합니다."
     )
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "회원 또는 탤런트 프로필을 찾을 수 없습니다.")
     })
-    ResponseEntity<ApiResponse<PageResponse<PortfolioSummaryResDTO>>> getList(
+    ResponseEntity<ApiResponse<PageResponse<PortfolioMyListResDTO>>> getList(
             @Parameter(hidden = true) Long memberId,
             @Parameter(description = "페이지 번호 (1부터 시작, 기본값: 1)") @RequestParam(defaultValue = "1") Integer page,
             @Parameter(description = "페이지 크기 (기본값: 4)") @RequestParam(defaultValue = "4") Integer size
@@ -58,12 +60,13 @@ public interface PortfolioControllerDocs {
             summary = "공개 포트폴리오 탐색 목록 조회",
             description = "공개(PUBLIC) + 게시(PUBLISHED) 상태인 포트폴리오 전체를 페이지 단위 조회합니다. (3×3, 기본 9개/페이지)\n\n" +
                     "- `sort`: LATEST(최신순, 기본값) / POPULAR(북마크 순) / MOST_VIEWED(조회순)\n" +
-                    "- **비로그인 시**: 상위 3개만 반환 (`totalElements`는 실제 전체 개수 — 프론트에서 회원가입 유도 UI 표시)"
+                    "- **비로그인 시**: 상위 3개만 반환 (`totalElements`는 실제 전체 개수 — 프론트에서 회원가입 유도 UI 표시)\n" +
+                    "- 포트폴리오 제목, 작성자 프로필 사진/이름/지역, 경력 연차(careerLevel), 직군(jobRole), 보유 기술스택, 북마크수, 조회수를 반환합니다."
     )
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공")
     })
-    ResponseEntity<ApiResponse<PageResponse<PortfolioSummaryResDTO>>> getPublicList(
+    ResponseEntity<ApiResponse<PageResponse<PortfolioPublicListResDTO>>> getPublicList(
             @Parameter(description = "정렬 (LATEST / POPULAR / MOST_VIEWED, 기본값: LATEST)") @RequestParam(required = false) PortfolioSortType sort,
             @Parameter(description = "페이지 번호 (1부터 시작, 기본값: 1)") @RequestParam(defaultValue = "1") Integer page,
             @Parameter(description = "페이지 크기 (기본값: 9)") @RequestParam(defaultValue = "9") Integer size,
