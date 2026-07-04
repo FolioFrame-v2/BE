@@ -24,9 +24,10 @@ public class CompanyController {
 
     private final CompanyService companyService;
 
-    /**
-     * 기업 프로필 등록
-     */
+    @Operation(
+            summary = "기업 프로필 등록 API",
+            description = "현재 로그인한 기업 회원의 기업 프로필을 등록합니다."
+    )
     @PostMapping
     public ResponseEntity<ApiResponse<CompanyProfileResDTO>> createCompanyProfile(
             @Valid @RequestBody CompanyProfileReqDTO request,
@@ -40,9 +41,10 @@ public class CompanyController {
                 .body(ApiResponse.onSuccess(CompanySuccessCode.PROFILE_CREATED, response));
     }
 
-    /**
-     * 내 기업 프로필 조회
-     */
+    @Operation(
+            summary = "내 기업 프로필 조회 API",
+            description = "현재 로그인한 기업 회원의 기업 프로필 정보를 조회합니다."
+    )
     @GetMapping("/me")
     public ResponseEntity<ApiResponse<CompanyProfileResDTO>> getMyCompanyProfile(
             @AuthenticationPrincipal CustomUserDetails userDetails) {
@@ -56,10 +58,11 @@ public class CompanyController {
         );
     }
 
-    /**
-     * 기업 프로필 수정
-     */
-    @PutMapping("/{profileId}")
+    @Operation(
+            summary = "기업 프로필 수정 API",
+            description = "현재 로그인한 기업 회원이 자신의 기업 프로필 정보를 수정합니다."
+    )
+    @PatchMapping("/{profileId}")
     public ResponseEntity<ApiResponse<CompanyProfileResDTO>> updateCompanyProfile(
             @PathVariable Long profileId,
             @Valid @RequestBody CompanyProfileReqDTO request,
@@ -74,9 +77,10 @@ public class CompanyController {
         );
     }
 
-    /**
-     * 특정 기업 프로필 상세 조회
-     */
+    @Operation(
+            summary = "기업 프로필 상세 조회 API",
+            description = "특정 기업 프로필의 상세 정보를 조회합니다."
+    )
     @GetMapping("/{profileId}")
     public ResponseEntity<ApiResponse<CompanyProfileResDTO>> getCompanyProfile(
             @PathVariable Long profileId) {
