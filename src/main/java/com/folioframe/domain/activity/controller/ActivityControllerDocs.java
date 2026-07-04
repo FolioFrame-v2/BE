@@ -35,7 +35,7 @@ public interface ActivityControllerDocs {
             @RequestParam(defaultValue = "1") Integer page,
             @Parameter(description = "페이지 크기 (기본값: 9)")
             @RequestParam(defaultValue = "9") Integer size,
-            Long memberId
+            @Parameter(hidden = true) Long memberId
     );
 
     @Operation(
@@ -63,6 +63,6 @@ public interface ActivityControllerDocs {
             @RequestParam(defaultValue = "1") Integer page,
             @Parameter(description = "페이지 크기 (기본값: 9)")
             @RequestParam(defaultValue = "9") Integer size,
-            Long memberId
+            @Parameter(hidden = true) Long memberId
     );
 }

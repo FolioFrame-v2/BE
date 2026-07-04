@@ -29,7 +29,7 @@ public interface PortfolioEducationControllerDocs {
     })
     ResponseEntity<ApiResponse<EducationResDTO>> create(
             @Parameter(description = "포트폴리오 ID", required = true) @PathVariable Long portfolioId,
-            Long memberId,
+            @Parameter(hidden = true) Long memberId,
             @Valid @RequestBody EducationReqDTO request
     );
 
@@ -58,7 +58,7 @@ public interface PortfolioEducationControllerDocs {
     ResponseEntity<ApiResponse<EducationResDTO>> update(
             @Parameter(description = "포트폴리오 ID", required = true) @PathVariable Long portfolioId,
             @Parameter(description = "학력 ID", required = true) @PathVariable Long educationId,
-            Long memberId,
+            @Parameter(hidden = true) Long memberId,
             @Valid @RequestBody EducationReqDTO request
     );
 
@@ -75,6 +75,6 @@ public interface PortfolioEducationControllerDocs {
     ResponseEntity<ApiResponse<Void>> delete(
             @Parameter(description = "포트폴리오 ID", required = true) @PathVariable Long portfolioId,
             @Parameter(description = "학력 ID", required = true) @PathVariable Long educationId,
-            Long memberId
+            @Parameter(hidden = true) Long memberId
     );
 }

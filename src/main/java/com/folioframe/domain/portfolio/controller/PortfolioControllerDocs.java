@@ -36,7 +36,7 @@ public interface PortfolioControllerDocs {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "회원, 탤런트 프로필, 템플릿 또는 기술스택을 찾을 수 없습니다.")
     })
     ResponseEntity<ApiResponse<PortfolioResDTO>> create(
-            Long memberId,
+            @Parameter(hidden = true) Long memberId,
             @Valid @RequestBody PortfolioCreateReqDTO request
     );
 
@@ -49,7 +49,7 @@ public interface PortfolioControllerDocs {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "회원 또는 탤런트 프로필을 찾을 수 없습니다.")
     })
     ResponseEntity<ApiResponse<PageResponse<PortfolioSummaryResDTO>>> getList(
-            Long memberId,
+            @Parameter(hidden = true) Long memberId,
             @Parameter(description = "페이지 번호 (1부터 시작, 기본값: 1)") @RequestParam(defaultValue = "1") Integer page,
             @Parameter(description = "페이지 크기 (기본값: 4)") @RequestParam(defaultValue = "4") Integer size
     );
@@ -67,7 +67,7 @@ public interface PortfolioControllerDocs {
             @Parameter(description = "정렬 (LATEST / POPULAR / MOST_VIEWED, 기본값: LATEST)") @RequestParam(required = false) PortfolioSortType sort,
             @Parameter(description = "페이지 번호 (1부터 시작, 기본값: 1)") @RequestParam(defaultValue = "1") Integer page,
             @Parameter(description = "페이지 크기 (기본값: 9)") @RequestParam(defaultValue = "9") Integer size,
-            Long memberId
+            @Parameter(hidden = true) Long memberId
     );
 
     @Operation(
@@ -81,7 +81,7 @@ public interface PortfolioControllerDocs {
     })
     ResponseEntity<ApiResponse<PortfolioDetailResDTO>> getDetail(
             @Parameter(description = "포트폴리오 ID", required = true) @PathVariable Long portfolioId,
-            Long memberId
+            @Parameter(hidden = true) Long memberId
     );
 
     @Operation(
@@ -109,7 +109,7 @@ public interface PortfolioControllerDocs {
     })
     ResponseEntity<ApiResponse<PortfolioResDTO>> update(
             @Parameter(description = "포트폴리오 ID", required = true) @PathVariable Long portfolioId,
-            Long memberId,
+            @Parameter(hidden = true) Long memberId,
             @Valid @RequestBody PortfolioUpdateReqDTO request
     );
 
@@ -128,7 +128,7 @@ public interface PortfolioControllerDocs {
     })
     ResponseEntity<ApiResponse<PortfolioResDTO>> confirmSave(
             @Parameter(description = "포트폴리오 ID", required = true) @PathVariable Long portfolioId,
-            Long memberId
+            @Parameter(hidden = true) Long memberId
     );
 
     @Operation(
@@ -147,7 +147,7 @@ public interface PortfolioControllerDocs {
     })
     ResponseEntity<ApiResponse<PortfolioResDTO>> changeVisibility(
             @Parameter(description = "포트폴리오 ID", required = true) @PathVariable Long portfolioId,
-            Long memberId,
+            @Parameter(hidden = true) Long memberId,
             @Valid @RequestBody PortfolioVisibilityReqDTO request
     );
 
@@ -162,7 +162,7 @@ public interface PortfolioControllerDocs {
     })
     ResponseEntity<ApiResponse<Void>> delete(
             @Parameter(description = "포트폴리오 ID", required = true) @PathVariable Long portfolioId,
-            Long memberId
+            @Parameter(hidden = true) Long memberId
     );
 
     @Operation(
@@ -176,7 +176,7 @@ public interface PortfolioControllerDocs {
     })
     ResponseEntity<ApiResponse<List<TechstackResDTO>>> updateTechstacks(
             @Parameter(description = "포트폴리오 ID", required = true) @PathVariable Long portfolioId,
-            Long memberId,
+            @Parameter(hidden = true) Long memberId,
             @Valid @RequestBody TechstackIdsReqDTO request
     );
 }

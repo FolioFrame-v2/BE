@@ -29,7 +29,7 @@ public interface PortfolioCareerControllerDocs {
     })
     ResponseEntity<ApiResponse<CareerResDTO>> create(
             @Parameter(description = "포트폴리오 ID", required = true) @PathVariable Long portfolioId,
-            Long memberId,
+            @Parameter(hidden = true) Long memberId,
             @Valid @RequestBody CareerReqDTO request
     );
 
@@ -58,7 +58,7 @@ public interface PortfolioCareerControllerDocs {
     ResponseEntity<ApiResponse<CareerResDTO>> update(
             @Parameter(description = "포트폴리오 ID", required = true) @PathVariable Long portfolioId,
             @Parameter(description = "경력 ID", required = true) @PathVariable Long careerId,
-            Long memberId,
+            @Parameter(hidden = true) Long memberId,
             @Valid @RequestBody CareerReqDTO request
     );
 
@@ -75,6 +75,6 @@ public interface PortfolioCareerControllerDocs {
     ResponseEntity<ApiResponse<Void>> delete(
             @Parameter(description = "포트폴리오 ID", required = true) @PathVariable Long portfolioId,
             @Parameter(description = "경력 ID", required = true) @PathVariable Long careerId,
-            Long memberId
+            @Parameter(hidden = true) Long memberId
     );
 }

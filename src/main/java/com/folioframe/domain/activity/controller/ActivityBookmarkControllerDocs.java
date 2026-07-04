@@ -22,7 +22,7 @@ public interface ActivityBookmarkControllerDocs {
     })
     ResponseEntity<ApiResponse<Void>> bookmark(
             @Parameter(description = "대외활동 ID", required = true) @PathVariable Long activityId,
-            Long memberId
+            @Parameter(hidden = true) Long memberId
     );
 
     @Operation(
@@ -35,6 +35,6 @@ public interface ActivityBookmarkControllerDocs {
     })
     ResponseEntity<ApiResponse<Void>> cancelBookmark(
             @Parameter(description = "대외활동 ID", required = true) @PathVariable Long activityId,
-            Long memberId
+            @Parameter(hidden = true) Long memberId
     );
 }
