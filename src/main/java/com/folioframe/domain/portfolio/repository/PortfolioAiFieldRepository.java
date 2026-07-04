@@ -9,4 +9,6 @@ import java.util.List;
 public interface PortfolioAiFieldRepository extends JpaRepository<PortfolioAiField, Long> {
 
     List<PortfolioAiField> findAllByFeedback(PortfolioAiFeedback feedback);
+
+    List<PortfolioAiField> findAllByFeedbackIn(List<PortfolioAiFeedback> feedbacks);
 }

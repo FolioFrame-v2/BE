@@ -161,19 +161,44 @@ public class PortfolioAiFeedbackService {
         if (topLevelFeedbacks.isEmpty()) {
             // AI 첨삭을 한 번도 요청한 적 없음: 원본을 라이브 콘텐츠 기준 가상 항목으로만 보여준다.
             boolean publishedAsIs = isPublishedWithoutVersion(portfolio);
-            return List.of(PortfolioAiFeedbackVersionResDTO.original(publishedAsIs));
+            return List.of(PortfolioAiFeedbackVersionResDTO.original(publishedAsIs, portfolio.getLastSavedAt()));
         }
 
         Long publishedId = portfolio.getPublishedFeedback() != null ? portfolio.getPublishedFeedback().getId() : null;
 
+        Map<Long, List<PortfolioAiFeedback>> revisionsByParentId = new java.util.HashMap<>();
+        List<PortfolioAiFeedback> allFeedbacks = new ArrayList<>(topLevelFeedbacks);
+        for (PortfolioAiFeedback feedback : topLevelFeedbacks) {
+            List<PortfolioAiFeedback> revisions = feedbackRepository.findAllByParentFeedbackOrderBySubVersionAsc(feedback);
+            revisionsByParentId.put(feedback.getId(), revisions);
+            allFeedbacks.addAll(revisions);
+        }
+
+        Map<Long, List<PortfolioAiField>> fieldsByFeedbackId = aiFieldRepository.findAllByFeedbackIn(allFeedbacks).stream()
+                .collect(Collectors.groupingBy(field -> field.getFeedback().getId()));
+
         List<PortfolioAiFeedbackVersionResDTO> results = new ArrayList<>();
         for (PortfolioAiFeedback feedback : topLevelFeedbacks) {
-            List<PortfolioAiFeedbackVersionResDTO> revisions = feedbackRepository.findAllByParentFeedbackOrderBySubVersionAsc(feedback).stream()
-                    .map(revision -> PortfolioAiFeedbackVersionResDTO.from(revision, List.of(), revision.getId().equals(publishedId)))
+            List<PortfolioAiFeedbackVersionResDTO> revisions = revisionsByParentId.get(feedback.getId()).stream()
+                    .map(revision -> PortfolioAiFeedbackVersionResDTO.from(
+                            revision, lastModifiedAt(revision, fieldsByFeedbackId), List.of(), revision.getId().equals(publishedId)))
                     .toList();
-            results.add(PortfolioAiFeedbackVersionResDTO.from(feedback, revisions, feedback.getId().equals(publishedId)));
+            results.add(PortfolioAiFeedbackVersionResDTO.from(
+                    feedback, lastModifiedAt(feedback, fieldsByFeedbackId), revisions, feedback.getId().equals(publishedId)));
         }
         return results;
+    }
+
+    // AI 첨삭 수신 여부와 무관하게, 필드 선택/직접수정으로 실제 내용이 마지막으로 바뀐 시각(필드들의 updatedAt과
+    // feedback 자체의 updatedAt 중 가장 나중 시각)을 계산한다.
+    private LocalDateTime lastModifiedAt(PortfolioAiFeedback feedback, Map<Long, List<PortfolioAiField>> fieldsByFeedbackId) {
+        LocalDateTime latest = feedback.getUpdatedAt();
+        for (PortfolioAiField field : fieldsByFeedbackId.getOrDefault(feedback.getId(), List.of())) {
+            if (field.getUpdatedAt().isAfter(latest)) {
+                latest = field.getUpdatedAt();
+            }
+        }
+        return latest;
     }
 
     // "원본" 조회. AI 첨삭을 이미 시작했다면 그 순간 스냅샷 떠둔 독립 버전(version=0)을 그대로 보여주고,

@@ -73,7 +73,10 @@ public interface PortfolioAiFeedbackControllerDocs {
                     "돌려주며, 각 최상위 버전 항목의 revisions에는 '수정본 만들기'로 생성된 자식 버전들이 subVersion " +
                     "오름차순으로 담깁니다. 각 항목의 published는 그 버전이 지금 실제로 게시 중인지를 나타내며(FE에서 파란 " +
                     "테두리로 표시할 때 사용), 한 포트폴리오에는 항상 최대 하나의 항목만 published=true입니다. label은 " +
-                    "사용자가 이름 변경 API로 직접 지정한 표시 이름이며, null이면 FE가 번호로부터 기본 이름을 생성해서 보여줘야 합니다."
+                    "사용자가 이름 변경 API로 직접 지정한 표시 이름이며, null이면 FE가 번호로부터 기본 이름을 생성해서 보여줘야 합니다. " +
+                    "createdAt은 그 버전이 처음 생성된 시각이고, lastModifiedAt은 AI 첨삭 수신 여부와 무관하게 필드 선택/직접수정 " +
+                    "등으로 실제 내용이 마지막으로 바뀐 시각입니다(한 번도 안 바뀌었으면 createdAt과 동일). FE는 이 lastModifiedAt " +
+                    "하나만 표시하면 됩니다 — 처음엔 생성 시각과 같다가 수정 시 자동으로 갱신됩니다."
     )
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공"),
