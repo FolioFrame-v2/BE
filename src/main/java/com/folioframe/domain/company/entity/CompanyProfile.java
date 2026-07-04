@@ -1,6 +1,7 @@
 package com.folioframe.domain.company.entity;
 
 import com.folioframe.domain.common.entity.Region;
+import com.folioframe.domain.company.enums.Industry;
 import com.folioframe.domain.company.enums.VerificationStatus;
 import com.folioframe.domain.member.entity.Member;
 import com.folioframe.global.entity.BaseEntity;
@@ -35,8 +36,9 @@ public class CompanyProfile extends BaseEntity {
     @Column(name = "business_number", nullable = false, unique = true, length = 100)
     private String businessNumber;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "industry", length = 50)
-    private String industry;
+    private Industry industry;
 
     @Column(name = "website_url", length = 500)
     private String websiteUrl;
@@ -54,5 +56,16 @@ public class CompanyProfile extends BaseEntity {
 
     public void updateVerificationStatus(VerificationStatus verificationStatus) {
         this.verificationStatus = verificationStatus;
+    }
+
+    public void updateProfile(String companyName, String businessNumber, Industry industry,
+                              String websiteUrl, String logoUrl, String companyIntro, Region region) {
+        this.companyName = companyName;
+        this.businessNumber = businessNumber;
+        this.industry = industry;
+        this.websiteUrl = websiteUrl;
+        this.logoUrl = logoUrl;
+        this.companyIntro = companyIntro;
+        this.region = region;
     }
 }
