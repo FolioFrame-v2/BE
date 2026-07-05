@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.folioframe.domain.portfolio.ai.enums.AiFieldTargetType;
 
 // FolioFrame_AI(FastAPI)의 FieldInput 스키마와 1:1 대응
-public record AiFieldInputDTO(
+public record AiFieldInputReqDTO(
         @JsonProperty("field_id") Long fieldId,
         @JsonProperty("field_type") AiFieldTargetType fieldType,
         String title,

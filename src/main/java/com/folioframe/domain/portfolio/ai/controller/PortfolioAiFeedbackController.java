@@ -3,7 +3,7 @@ package com.folioframe.domain.portfolio.ai.controller;
 import com.folioframe.domain.portfolio.ai.dto.request.AiFeedbackRenameReqDTO;
 import com.folioframe.domain.portfolio.ai.dto.request.AiFieldChooseReqDTO;
 import com.folioframe.domain.portfolio.ai.dto.request.AiFieldEditReqDTO;
-import com.folioframe.domain.portfolio.ai.dto.response.AiFieldResultDTO;
+import com.folioframe.domain.portfolio.ai.dto.response.AiFieldResDTO;
 import com.folioframe.domain.portfolio.ai.dto.response.PortfolioAiFeedbackResDTO;
 import com.folioframe.domain.portfolio.ai.dto.response.PortfolioAiFeedbackVersionResDTO;
 import com.folioframe.domain.portfolio.ai.service.PortfolioAiFeedbackService;
@@ -140,7 +140,7 @@ public class PortfolioAiFeedbackController implements PortfolioAiFeedbackControl
 
     @Override
     @PatchMapping("/fields/{aiFieldId}")
-    public ResponseEntity<ApiResponse<AiFieldResultDTO>> chooseField(
+    public ResponseEntity<ApiResponse<AiFieldResDTO>> chooseField(
             @PathVariable Long portfolioId,
             @PathVariable Long aiFieldId,
             @CurrentMemberId Long memberId,
@@ -152,7 +152,7 @@ public class PortfolioAiFeedbackController implements PortfolioAiFeedbackControl
 
     @Override
     @PatchMapping("/fields/{aiFieldId}/content")
-    public ResponseEntity<ApiResponse<AiFieldResultDTO>> editField(
+    public ResponseEntity<ApiResponse<AiFieldResDTO>> editField(
             @PathVariable Long portfolioId,
             @PathVariable Long aiFieldId,
             @CurrentMemberId Long memberId,

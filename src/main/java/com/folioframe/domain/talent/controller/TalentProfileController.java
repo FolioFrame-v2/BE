@@ -1,9 +1,9 @@
 package com.folioframe.domain.talent.controller;
 
-import com.folioframe.domain.talent.dto.request.TalentProfileCreateRequest;
-import com.folioframe.domain.talent.dto.request.TalentProfileUpdateRequest;
-import com.folioframe.domain.talent.dto.response.TalentProfileResponse;
-import com.folioframe.domain.talent.dto.response.TalentProfileSignupInfoResponse;
+import com.folioframe.domain.talent.dto.request.TalentProfileCreateReqDTO;
+import com.folioframe.domain.talent.dto.request.TalentProfileUpdateReqDTO;
+import com.folioframe.domain.talent.dto.response.TalentProfileResDTO;
+import com.folioframe.domain.talent.dto.response.TalentProfileSignupInfoResDTO;
 import com.folioframe.domain.talent.exception.code.TalentProfileErrorCode;
 import com.folioframe.domain.talent.exception.code.TalentProfileSuccessCode;
 import com.folioframe.domain.talent.service.TalentProfileService;
@@ -31,7 +31,7 @@ public class TalentProfileController {
     @PostMapping
     public ApiResponse<Map<String, Long>> createProfile(
             @CurrentMemberId Long memberId,
-            @Valid @RequestBody TalentProfileCreateRequest request,
+            @Valid @RequestBody TalentProfileCreateReqDTO request,
             BindingResult bindingResult) {
 
         // 에러 발생 시 무조건 콘솔에 출력
@@ -51,29 +51,29 @@ public class TalentProfileController {
 
     @Operation(summary = "회원가입 정보 조회 API", description = "프로필 작성 화면에서 프리필할 회원가입 시 입력값(이름/휴대폰/나이)을 조회합니다.")
     @GetMapping("/signup-info")
-    public ApiResponse<TalentProfileSignupInfoResponse> getSignupInfo(@CurrentMemberId Long memberId) {
+    public ApiResponse<TalentProfileSignupInfoResDTO> getSignupInfo(@CurrentMemberId Long memberId) {
 
-        TalentProfileSignupInfoResponse signupInfo = talentProfileService.getSignupInfo(memberId);
+        TalentProfileSignupInfoResDTO signupInfo = talentProfileService.getSignupInfo(memberId);
 
         return ApiResponse.onSuccess(TalentProfileSuccessCode.PROFILE_READ_SUCCESS, signupInfo);
     }
 
     @Operation(summary = "내 인재 프로필 조회 API", description = "현재 로그인한 사용자의 인재 프로필 정보를 상세 조회합니다.")
     @GetMapping("/me")
-    public ApiResponse<TalentProfileResponse> getMyProfile(@CurrentMemberId Long memberId) {
+    public ApiResponse<TalentProfileResDTO> getMyProfile(@CurrentMemberId Long memberId) {
 
-        TalentProfileResponse profile = talentProfileService.getMyProfile(memberId);
+        TalentProfileResDTO profile = talentProfileService.getMyProfile(memberId);
 
         return ApiResponse.onSuccess(TalentProfileSuccessCode.PROFILE_READ_SUCCESS, profile);
     }
 
     @Operation(summary = "내 인재 프로필 수정 API", description = "현재 로그인한 사용자의 인재 프로필 정보를 수정합니다.")
     @PatchMapping("/me")
-    public ApiResponse<TalentProfileResponse> updateProfile(
+    public ApiResponse<TalentProfileResDTO> updateProfile(
             @CurrentMemberId Long memberId,
-            @RequestBody TalentProfileUpdateRequest request) {
+            @RequestBody TalentProfileUpdateReqDTO request) {
 
-        TalentProfileResponse updatedProfile = talentProfileService.updateProfile(memberId, request);
+        TalentProfileResDTO updatedProfile = talentProfileService.updateProfile(memberId, request);
 
         return ApiResponse.onSuccess(TalentProfileSuccessCode.PROFILE_UPDATE_SUCCESS, updatedProfile);
     }

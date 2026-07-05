@@ -8,5 +8,5 @@ import java.util.List;
 public record AiFeedbackApiReqDTO(
         @JsonProperty("portfolio_title") String portfolioTitle,
         @JsonProperty("job_role") String jobRole,
-        List<AiFieldInputDTO> fields
+        List<AiFieldInputReqDTO> fields
 ) {}

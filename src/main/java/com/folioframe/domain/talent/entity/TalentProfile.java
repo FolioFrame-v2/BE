@@ -3,7 +3,7 @@ package com.folioframe.domain.talent.entity;
 import com.folioframe.domain.common.entity.Region;
 import com.folioframe.domain.common.enums.Gender;
 import com.folioframe.domain.member.entity.Member;
-import com.folioframe.domain.talent.dto.request.TalentProfileUpdateRequest;
+import com.folioframe.domain.talent.dto.request.TalentProfileUpdateReqDTO;
 import com.folioframe.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
@@ -65,7 +65,7 @@ public class TalentProfile extends BaseEntity {
     @Column(name = "bookmark_count")
     private Integer bookmarkCount = 0;
 
-    public void updateProfile(TalentProfileUpdateRequest request, Region region) {
+    public void updateProfile(TalentProfileUpdateReqDTO request, Region region) {
         this.name = request.getName();
         this.region = region;
         this.contactEmail = request.getContactEmail();

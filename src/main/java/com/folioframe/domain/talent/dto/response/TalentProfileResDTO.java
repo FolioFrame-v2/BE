@@ -8,7 +8,7 @@ import java.util.List;
 
 @Getter
 @Builder
-public class TalentProfileResponse {
+public class TalentProfileResDTO {
     private Long talentProfileId;
 
     private String name;
@@ -29,7 +29,7 @@ public class TalentProfileResponse {
     private String createdAt;
     private String updatedAt;
 
-    private List<TalentTechStackResponse> techStacks;
+    private List<TalentTechStackResDTO> techStacks;
     private List<TalentCareerResDTO> careers;
     private List<TalentEducationResDTO> educations;
     private List<TalentCertificateResDTO> certificates;

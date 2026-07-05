@@ -12,8 +12,8 @@ import com.folioframe.domain.member.repository.MemberRepository;
 import com.folioframe.domain.talent.dto.request.TalentCareerReqDTO;
 import com.folioframe.domain.talent.dto.request.TalentCertificateReqDTO;
 import com.folioframe.domain.talent.dto.request.TalentEducationReqDTO;
-import com.folioframe.domain.talent.dto.request.TalentProfileCreateRequest;
-import com.folioframe.domain.talent.dto.request.TalentProfileUpdateRequest;
+import com.folioframe.domain.talent.dto.request.TalentProfileCreateReqDTO;
+import com.folioframe.domain.talent.dto.request.TalentProfileUpdateReqDTO;
 import com.folioframe.domain.talent.dto.response.*;
 import com.folioframe.domain.talent.entity.TalentCareer;
 import com.folioframe.domain.talent.entity.TalentCertificate;
@@ -55,7 +55,7 @@ public class TalentProfileService {
     private final TalentCertificateRepository talentCertificateRepository;
 
     @Transactional
-    public Long createProfile(Long memberId, TalentProfileCreateRequest request) {
+    public Long createProfile(Long memberId, TalentProfileCreateReqDTO request) {
         if (talentProfileRepository.findByMemberId(memberId).isPresent()) {
             throw new GeneralException(TalentProfileErrorCode.PROFILE_ALREADY_EXISTS);
         }
@@ -91,7 +91,7 @@ public class TalentProfileService {
         return savedProfile.getId();
     }
 
-    public TalentProfileSignupInfoResponse getSignupInfo(Long memberId) {
+    public TalentProfileSignupInfoResDTO getSignupInfo(Long memberId) {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new GeneralException(TalentProfileErrorCode.MEMBER_NOT_FOUND));
 
@@ -99,14 +99,14 @@ public class TalentProfileService {
                 ? Period.between(member.getBirthDate(), LocalDate.now()).getYears()
                 : null;
 
-        return TalentProfileSignupInfoResponse.builder()
+        return TalentProfileSignupInfoResDTO.builder()
                 .name(member.getName())
                 .phone(member.getPhone())
                 .age(age)
                 .build();
     }
 
-    public TalentProfileResponse getMyProfile(Long memberId) {
+    public TalentProfileResDTO getMyProfile(Long memberId) {
         TalentProfile profile = talentProfileRepository.findByMemberId(memberId)
                 .orElseThrow(() -> new GeneralException(TalentProfileErrorCode.PROFILE_NOT_FOUND));
 
@@ -114,7 +114,7 @@ public class TalentProfileService {
     }
 
     @Transactional
-    public TalentProfileResponse updateProfile(Long memberId, TalentProfileUpdateRequest request) {
+    public TalentProfileResDTO updateProfile(Long memberId, TalentProfileUpdateReqDTO request) {
         TalentProfile profile = talentProfileRepository.findByMemberId(memberId)
                 .orElseThrow(() -> new GeneralException(TalentProfileErrorCode.PROFILE_NOT_FOUND));
 
@@ -225,9 +225,9 @@ public class TalentProfileService {
         talentCertificateRepository.saveAll(talentCertificates);
     }
 
-    private TalentProfileResponse convertToProfileResponse(TalentProfile profile) {
-        List<TalentTechStackResponse> techStacks = talentTechstackRepository.findAllByTalentProfile(profile)
-                .stream().map(tt -> new TalentTechStackResponse(tt.getTechstack().getId(), tt.getTechstack().getName())).collect(Collectors.toList());
+    private TalentProfileResDTO convertToProfileResponse(TalentProfile profile) {
+        List<TalentTechStackResDTO> techStacks = talentTechstackRepository.findAllByTalentProfile(profile)
+                .stream().map(tt -> new TalentTechStackResDTO(tt.getTechstack().getId(), tt.getTechstack().getName())).collect(Collectors.toList());
 
         List<PartResDTO> parts = talentPartRepository.findAllByTalentProfile(profile)
                 .stream().map(tp -> PartResDTO.from(tp.getPart())).collect(Collectors.toList());
@@ -241,7 +241,7 @@ public class TalentProfileService {
         List<TalentCertificateResDTO> certificates = talentCertificateRepository.findAllByTalentProfile(profile)
                 .stream().map(TalentCertificateResDTO::from).collect(Collectors.toList());
 
-        return TalentProfileResponse.builder()
+        return TalentProfileResDTO.builder()
                 .talentProfileId(profile.getId())
                 .name(profile.getName())
                 .regionId(profile.getRegion().getId())

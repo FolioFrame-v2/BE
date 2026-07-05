@@ -13,7 +13,7 @@ import java.util.List;
 
 @Getter
 @NoArgsConstructor
-public class TalentProfileCreateRequest {
+public class TalentProfileCreateReqDTO {
 
     @NotBlank(message = "이름은 필수 입력값입니다.")
     private String name;

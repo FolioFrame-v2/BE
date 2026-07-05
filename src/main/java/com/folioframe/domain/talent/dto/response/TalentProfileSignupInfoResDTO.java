@@ -5,7 +5,7 @@ import lombok.Getter;
 
 @Getter
 @Builder
-public class TalentProfileSignupInfoResponse {
+public class TalentProfileSignupInfoResDTO {
     private String name;
     private String phone;
     private Integer age;

@@ -1,6 +1,6 @@
 package com.folioframe.domain.portfolio.service;
 
-import com.folioframe.domain.portfolio.ai.dto.client.AiFieldInputDTO;
+import com.folioframe.domain.portfolio.ai.dto.client.AiFieldInputReqDTO;
 import com.folioframe.domain.portfolio.ai.entity.PortfolioAiFeedback;
 import com.folioframe.domain.portfolio.ai.entity.PortfolioAiField;
 import com.folioframe.domain.portfolio.ai.enums.AiFeedbackStatus;
@@ -340,7 +340,7 @@ public class PortfolioService {
                 .finalizedAt(LocalDateTime.now())
                 .build());
 
-        List<AiFieldInputDTO> inputs = buildFieldInputs(portfolio, talentProfile,
+        List<AiFieldInputReqDTO> inputs = buildFieldInputs(portfolio, talentProfile,
                 new ArrayList<>(fieldById.values()), new ArrayList<>(projectById.values()));
 
         List<PortfolioAiField> originFields = inputs.stream()
@@ -359,13 +359,13 @@ public class PortfolioService {
 
     // 현재 라이브 콘텐츠(포트폴리오 한줄소개/상세설명, 프로필 소개, 커스텀 필드, 프로젝트 요약)를
     // AI 입력/원본 스냅샷 형식으로 변환한다. 빈 값인 필드는 대상에서 제외한다.
-    public List<AiFieldInputDTO> buildFieldInputs(
+    public List<AiFieldInputReqDTO> buildFieldInputs(
             Portfolio portfolio,
             TalentProfile talentProfile,
             List<PortfolioField> customFields,
             List<PortfolioProject> projects
     ) {
-        List<AiFieldInputDTO> inputs = new ArrayList<>();
+        List<AiFieldInputReqDTO> inputs = new ArrayList<>();
 
         addIfPresent(inputs, portfolio.getId(), AiFieldTargetType.PORTFOLIO_ONE_LINER,
                 AiFieldTargetType.PORTFOLIO_ONE_LINER.getLabel(), null, portfolio.getOneLiner());
@@ -386,12 +386,12 @@ public class PortfolioService {
         return inputs;
     }
 
-    private void addIfPresent(List<AiFieldInputDTO> inputs, Long fieldId, AiFieldTargetType type,
+    private void addIfPresent(List<AiFieldInputReqDTO> inputs, Long fieldId, AiFieldTargetType type,
                               String title, String description, String content) {
         if (content == null || content.isBlank()) {
             return;
         }
-        inputs.add(new AiFieldInputDTO(fieldId, type, title, description, content));
+        inputs.add(new AiFieldInputReqDTO(fieldId, type, title, description, content));
     }
 
     private PortfolioDetailResDTO toDetailResDTO(Portfolio portfolio) {
