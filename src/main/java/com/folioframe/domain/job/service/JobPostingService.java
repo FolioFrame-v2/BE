@@ -8,6 +8,7 @@ import com.folioframe.domain.common.repository.TechstackRepository;
 import com.folioframe.domain.company.entity.CompanyProfile;
 import com.folioframe.domain.company.repository.CompanyProfileRepository;
 import com.folioframe.domain.job.dto.request.JobPostingReqDTO;
+import com.folioframe.domain.job.dto.request.JobPostingSearchCond;
 import com.folioframe.domain.job.dto.response.JobPostingDetailResDTO;
 import com.folioframe.domain.job.dto.response.JobPostingListResDTO;
 import com.folioframe.domain.job.entity.HiringProcessStep;
@@ -25,7 +26,6 @@ import com.folioframe.domain.member.repository.MemberRepository;
 import com.folioframe.global.apiPayload.exception.GeneralException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -90,11 +90,8 @@ public class JobPostingService {
         return savedJobPosting.getId();
     }
 
-    public Page<JobPostingListResDTO> getJobPostings(
-            String keyword, Long regionId, CareerLevel careerLevel, JobPostingStatus status,
-            String sort, Pageable pageable) {
-        Page<JobPosting> jobPostings = jobPostingRepository.findByCondition(
-                keyword, regionId, careerLevel, status, sort, pageable);
+    public Page<JobPostingListResDTO> getJobPostings(JobPostingSearchCond cond) {
+        Page<JobPosting> jobPostings = jobPostingRepository.findByCondition(cond);
 
         List<Long> jobPostingIds = jobPostings.getContent().stream().map(JobPosting::getId).toList();
 

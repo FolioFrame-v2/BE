@@ -1,10 +1,9 @@
 package com.folioframe.domain.job.controller;
 
-import com.folioframe.domain.common.enums.CareerLevel;
 import com.folioframe.domain.job.dto.request.JobPostingReqDTO;
+import com.folioframe.domain.job.dto.request.JobPostingSearchCond;
 import com.folioframe.domain.job.dto.response.JobPostingDetailResDTO;
 import com.folioframe.domain.job.dto.response.JobPostingListResDTO;
-import com.folioframe.domain.job.enums.JobPostingStatus;
 import com.folioframe.domain.job.exception.code.JobSuccessCode;
 import com.folioframe.domain.job.service.JobPostingService;
 import com.folioframe.global.apiPayload.ApiResponse;
@@ -14,8 +13,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -54,15 +51,10 @@ public class JobPostingController {
     )
     @GetMapping
     public ResponseEntity<ApiResponse<Page<JobPostingListResDTO>>> getJobPostings(
-            @RequestParam(required = false) String keyword,
-            @RequestParam(required = false) Long regionId,
-            @RequestParam(required = false) CareerLevel careerLevel,
-            @RequestParam(required = false) JobPostingStatus status,
-            @RequestParam(required = false, defaultValue = "LATEST") String sort,
-            @PageableDefault(size = 10) Pageable pageable) {
+            @ModelAttribute JobPostingSearchCond searchCond) {
 
         Page<JobPostingListResDTO> response =
-                jobPostingService.getJobPostings(keyword, regionId, careerLevel, status, sort, pageable);
+                jobPostingService.getJobPostings(searchCond);
 
         return ResponseEntity.ok(
                 ApiResponse.onSuccess(JobSuccessCode.JOB_POSTING_LIST_FETCHED, response)
