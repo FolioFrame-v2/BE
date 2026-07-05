@@ -1,0 +1,60 @@
+package com.folioframe.domain.talent.entity;
+
+import com.folioframe.domain.portfolio.enums.DegreeType;
+import com.folioframe.domain.portfolio.enums.EducationStatus;
+import com.folioframe.global.entity.BaseEntity;
+import jakarta.persistence.*;
+import lombok.*;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
+
+import java.time.LocalDate;
+
+@Entity
+@Table(name = "talent_education")
+@Getter
+@Builder
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+public class TalentEducation extends BaseEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "talent_education_id")
+    private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "talent_profile_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    private TalentProfile talentProfile;
+
+    @Column(name = "school_name", nullable = false, length = 100)
+    private String schoolName;
+
+    @Column(name = "major", length = 100)
+    private String major;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "degree")
+    private DegreeType degree;
+
+    @Column(name = "started_at")
+    private LocalDate startedAt;
+
+    @Column(name = "ended_at")
+    private LocalDate endedAt;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    private EducationStatus status;
+
+    public void update(String schoolName, String major, DegreeType degree,
+                       LocalDate startedAt, LocalDate endedAt, EducationStatus status) {
+        this.schoolName = schoolName;
+        this.major = major;
+        this.degree = degree;
+        this.startedAt = startedAt;
+        this.endedAt = endedAt;
+        this.status = status;
+    }
+}

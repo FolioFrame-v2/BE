@@ -1,22 +1,30 @@
 package com.folioframe.domain.company.dto.response;
 
-import com.folioframe.domain.company.entity.CompanyProfile;
+import com.folioframe.domain.common.dto.response.TechstackResDTO;
+import com.folioframe.domain.company.enums.Industry;
 import com.folioframe.domain.company.enums.VerificationStatus;
+import lombok.Builder;
+import lombok.Getter;
 
-public record CompanyProfileResDTO(
-        Long id,
-        Long memberId,
-        String companyName,
-        String businessNumber,
-        VerificationStatus verificationStatus
-) {
-    public static CompanyProfileResDTO from(CompanyProfile profile) {
-        return new CompanyProfileResDTO(
-                profile.getId(),
-                profile.getMember().getId(),
-                profile.getCompanyName(),
-                profile.getBusinessNumber(),
-                profile.getVerificationStatus()
-        );
-    }
+import java.time.LocalDateTime;
+import java.util.List;
+
+@Getter
+@Builder
+public class CompanyProfileResDTO {
+    private Long companyProfileId;
+    private String companyName;
+    private String businessNumber;
+    private Industry industry;
+    private String websiteUrl;
+    private String companyIntro;
+    private String employeeSize;
+    private Long regionId;
+    private String contactName;
+    private String contactEmail;
+    private String contactPhone;
+    private List<TechstackResDTO> techStacks;
+    private VerificationStatus verificationStatus;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 }

@@ -1,6 +1,7 @@
 package com.folioframe.domain.company.entity;
 
 import com.folioframe.domain.common.entity.Region;
+import com.folioframe.domain.company.enums.Industry;
 import com.folioframe.domain.company.enums.VerificationStatus;
 import com.folioframe.domain.member.entity.Member;
 import com.folioframe.global.entity.BaseEntity;
@@ -35,17 +36,27 @@ public class CompanyProfile extends BaseEntity {
     @Column(name = "business_number", nullable = false, unique = true, length = 100)
     private String businessNumber;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "industry", length = 50)
-    private String industry;
+    private Industry industry;
 
     @Column(name = "website_url", length = 500)
     private String websiteUrl;
 
-    @Column(name = "logo_url", length = 500)
-    private String logoUrl;
-
     @Column(name = "company_intro", columnDefinition = "TEXT")
     private String companyIntro;
+
+    @Column(name = "employee_size", length = 50)
+    private String employeeSize;
+
+    @Column(name = "contact_name", length = 50)
+    private String contactName;
+
+    @Column(name = "contact_email", length = 100)
+    private String contactEmail;
+
+    @Column(name = "contact_phone", length = 20)
+    private String contactPhone;
 
     @Builder.Default
     @Enumerated(EnumType.STRING)
@@ -54,5 +65,20 @@ public class CompanyProfile extends BaseEntity {
 
     public void updateVerificationStatus(VerificationStatus verificationStatus) {
         this.verificationStatus = verificationStatus;
+    }
+
+    // businessNumber는 회원가입 시 검증된 값이라 이 경로로 변경하지 않는다(불변)
+    public void updateProfile(String companyName, Industry industry,
+                              String websiteUrl, String companyIntro, Region region, String employeeSize,
+                              String contactName, String contactEmail, String contactPhone) {
+        this.companyName = companyName;
+        this.industry = industry;
+        this.websiteUrl = websiteUrl;
+        this.companyIntro = companyIntro;
+        this.region = region;
+        this.employeeSize = employeeSize;
+        this.contactName = contactName;
+        this.contactEmail = contactEmail;
+        this.contactPhone = contactPhone;
     }
 }

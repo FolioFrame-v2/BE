@@ -1,27 +1,27 @@
 package com.folioframe.domain.talent.entity;
 
-import com.folioframe.domain.job.enums.EmploymentType;
+import com.folioframe.domain.common.entity.Part;
 import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "talent_employment_type")
+@Table(name = "talent_part")
 @Getter
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class TalentEmploymentType {
+public class TalentPart {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "talent_employment_type_id")
+    @Column(name = "talent_part_id")
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "talent_profile_id", nullable = false)
     private TalentProfile talentProfile;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "employment_type", nullable = false)
-    private EmploymentType employmentType;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "part_id", nullable = false)
+    private Part part;
 }

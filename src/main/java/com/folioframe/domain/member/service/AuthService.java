@@ -3,9 +3,6 @@ package com.folioframe.domain.member.service;
 import com.folioframe.domain.common.entity.Terms;
 import com.folioframe.domain.common.enums.TermsType;
 import com.folioframe.domain.common.repository.TermsRepository;
-import com.folioframe.domain.company.entity.CompanyProfile;
-import com.folioframe.domain.company.enums.VerificationStatus;
-import com.folioframe.domain.company.repository.CompanyProfileRepository;
 import com.folioframe.domain.member.dto.request.*;
 import com.folioframe.domain.member.dto.response.*;
 import com.folioframe.domain.member.entity.Member;
@@ -42,7 +39,6 @@ public class AuthService {
     private final TermsRepository termsRepository;
     private final MemberAgreementRepository memberAgreementRepository;
     private final TokenService tokenService;
-    private final CompanyProfileRepository companyProfileRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
 
@@ -71,7 +67,7 @@ public class AuthService {
             if (!StringUtils.hasText(req.getBusinessNumber())) {
                 throw new AuthException(AuthErrorCode.BUSINESS_NUMBER_REQUIRED);
             }
-            if (companyProfileRepository.existsByBusinessNumber(req.getBusinessNumber())) {
+            if (memberRepository.existsByBusinessNumber(req.getBusinessNumber())) {
                 throw new AuthException(AuthErrorCode.DUPLICATE_BUSINESS_NUMBER);
             }
         }
@@ -90,18 +86,11 @@ public class AuthService {
                 .birthDate(req.getBirthDate())
                 .phone(req.getPhone())
                 .memberType(req.getMemberType())
+                // 회원가입 시점엔 회사명을 아직 모르므로 CompanyProfile은 여기서 만들지 않고,
+                // 사업자번호만 임시로 보관해뒀다가 기업 프로필 등록 화면에서 CompanyProfile로 옮겨간다.
+                .businessNumber(req.getMemberType() == MemberType.COMPANY ? req.getBusinessNumber() : null)
                 .build();
         memberRepository.save(member);
-
-        if (req.getMemberType() == MemberType.COMPANY) {
-            // 사업자번호는 여기서 받아두고, 관리자가 확인 후 VerificationStatus를 VERIFIED/REJECTED로 바꿔줌
-            companyProfileRepository.save(CompanyProfile.builder()
-                    .member(member)
-                    .companyName(req.getName())
-                    .businessNumber(req.getBusinessNumber())
-                    .verificationStatus(VerificationStatus.PENDING)
-                    .build());
-        }
 
         if (req.getAgreedTerms() != null) {
             for (Long termsId : req.getAgreedTerms()) {

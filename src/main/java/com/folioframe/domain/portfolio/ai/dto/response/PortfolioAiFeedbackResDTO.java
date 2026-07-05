@@ -17,9 +17,9 @@ public record PortfolioAiFeedbackResDTO(
         boolean finalized,
         boolean published,
         LocalDateTime createdAt,
-        List<AiFieldResultDTO> fields
+        List<AiFieldResDTO> fields
 ) {
-    public static PortfolioAiFeedbackResDTO of(PortfolioAiFeedback feedback, List<AiFieldResultDTO> fields, boolean published) {
+    public static PortfolioAiFeedbackResDTO of(PortfolioAiFeedback feedback, List<AiFieldResDTO> fields, boolean published) {
         return new PortfolioAiFeedbackResDTO(
                 feedback.getId(),
                 feedback.getVersion(),
@@ -37,7 +37,7 @@ public record PortfolioAiFeedbackResDTO(
 
     // AI 첨삭을 한 번도 요청한 적 없을 때의 "원본"(현재 라이브 필드 콘텐츠) 조회용.
     // 실제 AiFeedback이 아니므로 총평/점수/상태/이름(label)이 없다(저장할 곳이 없음).
-    public static PortfolioAiFeedbackResDTO original(List<AiFieldResultDTO> fields, boolean published) {
+    public static PortfolioAiFeedbackResDTO original(List<AiFieldResDTO> fields, boolean published) {
         return new PortfolioAiFeedbackResDTO(
                 null,
                 0,

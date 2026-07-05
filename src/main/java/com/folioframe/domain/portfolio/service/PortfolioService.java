@@ -1,6 +1,6 @@
 package com.folioframe.domain.portfolio.service;
 
-import com.folioframe.domain.portfolio.ai.dto.client.AiFieldInputDTO;
+import com.folioframe.domain.portfolio.ai.dto.client.AiFieldInputReqDTO;
 import com.folioframe.domain.portfolio.ai.entity.PortfolioAiFeedback;
 import com.folioframe.domain.portfolio.ai.entity.PortfolioAiField;
 import com.folioframe.domain.portfolio.ai.enums.AiFeedbackStatus;
@@ -11,14 +11,21 @@ import com.folioframe.domain.portfolio.dto.request.PortfolioCreateReqDTO;
 import com.folioframe.domain.portfolio.dto.request.PortfolioUpdateReqDTO;
 import com.folioframe.domain.portfolio.dto.request.PortfolioVisibilityReqDTO;
 import com.folioframe.domain.portfolio.dto.response.PortfolioDetailResDTO;
+import com.folioframe.domain.portfolio.dto.response.PortfolioJobCategoryResDTO;
 import com.folioframe.domain.portfolio.dto.response.PortfolioMyListResDTO;
 import com.folioframe.domain.portfolio.dto.response.PortfolioPublicListResDTO;
 import com.folioframe.domain.portfolio.dto.response.PortfolioResDTO;
 import com.folioframe.domain.common.dto.response.TechstackResDTO;
+import com.folioframe.domain.common.enums.CareerLevel;
+import com.folioframe.domain.common.enums.JobRole;
+import com.folioframe.domain.common.enums.PortfolioJobCategory;
 import com.folioframe.domain.portfolio.enums.PortfolioSortType;
 import com.folioframe.global.dto.PageRequest;
 import com.folioframe.global.dto.PageResponse;
 import com.folioframe.domain.portfolio.entity.Portfolio;
+import com.folioframe.domain.portfolio.entity.PortfolioCareer;
+import com.folioframe.domain.portfolio.entity.PortfolioCertificate;
+import com.folioframe.domain.portfolio.entity.PortfolioEducation;
 import com.folioframe.domain.portfolio.entity.PortfolioField;
 import com.folioframe.domain.portfolio.entity.PortfolioTemplate;
 import com.folioframe.domain.portfolio.entity.TemplateField;
@@ -39,6 +46,9 @@ import com.folioframe.domain.portfolio.repository.PortfolioTemplateRepository;
 import com.folioframe.domain.portfolio.repository.ProjectTechstackRepository;
 import com.folioframe.domain.portfolio.repository.TemplateFieldRepository;
 import com.folioframe.domain.talent.entity.TalentProfile;
+import com.folioframe.domain.talent.repository.TalentCareerRepository;
+import com.folioframe.domain.talent.repository.TalentCertificateRepository;
+import com.folioframe.domain.talent.repository.TalentEducationRepository;
 import com.folioframe.domain.talent.repository.TalentProfileRepository;
 import com.folioframe.global.apiPayload.code.GeneralErrorCode;
 import com.folioframe.global.apiPayload.exception.GeneralException;
@@ -51,6 +61,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -76,6 +87,9 @@ public class PortfolioService {
     private final TechstackRepository techstackRepository;
     private final PortfolioAiFeedbackRepository portfolioAiFeedbackRepository;
     private final PortfolioAiFieldRepository portfolioAiFieldRepository;
+    private final TalentCareerRepository talentCareerRepository;
+    private final TalentEducationRepository talentEducationRepository;
+    private final TalentCertificateRepository talentCertificateRepository;
 
     @Transactional
     public PortfolioResDTO create(Long memberId, PortfolioCreateReqDTO request) {
@@ -112,10 +126,56 @@ public class PortfolioService {
 
         portfolioFieldRepository.saveAll(portfolioFields);
 
+        copyTalentCareerEducationCertificate(talentProfile, portfolio);
+
         List<Techstack> techstacks = attachTechstacks(portfolio, request.techstackIds());
         portfolio.markSaved();
 
         return PortfolioResDTO.from(portfolio, techstacks);
+    }
+
+    // 프로필에 등록해둔 경력/학력/자격증을 새 포트폴리오로 복사해온다 (참조가 아닌 완전한 복사본이라
+    // 이후 특정 포트폴리오에서만 수정/삭제해도 프로필 원본이나 다른 포트폴리오에는 영향 없음).
+    private void copyTalentCareerEducationCertificate(TalentProfile talentProfile, Portfolio portfolio) {
+        List<PortfolioCareer> careers = talentCareerRepository.findAllByTalentProfileOrderByStartedAtDesc(talentProfile)
+                .stream()
+                .map(career -> PortfolioCareer.builder()
+                        .portfolio(portfolio)
+                        .companyName(career.getCompanyName())
+                        .position(career.getPosition())
+                        .description(career.getDescription())
+                        .startedAt(career.getStartedAt())
+                        .endedAt(career.getEndedAt())
+                        .build())
+                .toList();
+        careerRepository.saveAll(careers);
+
+        List<PortfolioEducation> educations = talentEducationRepository.findAllByTalentProfile(talentProfile)
+                .stream()
+                .map(education -> PortfolioEducation.builder()
+                        .portfolio(portfolio)
+                        .schoolName(education.getSchoolName())
+                        .major(education.getMajor())
+                        .degree(education.getDegree())
+                        .startedAt(education.getStartedAt())
+                        .endedAt(education.getEndedAt())
+                        .status(education.getStatus())
+                        .build())
+                .toList();
+        educationRepository.saveAll(educations);
+
+        List<PortfolioCertificate> certificates = talentCertificateRepository.findAllByTalentProfile(talentProfile)
+                .stream()
+                .map(certificate -> PortfolioCertificate.builder()
+                        .portfolio(portfolio)
+                        .name(certificate.getName())
+                        .issuer(certificate.getIssuer())
+                        .issuedAt(certificate.getIssuedAt())
+                        .expiresAt(certificate.getExpiresAt())
+                        .credentialId(certificate.getCredentialId())
+                        .build())
+                .toList();
+        certificateRepository.saveAll(certificates);
     }
 
     @Transactional(readOnly = true)
@@ -128,13 +188,30 @@ public class PortfolioService {
     }
 
     @Transactional(readOnly = true)
-    public PageResponse<PortfolioPublicListResDTO> getPublicList(PortfolioSortType sortType, PageRequest pageRequest, Long memberId) {
+    public List<PortfolioJobCategoryResDTO> getJobCategories() {
+        return Arrays.stream(PortfolioJobCategory.values())
+                .map(PortfolioJobCategoryResDTO::from)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public PageResponse<PortfolioPublicListResDTO> getPublicList(String keyword, Long regionId, PortfolioSortType sortType, PageRequest pageRequest, Long memberId, CareerLevel career, PortfolioJobCategory category) {
         if (sortType == null) sortType = PortfolioSortType.LATEST;
         // 비로그인 시 상위 3개만 반환 (프론트에서 회원가입 유도)
         PageRequest effectiveRequest = (memberId == null) ? PageRequest.of(1, 3) : pageRequest;
-        Page<Portfolio> portfolioPage = portfolioRepository.findAllByVisibilityAndConfirmedAtIsNotNull(
-                PortfolioVisibility.PUBLIC,
-                effectiveRequest.toPageable(sortType.getSort()));
+        Integer minYears = career != null ? career.getMinYears() : null;
+        Integer maxYearsExclusive = (career != null && career.getMaxYearsExclusive() != Integer.MAX_VALUE)
+                ? career.getMaxYearsExclusive() : null;
+        // 카테고리 미선택("전체")이면 JobRole 전체를 넘겨서 필터가 걸리지 않게 한다
+        List<JobRole> jobRoles = category != null ? new ArrayList<>(category.getJobRoles()) : List.of(JobRole.values());
+        Page<Portfolio> portfolioPage = portfolioRepository.findPublicPortfolios(
+                keyword,
+                regionId,
+                minYears,
+                maxYearsExclusive,
+                jobRoles,
+                sortType,
+                effectiveRequest.toPageable());
 
         Map<Long, List<Techstack>> techstacksByPortfolioId = portfolioTechstackRepository
                 .findAllByPortfolioInWithTechstack(portfolioPage.getContent())
@@ -265,7 +342,7 @@ public class PortfolioService {
                 .finalizedAt(LocalDateTime.now())
                 .build());
 
-        List<AiFieldInputDTO> inputs = buildFieldInputs(portfolio, talentProfile,
+        List<AiFieldInputReqDTO> inputs = buildFieldInputs(portfolio, talentProfile,
                 new ArrayList<>(fieldById.values()), new ArrayList<>(projectById.values()));
 
         List<PortfolioAiField> originFields = inputs.stream()
@@ -284,13 +361,13 @@ public class PortfolioService {
 
     // 현재 라이브 콘텐츠(포트폴리오 한줄소개/상세설명, 프로필 소개, 커스텀 필드, 프로젝트 요약)를
     // AI 입력/원본 스냅샷 형식으로 변환한다. 빈 값인 필드는 대상에서 제외한다.
-    public List<AiFieldInputDTO> buildFieldInputs(
+    public List<AiFieldInputReqDTO> buildFieldInputs(
             Portfolio portfolio,
             TalentProfile talentProfile,
             List<PortfolioField> customFields,
             List<PortfolioProject> projects
     ) {
-        List<AiFieldInputDTO> inputs = new ArrayList<>();
+        List<AiFieldInputReqDTO> inputs = new ArrayList<>();
 
         addIfPresent(inputs, portfolio.getId(), AiFieldTargetType.PORTFOLIO_ONE_LINER,
                 AiFieldTargetType.PORTFOLIO_ONE_LINER.getLabel(), null, portfolio.getOneLiner());
@@ -311,12 +388,12 @@ public class PortfolioService {
         return inputs;
     }
 
-    private void addIfPresent(List<AiFieldInputDTO> inputs, Long fieldId, AiFieldTargetType type,
+    private void addIfPresent(List<AiFieldInputReqDTO> inputs, Long fieldId, AiFieldTargetType type,
                               String title, String description, String content) {
         if (content == null || content.isBlank()) {
             return;
         }
-        inputs.add(new AiFieldInputDTO(fieldId, type, title, description, content));
+        inputs.add(new AiFieldInputReqDTO(fieldId, type, title, description, content));
     }
 
     private PortfolioDetailResDTO toDetailResDTO(Portfolio portfolio) {
