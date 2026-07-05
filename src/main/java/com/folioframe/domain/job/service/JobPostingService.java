@@ -126,10 +126,17 @@ public class JobPostingService {
 
     @Transactional
     public JobPostingDetailResDTO getJobPostingDetail(Long jobPostingId, Long memberId) {
+
+        if (!jobPostingRepository.existsById(jobPostingId)) {
+            throw new GeneralException(JobErrorCode.JOB_POSTING_NOT_FOUND);
+        }
+
+        // DB에 직접 조회수 증가 쿼리를 날림
+        jobPostingRepository.incrementViewCount(jobPostingId);
+
+        // 업데이트된 최신 데이터를 가져옴
         JobPosting jobPosting = jobPostingRepository.findById(jobPostingId)
                 .orElseThrow(() -> new GeneralException(JobErrorCode.JOB_POSTING_NOT_FOUND));
-
-        jobPosting.increaseViewCount();
 
         boolean isBookmarked = false;
         if (memberId != null) {
