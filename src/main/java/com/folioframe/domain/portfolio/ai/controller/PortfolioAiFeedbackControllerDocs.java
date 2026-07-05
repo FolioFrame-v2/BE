@@ -3,7 +3,7 @@ package com.folioframe.domain.portfolio.ai.controller;
 import com.folioframe.domain.portfolio.ai.dto.request.AiFeedbackRenameReqDTO;
 import com.folioframe.domain.portfolio.ai.dto.request.AiFieldChooseReqDTO;
 import com.folioframe.domain.portfolio.ai.dto.request.AiFieldEditReqDTO;
-import com.folioframe.domain.portfolio.ai.dto.response.AiFieldResultDTO;
+import com.folioframe.domain.portfolio.ai.dto.response.AiFieldResDTO;
 import com.folioframe.domain.portfolio.ai.dto.response.PortfolioAiFeedbackResDTO;
 import com.folioframe.domain.portfolio.ai.dto.response.PortfolioAiFeedbackVersionResDTO;
 import com.folioframe.global.apiPayload.ApiResponse;
@@ -261,7 +261,7 @@ public interface PortfolioAiFeedbackControllerDocs {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "해당 포트폴리오에 접근 권한이 없습니다."),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "포트폴리오 또는 AI 첨삭 필드를 찾을 수 없습니다.")
     })
-    ResponseEntity<ApiResponse<AiFieldResultDTO>> chooseField(
+    ResponseEntity<ApiResponse<AiFieldResDTO>> chooseField(
             @Parameter(description = "포트폴리오 ID", required = true) @PathVariable Long portfolioId,
             @Parameter(description = "AI 첨삭 필드 ID (PortfolioAiField.id)", required = true) @PathVariable Long aiFieldId,
             @Parameter(hidden = true) Long memberId,
@@ -280,7 +280,7 @@ public interface PortfolioAiFeedbackControllerDocs {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "해당 포트폴리오에 접근 권한이 없습니다."),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "포트폴리오 또는 AI 첨삭 필드를 찾을 수 없습니다.")
     })
-    ResponseEntity<ApiResponse<AiFieldResultDTO>> editField(
+    ResponseEntity<ApiResponse<AiFieldResDTO>> editField(
             @Parameter(description = "포트폴리오 ID", required = true) @PathVariable Long portfolioId,
             @Parameter(description = "AI 첨삭 필드 ID (PortfolioAiField.id)", required = true) @PathVariable Long aiFieldId,
             @Parameter(hidden = true) Long memberId,

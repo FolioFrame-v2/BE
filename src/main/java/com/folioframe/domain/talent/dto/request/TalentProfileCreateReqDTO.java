@@ -1,13 +1,11 @@
 package com.folioframe.domain.talent.dto.request;
 
-import com.folioframe.domain.common.enums.CareerLevel;
 import com.folioframe.domain.common.enums.Gender;
-import com.folioframe.domain.common.enums.JobRole;
-import com.folioframe.domain.job.enums.EmploymentType;
-import com.folioframe.domain.job.enums.JobSeekingStatus;
-import com.folioframe.domain.talent.enums.ProfileVisibility;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -15,7 +13,7 @@ import java.util.List;
 
 @Getter
 @NoArgsConstructor
-public class TalentProfileCreateRequest {
+public class TalentProfileCreateReqDTO {
 
     @NotBlank(message = "이름은 필수 입력값입니다.")
     private String name;
@@ -38,28 +36,24 @@ public class TalentProfileCreateRequest {
 
     private String portfolioWebsite;
 
-    private String linkedinUrl;
+    @NotEmpty(message = "파트를 선택해주세요.")
+    private List<Long> partIds;
 
-    @NotBlank(message = "지원 분야를 선택해주세요.")
-    private String applicationField;
-
-    @NotNull(message = "파트를 선택해주세요.")
-    private JobRole jobRole;
-
-    @NotNull(message = "경력을 선택해주세요.")
-    private CareerLevel careerLevel;
-
-    private EmploymentType employmentType;
+    @NotNull(message = "경력(연차)을 입력해주세요.")
+    @Min(value = 0, message = "경력은 0 이상이어야 합니다.")
+    private Integer careerYears;
 
     private List<Long> techStackIds;
 
     private String oneLiner;
 
-    private String introduction;
+    // 경력상세/학력/자격증 — 프로필 등록 화면에서 함께 입력받아 한 번에 저장한다
+    @Valid
+    private List<TalentCareerReqDTO> careers;
 
-    @NotNull(message = "프로필 공개 범위를 선택해주세요.")
-    private ProfileVisibility profileVisibility;
+    @Valid
+    private List<TalentEducationReqDTO> educations;
 
-    @NotNull(message = "구직 상태를 선택해주세요.")
-    private JobSeekingStatus jobSeekingStatus;
+    @Valid
+    private List<TalentCertificateReqDTO> certificates;
 }

@@ -43,14 +43,20 @@ public class CompanyProfile extends BaseEntity {
     @Column(name = "website_url", length = 500)
     private String websiteUrl;
 
-    @Column(name = "logo_url", length = 500)
-    private String logoUrl;
-
     @Column(name = "company_intro", columnDefinition = "TEXT")
     private String companyIntro;
 
     @Column(name = "employee_size", length = 50)
     private String employeeSize;
+
+    @Column(name = "contact_name", length = 50)
+    private String contactName;
+
+    @Column(name = "contact_email", length = 100)
+    private String contactEmail;
+
+    @Column(name = "contact_phone", length = 20)
+    private String contactPhone;
 
     @Builder.Default
     @Enumerated(EnumType.STRING)
@@ -61,15 +67,18 @@ public class CompanyProfile extends BaseEntity {
         this.verificationStatus = verificationStatus;
     }
 
-    public void updateProfile(String companyName, String businessNumber, Industry industry,
-                              String websiteUrl, String logoUrl, String companyIntro, Region region, String employeeSize) {
+    // businessNumber는 회원가입 시 검증된 값이라 이 경로로 변경하지 않는다(불변)
+    public void updateProfile(String companyName, Industry industry,
+                              String websiteUrl, String companyIntro, Region region, String employeeSize,
+                              String contactName, String contactEmail, String contactPhone) {
         this.companyName = companyName;
-        this.businessNumber = businessNumber;
         this.industry = industry;
         this.websiteUrl = websiteUrl;
-        this.logoUrl = logoUrl;
         this.companyIntro = companyIntro;
         this.region = region;
         this.employeeSize = employeeSize;
+        this.contactName = contactName;
+        this.contactEmail = contactEmail;
+        this.contactPhone = contactPhone;
     }
 }

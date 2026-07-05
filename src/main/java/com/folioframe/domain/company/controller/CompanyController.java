@@ -3,6 +3,7 @@ package com.folioframe.domain.company.controller;
 import com.folioframe.domain.company.dto.request.CompanyProfileReqDTO;
 import com.folioframe.domain.company.dto.request.CompanyVerificationReqDTO;
 import com.folioframe.domain.company.dto.response.CompanyProfileResDTO;
+import com.folioframe.domain.company.dto.response.CompanyProfileSignupInfoResDTO;
 import com.folioframe.domain.company.exception.code.CompanySuccessCode;
 import com.folioframe.domain.company.service.CompanyService;
 import com.folioframe.global.apiPayload.ApiResponse;
@@ -23,6 +24,21 @@ import org.springframework.web.bind.annotation.*;
 public class CompanyController {
 
     private final CompanyService companyService;
+
+    @Operation(
+            summary = "회원가입 정보 조회 API",
+            description = "기업 프로필 등록 화면에서 프리필할 회원가입 시 입력값(담당자 이름/연락처/사업자번호)을 조회합니다."
+    )
+    @GetMapping("/signup-info")
+    public ResponseEntity<ApiResponse<CompanyProfileSignupInfoResDTO>> getSignupInfo(
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+
+        Long currentMemberId = userDetails.member().getId();
+
+        CompanyProfileSignupInfoResDTO response = companyService.getSignupInfo(currentMemberId);
+
+        return ResponseEntity.ok(ApiResponse.onSuccess(CompanySuccessCode.SIGNUP_INFO_FETCHED, response));
+    }
 
     @Operation(
             summary = "기업 프로필 등록 API",

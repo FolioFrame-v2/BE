@@ -6,5 +6,5 @@ import java.util.List;
 public record AiFeedbackApiResDTO(
         String comment,
         Integer score,
-        List<AiFieldRevisionDTO> fields
+        List<AiFieldRevisionResDTO> fields
 ) {}

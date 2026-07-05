@@ -1,7 +1,6 @@
 package com.folioframe.domain.portfolio.repository;
 
 import com.folioframe.domain.portfolio.entity.Portfolio;
-import com.folioframe.domain.portfolio.enums.PortfolioVisibility;
 import com.folioframe.domain.talent.entity.TalentProfile;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -13,20 +12,9 @@ import org.springframework.data.repository.query.Param;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
-public interface PortfolioRepository extends JpaRepository<Portfolio, Long> {
+public interface PortfolioRepository extends JpaRepository<Portfolio, Long>, PortfolioRepositoryCustom {
 
     Page<Portfolio> findAllByTalentProfileAndConfirmedAtIsNotNullOrderByLastSavedAtDesc(TalentProfile talentProfile, Pageable pageable);
-
-    @Query(value = """
-            SELECT p FROM Portfolio p
-            JOIN FETCH p.talentProfile tp
-            JOIN FETCH tp.member
-            JOIN FETCH tp.region r
-            LEFT JOIN FETCH r.parent
-            WHERE p.visibility = :visibility AND p.confirmedAt IS NOT NULL
-            """,
-            countQuery = "SELECT COUNT(p) FROM Portfolio p WHERE p.visibility = :visibility AND p.confirmedAt IS NOT NULL")
-    Page<Portfolio> findAllByVisibilityAndConfirmedAtIsNotNull(@Param("visibility") PortfolioVisibility visibility, Pageable pageable);
 
     Optional<Portfolio> findByPublicSlug(String publicSlug);
 

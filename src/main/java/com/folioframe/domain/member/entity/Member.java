@@ -43,6 +43,12 @@ public class Member extends BaseEntity {
     @Column(name = "phone", unique = true, length = 20)
     private String phone;
 
+    // COMPANY 회원가입 시에만 값이 들어감. 회원가입 시점엔 회사명을 아직 모르므로
+    // CompanyProfile을 만들지 못해, 사업자번호만 여기 임시로 보관해뒀다가
+    // 기업 프로필 등록 화면에서 CompanyProfile.businessNumber로 옮겨간다.
+    @Column(name = "business_number", unique = true, length = 100)
+    private String businessNumber;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "provider")
     private Provider provider;

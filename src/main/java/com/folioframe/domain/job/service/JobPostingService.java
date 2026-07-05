@@ -2,6 +2,7 @@ package com.folioframe.domain.job.service;
 
 import com.folioframe.domain.common.entity.Region;
 import com.folioframe.domain.common.entity.Techstack;
+import com.folioframe.domain.common.enums.CareerLevel;
 import com.folioframe.domain.common.repository.RegionRepository;
 import com.folioframe.domain.common.repository.TechstackRepository;
 import com.folioframe.domain.company.entity.CompanyProfile;
@@ -13,6 +14,7 @@ import com.folioframe.domain.job.entity.HiringProcessStep;
 import com.folioframe.domain.job.entity.JobPosting;
 import com.folioframe.domain.job.entity.JobPostingBookmark;
 import com.folioframe.domain.job.entity.JobPostingTechstack;
+import com.folioframe.domain.job.enums.JobPostingStatus;
 import com.folioframe.domain.job.exception.code.JobErrorCode;
 import com.folioframe.domain.job.repository.JobApplicationRepository;
 import com.folioframe.domain.job.repository.JobPostingBookmarkRepository;
@@ -58,6 +60,7 @@ public class JobPostingService {
 
         JobPosting jobPosting = JobPosting.builder()
                 .companyProfile(company)
+                .title(request.title())
                 .positionName(request.positionName())
                 .jobRole(request.jobRole())
                 .employmentType(request.employmentType())
@@ -87,8 +90,11 @@ public class JobPostingService {
         return savedJobPosting.getId();
     }
 
-    public Page<JobPostingListResDTO> getJobPostings(String keyword, Long regionId, Pageable pageable) {
-        Page<JobPosting> jobPostings = jobPostingRepository.findByCondition(keyword, regionId, pageable);
+    public Page<JobPostingListResDTO> getJobPostings(
+            String keyword, Long regionId, CareerLevel careerLevel, JobPostingStatus status,
+            String sort, Pageable pageable) {
+        Page<JobPosting> jobPostings = jobPostingRepository.findByCondition(
+                keyword, regionId, careerLevel, status, sort, pageable);
 
         List<Long> jobPostingIds = jobPostings.getContent().stream().map(JobPosting::getId).toList();
 
@@ -105,7 +111,9 @@ public class JobPostingService {
                 .jobPostingId(posting.getId())
                 .companyName(posting.getCompanyProfile().getCompanyName())
                 .careerLevel(posting.getCareerLevel())
-                .status(posting.getStatus())
+                .status(JobPostingStatus.resolve(posting.getStatus(), posting.getDeadline()))
+                .jobRole(posting.getJobRole())
+                .title(posting.getTitle())
                 .positionName(posting.getPositionName())
                 .shortDescription(posting.getFieldDescription() != null && posting.getFieldDescription().length() > 50
                         ? posting.getFieldDescription().substring(0, 50) + "..."
@@ -116,9 +124,12 @@ public class JobPostingService {
         );
     }
 
+    @Transactional
     public JobPostingDetailResDTO getJobPostingDetail(Long jobPostingId, Long memberId) {
         JobPosting jobPosting = jobPostingRepository.findById(jobPostingId)
                 .orElseThrow(() -> new GeneralException(JobErrorCode.JOB_POSTING_NOT_FOUND));
+
+        jobPosting.increaseViewCount();
 
         boolean isBookmarked = false;
         if (memberId != null) {
@@ -146,9 +157,10 @@ public class JobPostingService {
                 .jobPostingId(jobPosting.getId())
                 .companyProfile(companyProfileDto)
                 .headerInfo(headerInfoDto)
+                .title(jobPosting.getTitle())
                 .positionName(jobPosting.getPositionName())
                 .workLocation(jobPosting.getWorkLocation())
-                .salaryString(jobPosting.getMinSalary() + "만원 ~ " + jobPosting.getMaxSalary() + "만원")
+                .salaryString(formatSalary(jobPosting.getMinSalary(), jobPosting.getMaxSalary()))
                 .viewCount(jobPosting.getViewCount())
                 .bookmarkCount(jobPosting.getBookmarkCount())
                 .isBookmarked(isBookmarked)
@@ -161,7 +173,7 @@ public class JobPostingService {
                 .hiringProcess(mapToHiringProcessDto(jobPosting.getHiringProcess()))
                 .additionalNotes(jobPosting.getAdditionalNotes())
                 .deadline(jobPosting.getDeadline())
-                .status(jobPosting.getStatus())
+                .status(JobPostingStatus.resolve(jobPosting.getStatus(), jobPosting.getDeadline()))
                 .techStacks(mapToTechStackDto(techStacks))
                 .createdAt(jobPosting.getCreatedAt())
                 .updatedAt(jobPosting.getUpdatedAt())
@@ -228,6 +240,7 @@ public class JobPostingService {
         boolean isBookmarked;
         if (existingBookmark.isPresent()) {
             jobPostingBookmarkRepository.delete(existingBookmark.get());
+            jobPosting.decreaseBookmarkCount();
             isBookmarked = false;
         } else {
             JobPostingBookmark bookmark = JobPostingBookmark.builder()
@@ -235,10 +248,22 @@ public class JobPostingService {
                     .member(member)
                     .build();
             jobPostingBookmarkRepository.save(bookmark);
+            jobPosting.increaseBookmarkCount();
             isBookmarked = true;
         }
 
         return Map.of("jobPostingId", jobPostingId, "isBookmarked", isBookmarked);
+    }
+
+    // 예: (4800, 7200) -> "4,800만원 ~ 7,200만원"
+    private String formatSalary(Integer minSalary, Integer maxSalary) {
+        if (minSalary == null && maxSalary == null) return null;
+
+        String min = minSalary != null ? "%,d만원".formatted(minSalary) : "";
+        String max = maxSalary != null ? "%,d만원".formatted(maxSalary) : "";
+        if (minSalary == null) return max;
+        if (maxSalary == null) return min;
+        return min + " ~ " + max;
     }
 
     private void saveTechStacks(List<JobPostingReqDTO.TechStackReqDto> techStackDtos, JobPosting jobPosting) {

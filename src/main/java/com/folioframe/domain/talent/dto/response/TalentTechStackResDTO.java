@@ -5,7 +5,7 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class TalentTechStackResponse {
+public class TalentTechStackResDTO {
     private Long techStackId;
     private String name;
 }

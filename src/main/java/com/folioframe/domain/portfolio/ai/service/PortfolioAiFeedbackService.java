@@ -2,11 +2,11 @@ package com.folioframe.domain.portfolio.ai.service;
 
 import com.folioframe.domain.portfolio.ai.dto.client.AiFeedbackApiReqDTO;
 import com.folioframe.domain.portfolio.ai.dto.client.AiFeedbackApiResDTO;
-import com.folioframe.domain.portfolio.ai.dto.client.AiFieldInputDTO;
-import com.folioframe.domain.portfolio.ai.dto.client.AiFieldRevisionDTO;
+import com.folioframe.domain.portfolio.ai.dto.client.AiFieldInputReqDTO;
+import com.folioframe.domain.portfolio.ai.dto.client.AiFieldRevisionResDTO;
 import com.folioframe.domain.portfolio.ai.dto.response.PortfolioAiFeedbackResDTO;
 import com.folioframe.domain.portfolio.ai.dto.response.PortfolioAiFeedbackVersionResDTO;
-import com.folioframe.domain.portfolio.ai.dto.response.AiFieldResultDTO;
+import com.folioframe.domain.portfolio.ai.dto.response.AiFieldResDTO;
 import com.folioframe.domain.portfolio.ai.entity.PortfolioAiFeedback;
 import com.folioframe.domain.portfolio.ai.entity.PortfolioAiField;
 import com.folioframe.domain.portfolio.ai.enums.AiChosenType;
@@ -85,7 +85,7 @@ public class PortfolioAiFeedbackService {
         PortfolioAiFeedback source = findFeedback(portfolio, resolvedSourceVersion, sourceSubVersion);
         List<PortfolioAiField> sourceFields = aiFieldRepository.findAllByFeedback(source);
 
-        List<AiFieldInputDTO> inputs = buildFieldInputsFromSource(sourceFields, fieldById, projectById);
+        List<AiFieldInputReqDTO> inputs = buildFieldInputsFromSource(sourceFields, fieldById, projectById);
         if (inputs.isEmpty()) {
             throw new PortfolioException(PortfolioErrorCode.AI_FEEDBACK_EMPTY_CONTENT);
         }
@@ -129,7 +129,7 @@ public class PortfolioAiFeedbackService {
         });
         aiFieldRepository.saveAll(aiFields);
 
-        List<AiFieldResultDTO> fieldResults = aiFields.stream().map(AiFieldResultDTO::from).toList();
+        List<AiFieldResDTO> fieldResults = aiFields.stream().map(AiFieldResDTO::from).toList();
         return PortfolioAiFeedbackResDTO.of(feedback, fieldResults, false);
     }
 
@@ -237,8 +237,8 @@ public class PortfolioAiFeedbackService {
         List<PortfolioField> customFields = portfolioFieldRepository.findAllByPortfolioOrderByDisplayOrder(portfolio);
         List<PortfolioProject> projects = portfolioProjectRepository.findAllByPortfolioOrderByCreatedAtDesc(portfolio);
 
-        List<AiFieldResultDTO> fieldResults = portfolioService.buildFieldInputs(portfolio, talentProfile, customFields, projects).stream()
-                .map(input -> AiFieldResultDTO.liveOriginal(
+        List<AiFieldResDTO> fieldResults = portfolioService.buildFieldInputs(portfolio, talentProfile, customFields, projects).stream()
+                .map(input -> AiFieldResDTO.liveOriginal(
                         input.fieldType(),
                         input.fieldType() == AiFieldTargetType.CUSTOM_FIELD ? input.fieldId() : null,
                         input.fieldType() == AiFieldTargetType.PROJECT_SUMMARY ? input.fieldId() : null,
@@ -249,7 +249,7 @@ public class PortfolioAiFeedbackService {
     }
 
     @Transactional
-    public AiFieldResultDTO chooseField(Long portfolioId, Long aiFieldId, Long memberId, AiChosenType chosen) {
+    public AiFieldResDTO chooseField(Long portfolioId, Long aiFieldId, Long memberId, AiChosenType chosen) {
         if (chosen == AiChosenType.PENDING) {
             throw new PortfolioException(PortfolioErrorCode.AI_FEEDBACK_INVALID_CHOICE);
         }
@@ -266,20 +266,20 @@ public class PortfolioAiFeedbackService {
         String text = (chosen == AiChosenType.AI) ? aiField.getAiRevisedText() : aiField.getOriginalText();
         aiField.updateResolvedText(text);
 
-        return AiFieldResultDTO.from(aiField);
+        return AiFieldResDTO.from(aiField);
     }
 
     // "직접 수정". 확정 여부와 무관하게 그 버전 자신의 초안(resolvedText)만 덮어쓴다. 실제 라이브
     // 콘텐츠는 바뀌지 않으며, 게시(publish) API를 호출해야만 라이브에 반영된다.
     @Transactional
-    public AiFieldResultDTO editField(Long portfolioId, Long aiFieldId, Long memberId, String content) {
+    public AiFieldResDTO editField(Long portfolioId, Long aiFieldId, Long memberId, String content) {
         Portfolio portfolio = portfolioService.findPortfolio(portfolioId);
         portfolioService.validateOwnership(portfolio, memberId);
 
         PortfolioAiField aiField = findOwnedAiField(portfolioId, aiFieldId);
         aiField.updateResolvedText(content);
 
-        return AiFieldResultDTO.from(aiField);
+        return AiFieldResDTO.from(aiField);
     }
 
     // 저장(확정). 오픈 상태 버전이면 지금 초안 상태를 최종본으로 확정(finalizedAt 설정)한다.
@@ -482,8 +482,8 @@ public class PortfolioAiFeedbackService {
         boolean published = portfolio.getPublishedFeedback() != null
                 && portfolio.getPublishedFeedback().getId().equals(feedback.getId());
 
-        List<AiFieldResultDTO> fieldResults = aiFieldRepository.findAllByFeedback(feedback).stream()
-                .map(field -> open ? AiFieldResultDTO.from(field) : AiFieldResultDTO.finalOnly(field))
+        List<AiFieldResDTO> fieldResults = aiFieldRepository.findAllByFeedback(feedback).stream()
+                .map(field -> open ? AiFieldResDTO.from(field) : AiFieldResDTO.finalOnly(field))
                 .toList();
 
         return PortfolioAiFeedbackResDTO.of(feedback, fieldResults, published);
@@ -516,7 +516,7 @@ public class PortfolioAiFeedbackService {
     // (=선택된 소스 버전의 그 순간 내용)여야 한다. 라이브 콘텐츠가 아니다.
     private PortfolioAiField toAiField(
             PortfolioAiFeedback feedback,
-            AiFieldRevisionDTO revision,
+            AiFieldRevisionResDTO revision,
             Map<Long, PortfolioField> fieldById,
             Map<Long, PortfolioProject> projectById,
             Map<String, String> sourceTextByKey
@@ -542,12 +542,12 @@ public class PortfolioAiFeedbackService {
     // 소스 버전이 생성된 뒤 그 필드/프로젝트 자체가 삭제됐을 수 있으므로(참조는 남아있는 지연 로딩 프록시),
     // 그 프록시의 getTitle() 등을 직접 호출하지 않고 — 삭제된 행이면 초기화 시점에 예외가 난다 — 이미
     // 현재 조회해둔 fieldById/projectById(살아있는 행만 포함)에서 조회해 없으면 그 필드는 건너뛴다.
-    private List<AiFieldInputDTO> buildFieldInputsFromSource(
+    private List<AiFieldInputReqDTO> buildFieldInputsFromSource(
             List<PortfolioAiField> sourceFields,
             Map<Long, PortfolioField> fieldById,
             Map<Long, PortfolioProject> projectById
     ) {
-        List<AiFieldInputDTO> inputs = new ArrayList<>();
+        List<AiFieldInputReqDTO> inputs = new ArrayList<>();
         for (PortfolioAiField sourceField : sourceFields) {
             String content = sourceField.getResolvedText();
             if (content == null || content.isBlank()) {
@@ -558,23 +558,23 @@ public class PortfolioAiFeedbackService {
                     PortfolioField ref = sourceField.getPortfolioField();
                     PortfolioField field = ref != null ? fieldById.get(ref.getId()) : null;
                     if (field != null) {
-                        inputs.add(new AiFieldInputDTO(field.getId(), AiFieldTargetType.CUSTOM_FIELD, field.getTitle(), field.getDescription(), content));
+                        inputs.add(new AiFieldInputReqDTO(field.getId(), AiFieldTargetType.CUSTOM_FIELD, field.getTitle(), field.getDescription(), content));
                     }
                 }
                 case PROJECT_SUMMARY -> {
                     PortfolioProject ref = sourceField.getPortfolioProject();
                     PortfolioProject project = ref != null ? projectById.get(ref.getId()) : null;
                     if (project != null) {
-                        inputs.add(new AiFieldInputDTO(project.getId(), AiFieldTargetType.PROJECT_SUMMARY, project.getTitle(), null, content));
+                        inputs.add(new AiFieldInputReqDTO(project.getId(), AiFieldTargetType.PROJECT_SUMMARY, project.getTitle(), null, content));
                     }
                 }
-                case PORTFOLIO_ONE_LINER -> inputs.add(new AiFieldInputDTO(
+                case PORTFOLIO_ONE_LINER -> inputs.add(new AiFieldInputReqDTO(
                         sourceField.getFeedback().getPortfolio().getId(), AiFieldTargetType.PORTFOLIO_ONE_LINER,
                         AiFieldTargetType.PORTFOLIO_ONE_LINER.getLabel(), null, content));
-                case PORTFOLIO_DESCRIPTION -> inputs.add(new AiFieldInputDTO(
+                case PORTFOLIO_DESCRIPTION -> inputs.add(new AiFieldInputReqDTO(
                         sourceField.getFeedback().getPortfolio().getId(), AiFieldTargetType.PORTFOLIO_DESCRIPTION,
                         AiFieldTargetType.PORTFOLIO_DESCRIPTION.getLabel(), null, content));
-                case PROFILE_ONE_LINER -> inputs.add(new AiFieldInputDTO(
+                case PROFILE_ONE_LINER -> inputs.add(new AiFieldInputReqDTO(
                         sourceField.getFeedback().getPortfolio().getTalentProfile().getId(), AiFieldTargetType.PROFILE_ONE_LINER,
                         AiFieldTargetType.PROFILE_ONE_LINER.getLabel(), null, content));
             }

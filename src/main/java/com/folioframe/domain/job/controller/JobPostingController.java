@@ -1,8 +1,10 @@
 package com.folioframe.domain.job.controller;
 
+import com.folioframe.domain.common.enums.CareerLevel;
 import com.folioframe.domain.job.dto.request.JobPostingReqDTO;
 import com.folioframe.domain.job.dto.response.JobPostingDetailResDTO;
 import com.folioframe.domain.job.dto.response.JobPostingListResDTO;
+import com.folioframe.domain.job.enums.JobPostingStatus;
 import com.folioframe.domain.job.exception.code.JobSuccessCode;
 import com.folioframe.domain.job.service.JobPostingService;
 import com.folioframe.global.apiPayload.ApiResponse;
@@ -44,15 +46,23 @@ public class JobPostingController {
                         Map.of("jobPostingId", jobPostingId)));
     }
 
-    @Operation(summary = "채용 공고 목록 조회", description = "키워드와 지역 필터를 사용하여 채용 공고 목록을 페이징 조회합니다.")
+    @Operation(
+            summary = "채용 공고 목록 조회",
+            description = "통합 검색(keyword)과 지역·경력·상태 필터, 정렬(LATEST/POPULAR/MOST_VIEWED)을 사용하여 채용 공고 목록을 페이징 조회합니다.\n\n" +
+                    "- `keyword`: 검색창 1개 — 기업명 / 직무(모집 파트 라벨·이름) / 요구 기술스택 중 하나라도 겹치면 매칭(OR)\n" +
+                    "- `status`: 미지정 시 전체. CLOSING_SOON/CLOSED는 저장값이 아니라 마감일(D-7) 기준으로 판정"
+    )
     @GetMapping
     public ResponseEntity<ApiResponse<Page<JobPostingListResDTO>>> getJobPostings(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) Long regionId,
+            @RequestParam(required = false) CareerLevel careerLevel,
+            @RequestParam(required = false) JobPostingStatus status,
+            @RequestParam(required = false, defaultValue = "LATEST") String sort,
             @PageableDefault(size = 10) Pageable pageable) {
 
         Page<JobPostingListResDTO> response =
-                jobPostingService.getJobPostings(keyword, regionId, pageable);
+                jobPostingService.getJobPostings(keyword, regionId, careerLevel, status, sort, pageable);
 
         return ResponseEntity.ok(
                 ApiResponse.onSuccess(JobSuccessCode.JOB_POSTING_LIST_FETCHED, response)
