@@ -5,10 +5,13 @@ import com.folioframe.domain.portfolio.dto.request.PortfolioUpdateReqDTO;
 import com.folioframe.domain.portfolio.dto.request.PortfolioVisibilityReqDTO;
 import com.folioframe.domain.portfolio.dto.request.TechstackIdsReqDTO;
 import com.folioframe.domain.portfolio.dto.response.PortfolioDetailResDTO;
+import com.folioframe.domain.portfolio.dto.response.PortfolioJobCategoryResDTO;
 import com.folioframe.domain.portfolio.dto.response.PortfolioMyListResDTO;
 import com.folioframe.domain.portfolio.dto.response.PortfolioPublicListResDTO;
 import com.folioframe.domain.portfolio.dto.response.PortfolioResDTO;
 import com.folioframe.domain.common.dto.response.TechstackResDTO;
+import com.folioframe.domain.common.enums.CareerLevel;
+import com.folioframe.domain.common.enums.PortfolioJobCategory;
 import com.folioframe.domain.portfolio.enums.PortfolioSortType;
 import com.folioframe.global.apiPayload.ApiResponse;
 import com.folioframe.global.dto.PageResponse;
@@ -58,11 +61,25 @@ public interface PortfolioControllerDocs {
     );
 
     @Operation(
+            summary = "포트폴리오 직군 카테고리 목록 조회",
+            description = "포트폴리오 목록 필터에서 클릭형으로 보여줄 직군 카테고리 목록을 반환합니다(검색이 아닌 고정 버튼 목록).\n\n" +
+                    "전체/Frontend/Backend/Fullstack/Mobile/Data/DevOps/Embedded — \"전체\"는 이 API 목록에 포함되지 않고, " +
+                    "프론트가 `category` 파라미터 없이 `/public`을 호출하는 것으로 처리합니다."
+    )
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공")
+    })
+    ResponseEntity<ApiResponse<List<PortfolioJobCategoryResDTO>>> getJobCategories();
+
+    @Operation(
             summary = "공개 포트폴리오 탐색 목록 조회",
             description = "공개(PUBLIC) + 게시(PUBLISHED) 상태인 포트폴리오 전체를 페이지 단위 조회합니다. (3×3, 기본 9개/페이지)\n\n" +
                     "- `sort`: LATEST(최신순, 기본값) / POPULAR(북마크 순) / MOST_VIEWED(조회순)\n" +
                     "- **비로그인 시**: 상위 3개만 반환 (`totalElements`는 실제 전체 개수 — 프론트에서 회원가입 유도 UI 표시)\n" +
-                    "- 포트폴리오 제목, 작성자 프로필 사진/이름/지역, 경력 연차(careerLevel), 직군(jobRole), 보유 기술스택, 북마크수, 조회수를 반환합니다."
+                    "- 포트폴리오 제목, 작성자 프로필 사진/이름/지역, 경력 연차(careerYears), 직군(jobRole), 보유 기술스택, 북마크수, 조회수를 반환합니다.\n" +
+                    "- `career`: 경력 버킷(없음/1년미만/1~3년/.../10년이상)으로 필터링 (선택)\n" +
+                    "- `category`: 직군 카테고리(FRONTEND/BACKEND/FULLSTACK/MOBILE/DATA/DEVOPS/EMBEDDED)로 필터링, 미지정 시 전체 (선택). " +
+                    "예: MOBILE은 MOBILE/ANDROID/IOS jobRole을 모두 포함, DATA는 DATA_ENGINEER/DATA_ANALYST/DATA_SCIENTIST를 포함"
     )
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공")
@@ -71,6 +88,8 @@ public interface PortfolioControllerDocs {
             @Parameter(description = "정렬 (LATEST / POPULAR / MOST_VIEWED, 기본값: LATEST)") @RequestParam(required = false) PortfolioSortType sort,
             @Parameter(description = "페이지 번호 (1부터 시작, 기본값: 1)") @RequestParam(defaultValue = "1") Integer page,
             @Parameter(description = "페이지 크기 (기본값: 9)") @RequestParam(defaultValue = "9") Integer size,
+            @Parameter(description = "경력 버킷 필터 (선택)") @RequestParam(required = false) CareerLevel career,
+            @Parameter(description = "직군 카테고리 필터, 전체=미지정 (선택)") @RequestParam(required = false) PortfolioJobCategory category,
             @Parameter(hidden = true) Long memberId
     );
 

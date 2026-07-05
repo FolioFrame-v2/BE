@@ -1,5 +1,6 @@
 package com.folioframe.domain.portfolio.repository;
 
+import com.folioframe.domain.common.enums.JobRole;
 import com.folioframe.domain.portfolio.entity.Portfolio;
 import com.folioframe.domain.portfolio.enums.PortfolioVisibility;
 import com.folioframe.domain.talent.entity.TalentProfile;
@@ -11,12 +12,16 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.Optional;
 
 public interface PortfolioRepository extends JpaRepository<Portfolio, Long> {
 
     Page<Portfolio> findAllByTalentProfileAndConfirmedAtIsNotNullOrderByLastSavedAtDesc(TalentProfile talentProfile, Pageable pageable);
 
+    // jobRoles는 항상 비어있지 않은 값으로 넘어온다(카테고리 미선택 시 JobRole.values() 전체,
+    // 선택 시 해당 카테고리에 속한 JobRole 집합) — 그래야 컬렉션 파라미터의 IN 절 null 처리를
+    // JPQL에서 신경 쓸 필요 없이 항상 같은 조건으로 필터링할 수 있다.
     @Query(value = """
             SELECT p FROM Portfolio p
             JOIN FETCH p.talentProfile tp
@@ -24,9 +29,23 @@ public interface PortfolioRepository extends JpaRepository<Portfolio, Long> {
             JOIN FETCH tp.region r
             LEFT JOIN FETCH r.parent
             WHERE p.visibility = :visibility AND p.confirmedAt IS NOT NULL
+              AND (:minYears IS NULL OR tp.careerYears >= :minYears)
+              AND (:maxYearsExclusive IS NULL OR tp.careerYears < :maxYearsExclusive)
+              AND p.jobRole IN :jobRoles
             """,
-            countQuery = "SELECT COUNT(p) FROM Portfolio p WHERE p.visibility = :visibility AND p.confirmedAt IS NOT NULL")
-    Page<Portfolio> findAllByVisibilityAndConfirmedAtIsNotNull(@Param("visibility") PortfolioVisibility visibility, Pageable pageable);
+            countQuery = """
+            SELECT COUNT(p) FROM Portfolio p JOIN p.talentProfile tp
+            WHERE p.visibility = :visibility AND p.confirmedAt IS NOT NULL
+              AND (:minYears IS NULL OR tp.careerYears >= :minYears)
+              AND (:maxYearsExclusive IS NULL OR tp.careerYears < :maxYearsExclusive)
+              AND p.jobRole IN :jobRoles
+            """)
+    Page<Portfolio> findAllByVisibilityAndConfirmedAtIsNotNull(
+            @Param("visibility") PortfolioVisibility visibility,
+            @Param("minYears") Integer minYears,
+            @Param("maxYearsExclusive") Integer maxYearsExclusive,
+            @Param("jobRoles") Collection<JobRole> jobRoles,
+            Pageable pageable);
 
     Optional<Portfolio> findByPublicSlug(String publicSlug);
 

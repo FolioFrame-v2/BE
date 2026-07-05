@@ -3,7 +3,6 @@ package com.folioframe.domain.portfolio.dto.response;
 import com.folioframe.domain.common.dto.response.RegionResDTO;
 import com.folioframe.domain.common.dto.response.TechstackResDTO;
 import com.folioframe.domain.common.entity.Techstack;
-import com.folioframe.domain.common.enums.CareerLevel;
 import com.folioframe.domain.common.enums.JobRole;
 import com.folioframe.domain.portfolio.entity.Portfolio;
 import com.folioframe.domain.talent.entity.TalentProfile;
@@ -15,7 +14,7 @@ public record PortfolioPublicListResDTO(
         String title,
         String authorName,
         RegionResDTO authorRegion,
-        CareerLevel careerLevel,
+        Integer careerYears,
         JobRole jobRole,
         List<TechstackResDTO> techstacks,
         int bookmarkCount,
@@ -28,7 +27,7 @@ public record PortfolioPublicListResDTO(
                 portfolio.getTitle(),
                 talentProfile.getMember().getName(),
                 RegionResDTO.from(talentProfile.getRegion()),
-                talentProfile.getCareerLevel(),
+                talentProfile.getCareerYears(),
                 portfolio.getJobRole(),
                 techstacks.stream().map(TechstackResDTO::from).toList(),
                 portfolio.getBookmarkCount(),
