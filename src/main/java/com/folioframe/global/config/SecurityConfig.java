@@ -59,7 +59,8 @@ public class SecurityConfig {
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
                                 "/v3/api-docs/**",
-                                "/actuator/health"
+                                "/actuator/health",
+                                "/ws/**"
                         ).permitAll()
                         // 비로그인 사용자도 조회 가능한 공개 API — 순서상 더 구체적인 경로를 와일드카드 경로보다 먼저 선언
                         .requestMatchers(HttpMethod.GET,
