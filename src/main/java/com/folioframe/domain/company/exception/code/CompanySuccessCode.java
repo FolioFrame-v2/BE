@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 public enum CompanySuccessCode implements BaseSuccessCode {
 
     // 200 OK
+    SIGNUP_INFO_FETCHED(HttpStatus.OK, "COMPANY200_5", "회원가입 정보 조회가 완료되었습니다."),
     PROFILE_FETCHED(HttpStatus.OK, "COMPANY200_1", "내 기업 프로필 조회가 완료되었습니다."),
     COMPANY_FETCHED(HttpStatus.OK, "COMPANY200_2", "기업 프로필 상세 조회가 완료되었습니다."),
     PROFILE_UPDATED(HttpStatus.OK, "COMPANY200_3", "기업 프로필 수정이 완료되었습니다."),

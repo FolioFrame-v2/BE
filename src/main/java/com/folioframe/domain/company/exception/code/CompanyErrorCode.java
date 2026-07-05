@@ -26,8 +26,7 @@ public enum CompanyErrorCode implements BaseErrorCode {
     COMPANY_PROFILE_NOT_FOUND(HttpStatus.NOT_FOUND, "COMPANY_PROFILE404_1", "기업 프로필 정보를 찾을 수 없습니다."),
 
     // 409 Conflict
-    DUPLICATE_COMPANY_PROFILE(HttpStatus.CONFLICT, "COMPANY409_1", "해당 계정에 연결된 기업 프로필이 이미 존재합니다."),
-    DUPLICATE_BUSINESS_NUMBER(HttpStatus.CONFLICT, "COMPANY409_2", "이미 등록된 사업자 등록번호입니다.");
+    DUPLICATE_COMPANY_PROFILE(HttpStatus.CONFLICT, "COMPANY409_1", "해당 계정에 연결된 기업 프로필이 이미 존재합니다.");
 
     private final HttpStatus status;
     private final String code;
