@@ -1,13 +1,10 @@
 package com.folioframe.domain.talent.dto.request;
 
-import com.folioframe.domain.common.enums.CareerLevel;
 import com.folioframe.domain.common.enums.Gender;
-import com.folioframe.domain.common.enums.JobRole;
-import com.folioframe.domain.job.enums.EmploymentType;
-import com.folioframe.domain.job.enums.JobSeekingStatus;
-import com.folioframe.domain.talent.enums.ProfileVisibility;
 import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -34,27 +31,15 @@ public class TalentProfileUpdateRequest {
     @NotBlank(message = "GitHub 링크는 필수 입력값입니다.")
     private String githubUrl;
     private String portfolioWebsite;
-    private String linkedinUrl;
 
-    @NotBlank(message = "지원 분야를 선택해주세요.")
-    private String applicationField;
+    @NotEmpty(message = "파트를 선택해주세요.")
+    private List<Long> partIds;
 
-    @NotNull(message = "파트를 선택해주세요.")
-    private JobRole jobRole;
-
-    @NotNull(message = "경력을 선택해주세요.")
-    private CareerLevel careerLevel;
-
-    private EmploymentType employmentType;
+    @NotNull(message = "경력(연차)을 입력해주세요.")
+    @Min(value = 0, message = "경력은 0 이상이어야 합니다.")
+    private Integer careerYears;
 
     private List<Long> techStackIds;
 
     private String oneLiner;
-    private String introduction;
-
-    @NotNull(message = "프로필 공개 범위를 선택해주세요.")
-    private ProfileVisibility profileVisibility;
-
-    @NotNull(message = "구직 상태를 선택해주세요.")
-    private JobSeekingStatus jobSeekingStatus;
 }

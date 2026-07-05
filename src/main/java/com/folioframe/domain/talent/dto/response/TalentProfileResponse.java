@@ -1,11 +1,7 @@
 package com.folioframe.domain.talent.dto.response;
 
-import com.folioframe.domain.common.enums.CareerLevel;
+import com.folioframe.domain.common.dto.response.PartResDTO;
 import com.folioframe.domain.common.enums.Gender;
-import com.folioframe.domain.common.enums.JobRole;
-import com.folioframe.domain.job.enums.EmploymentType;
-import com.folioframe.domain.job.enums.JobSeekingStatus;
-import com.folioframe.domain.talent.enums.ProfileVisibility;
 import lombok.Builder;
 import lombok.Getter;
 import java.util.List;
@@ -24,21 +20,17 @@ public class TalentProfileResponse {
 
     private String githubUrl;
     private String portfolioWebsite;
-    private String linkedinUrl;
 
-    private String applicationField;
-    private JobRole jobRole;
-    private CareerLevel careerLevel;
-    private EmploymentType employmentType;
+    private List<PartResDTO> parts;
+    private Integer careerYears;
 
     private String oneLiner;
-    private String introduction;
-
-    private ProfileVisibility profileVisibility;
-    private JobSeekingStatus jobSeekingStatus;
 
     private String createdAt;
     private String updatedAt;
 
     private List<TalentTechStackResponse> techStacks;
+    private List<TalentCareerResDTO> careers;
+    private List<TalentEducationResDTO> educations;
+    private List<TalentCertificateResDTO> certificates;
 }
