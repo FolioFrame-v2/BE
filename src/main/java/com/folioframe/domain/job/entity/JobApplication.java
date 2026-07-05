@@ -39,4 +39,8 @@ public class JobApplication extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     private ApplicationStatus status = ApplicationStatus.APPLIED;
+
+    public void updateStatus(ApplicationStatus status) {
+        this.status = status;
+    }
 }
