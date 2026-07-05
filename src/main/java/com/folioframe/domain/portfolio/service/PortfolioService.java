@@ -195,7 +195,7 @@ public class PortfolioService {
     }
 
     @Transactional(readOnly = true)
-    public PageResponse<PortfolioPublicListResDTO> getPublicList(PortfolioSortType sortType, PageRequest pageRequest, Long memberId, CareerLevel career, PortfolioJobCategory category) {
+    public PageResponse<PortfolioPublicListResDTO> getPublicList(String keyword, Long regionId, PortfolioSortType sortType, PageRequest pageRequest, Long memberId, CareerLevel career, PortfolioJobCategory category) {
         if (sortType == null) sortType = PortfolioSortType.LATEST;
         // 비로그인 시 상위 3개만 반환 (프론트에서 회원가입 유도)
         PageRequest effectiveRequest = (memberId == null) ? PageRequest.of(1, 3) : pageRequest;
@@ -204,12 +204,14 @@ public class PortfolioService {
                 ? career.getMaxYearsExclusive() : null;
         // 카테고리 미선택("전체")이면 JobRole 전체를 넘겨서 필터가 걸리지 않게 한다
         List<JobRole> jobRoles = category != null ? new ArrayList<>(category.getJobRoles()) : List.of(JobRole.values());
-        Page<Portfolio> portfolioPage = portfolioRepository.findAllByVisibilityAndConfirmedAtIsNotNull(
-                PortfolioVisibility.PUBLIC,
+        Page<Portfolio> portfolioPage = portfolioRepository.findPublicPortfolios(
+                keyword,
+                regionId,
                 minYears,
                 maxYearsExclusive,
                 jobRoles,
-                effectiveRequest.toPageable(sortType.getSort()));
+                sortType,
+                effectiveRequest.toPageable());
 
         Map<Long, List<Techstack>> techstacksByPortfolioId = portfolioTechstackRepository
                 .findAllByPortfolioInWithTechstack(portfolioPage.getContent())

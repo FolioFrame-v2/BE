@@ -77,6 +77,8 @@ public interface PortfolioControllerDocs {
                     "- `sort`: LATEST(최신순, 기본값) / POPULAR(북마크 순) / MOST_VIEWED(조회순)\n" +
                     "- **비로그인 시**: 상위 3개만 반환 (`totalElements`는 실제 전체 개수 — 프론트에서 회원가입 유도 UI 표시)\n" +
                     "- 포트폴리오 제목, 작성자 프로필 사진/이름/지역, 경력 연차(careerYears), 직군(jobRole), 보유 기술스택, 북마크수, 조회수를 반환합니다.\n" +
+                    "- `keyword`: 검색창 1개 — 제목 / 작성자 이름 / 요구 기술스택 중 하나라도 겹치면 매칭(OR) (선택)\n" +
+                    "- `regionId`: 지역 필터 (선택)\n" +
                     "- `career`: 경력 버킷(없음/1년미만/1~3년/.../10년이상)으로 필터링 (선택)\n" +
                     "- `category`: 직군 카테고리(FRONTEND/BACKEND/FULLSTACK/MOBILE/DATA/DEVOPS/EMBEDDED)로 필터링, 미지정 시 전체 (선택). " +
                     "예: MOBILE은 MOBILE/ANDROID/IOS jobRole을 모두 포함, DATA는 DATA_ENGINEER/DATA_ANALYST/DATA_SCIENTIST를 포함"
@@ -85,6 +87,8 @@ public interface PortfolioControllerDocs {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공")
     })
     ResponseEntity<ApiResponse<PageResponse<PortfolioPublicListResDTO>>> getPublicList(
+            @Parameter(description = "통합 검색어 — 제목/작성자/기술스택 (선택)") @RequestParam(required = false) String keyword,
+            @Parameter(description = "지역 ID 필터 (선택)") @RequestParam(required = false) Long regionId,
             @Parameter(description = "정렬 (LATEST / POPULAR / MOST_VIEWED, 기본값: LATEST)") @RequestParam(required = false) PortfolioSortType sort,
             @Parameter(description = "페이지 번호 (1부터 시작, 기본값: 1)") @RequestParam(defaultValue = "1") Integer page,
             @Parameter(description = "페이지 크기 (기본값: 9)") @RequestParam(defaultValue = "9") Integer size,

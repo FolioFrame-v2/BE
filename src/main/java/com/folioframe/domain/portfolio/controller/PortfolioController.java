@@ -66,6 +66,8 @@ public class PortfolioController implements PortfolioControllerDocs {
     @Override
     @GetMapping("/public")
     public ResponseEntity<ApiResponse<PageResponse<PortfolioPublicListResDTO>>> getPublicList(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) Long regionId,
             @RequestParam(required = false) PortfolioSortType sort,
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "9") Integer size,
@@ -74,7 +76,7 @@ public class PortfolioController implements PortfolioControllerDocs {
             @CurrentMemberId(required = false) Long memberId) {
         return ResponseEntity.ok(
                 ApiResponse.onSuccess(PortfolioSuccessCode.PORTFOLIO_LIST_FOUND,
-                        portfolioService.getPublicList(sort, PageRequest.of(page, size), memberId, career, category)));
+                        portfolioService.getPublicList(keyword, regionId, sort, PageRequest.of(page, size), memberId, career, category)));
     }
 
     @Override
