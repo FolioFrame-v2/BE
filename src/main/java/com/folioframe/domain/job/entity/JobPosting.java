@@ -32,6 +32,9 @@ public class JobPosting extends BaseEntity {
     @JoinColumn(name = "company_profile_id", nullable = false)
     private CompanyProfile companyProfile;
 
+    @Column(name = "title", nullable = false, length = 200)
+    private String title;
+
     @Column(name = "position_name", nullable = false, length = 200)
     private String positionName;
 
@@ -125,6 +128,7 @@ public class JobPosting extends BaseEntity {
     private int bookmarkCount = 0;
 
     public void update(JobPostingReqDTO request, Region newRegion) {
+        this.title = request.title();
         this.positionName = request.positionName();
         this.jobRole = request.jobRole();
         this.employmentType = request.employmentType();
@@ -159,5 +163,17 @@ public class JobPosting extends BaseEntity {
     public void updateHiringProcess(List<HiringProcessStep> newSteps) {
         this.hiringProcess.clear();
         if (newSteps != null) this.hiringProcess.addAll(newSteps);
+    }
+
+    public void increaseViewCount() {
+        this.viewCount++;
+    }
+
+    public void increaseBookmarkCount() {
+        this.bookmarkCount++;
+    }
+
+    public void decreaseBookmarkCount() {
+        if (this.bookmarkCount > 0) this.bookmarkCount--;
     }
 }

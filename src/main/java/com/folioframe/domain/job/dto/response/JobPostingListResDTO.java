@@ -1,6 +1,7 @@
 package com.folioframe.domain.job.dto.response;
 
 import com.folioframe.domain.common.enums.CareerLevel;
+import com.folioframe.domain.common.enums.JobRole;
 import com.folioframe.domain.job.enums.JobPostingStatus;
 import lombok.Builder;
 import java.util.List;
@@ -11,6 +12,8 @@ public record JobPostingListResDTO(
         String companyName,
         CareerLevel careerLevel,
         JobPostingStatus status,
+        JobRole jobRole,
+        String title,
         String positionName,
         String shortDescription,
         String locationName,

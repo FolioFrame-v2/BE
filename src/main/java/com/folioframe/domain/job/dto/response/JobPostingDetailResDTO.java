@@ -16,6 +16,7 @@ public record JobPostingDetailResDTO(
         Long jobPostingId,
         CompanyProfileDto companyProfile,
         HeaderInfoDto headerInfo,
+        String title,
         String positionName,
         String workLocation,
         String salaryString,
