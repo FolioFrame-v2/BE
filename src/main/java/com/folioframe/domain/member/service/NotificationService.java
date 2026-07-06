@@ -61,7 +61,7 @@ public class NotificationService {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void send(Long receiverId, NotificationType type, String title, String content, String linkUrl) {
+    public void send(Long receiverId, NotificationType type, String title, String content) {
         NotificationSettingType settingType = NotificationSettingType.valueOf(type.name());
 
         boolean isEnabled = notificationSettingRepository.findByMemberIdAndNotificationType(receiverId, settingType)
@@ -81,7 +81,6 @@ public class NotificationService {
                         .notificationType(type)
                         .title(title)
                         .content(content)
-                        .linkUrl(linkUrl)
                         .build()
         );
 

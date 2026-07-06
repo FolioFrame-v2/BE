@@ -69,8 +69,7 @@ public class MatchingRequestService {
                 talentMemberId,
                 NotificationType.COMPANY_PROPOSAL,
                 "기업 매칭 제안이 도착했습니다.",
-                company.getCompanyName() + "에서 매칭을 제안했습니다.",
-                "/matchings/" + saved.getId() // TODO: 프론트엔드 라우팅 URL에 맞게 수정 필요
+                company.getCompanyName() + "에서 매칭을 제안했습니다."
         ));
 
         return MatchingRequestResDTO.builder()
@@ -95,8 +94,7 @@ public class MatchingRequestService {
                 companyMemberId,
                 NotificationType.APPLICATION_RESULT,
                 "매칭 제안 응답",
-                request.getTalentProfile().getName() + "님이 매칭 제안을 " + dto.getStatus().name() + "했습니다.",
-                "/matchings/" + request.getId() // TODO: 프론트엔드 라우팅 URL에 맞게 수정 필요
+                request.getTalentProfile().getName() + "님이 매칭 제안을 " + dto.getStatus().name() + "했습니다."
         ));
 
         return MatchingRequestResDTO.builder()

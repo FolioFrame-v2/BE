@@ -65,8 +65,7 @@ public class JobApplicationServiceImpl implements JobApplicationService {
                 companyMemberId,
                 NotificationType.JOB_APPLICATION,
                 "새로운 채용 지원자가 있습니다.",
-                talentProfile.getName() + "님이 [" + jobPosting.getTitle() + "] 공고에 지원했습니다.",
-                "/applications/" + savedApplication.getId() // TODO: 프론트엔드 url에 맞게 수정 필요
+                talentProfile.getName() + "님이 [" + jobPosting.getTitle() + "] 공고에 지원했습니다."
         ));
 
         return new JobApplicationCreateResDTO(savedApplication.getId(), savedApplication.getStatus());
@@ -94,8 +93,7 @@ public class JobApplicationServiceImpl implements JobApplicationService {
                 applicantMemberId,
                 NotificationType.APPLICATION_RESULT,
                 "채용 지원 상태가 변경되었습니다.",
-                "[" + application.getJobPosting().getTitle() + "] 공고의 지원 상태가 업데이트되었습니다.",
-                "/applications/" + application.getId() // TODO: 프론트엔드 url에 맞게 수정 필요
+                "[" + application.getJobPosting().getTitle() + "] 공고의 지원 상태가 업데이트되었습니다."
         ));
 
         return new JobApplicationStatusUpdateResDTO(

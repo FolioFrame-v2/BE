@@ -6,7 +6,6 @@ public record NotificationEvent(
         Long receiverId,
         NotificationType type,
         String title,
-        String content,
-        String linkUrl
+        String content
 ) {
 }

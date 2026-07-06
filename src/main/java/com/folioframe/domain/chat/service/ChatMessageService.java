@@ -69,8 +69,7 @@ public class ChatMessageService {
                         participant.getMemberId(),
                         NotificationType.CHAT,
                         "새로운 메시지가 도착했습니다.",
-                        truncate(request.content()),
-                        "/chat/" + room.getId()
+                        truncate(request.content())
                 ));
             }
         }

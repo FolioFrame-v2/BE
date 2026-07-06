@@ -18,8 +18,7 @@ public class NotificationEventListener {
                 event.receiverId(),
                 event.type(),
                 event.title(),
-                event.content(),
-                event.linkUrl()
+                event.content()
         );
     }
 }
