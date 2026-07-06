@@ -14,7 +14,6 @@ public class NotificationResDTO {
     private NotificationType notificationType;
     private String title;
     private String content;
-    private String linkUrl;
     private boolean read;
     private LocalDateTime readAt;
     private LocalDateTime createdAt;
@@ -25,7 +24,6 @@ public class NotificationResDTO {
                 .notificationType(notification.getNotificationType())
                 .title(notification.getTitle())
                 .content(notification.getContent())
-                .linkUrl(notification.getLinkUrl())
                 .read(notification.isRead())
                 .readAt(notification.getReadAt())
                 .createdAt(notification.getCreatedAt())

@@ -34,9 +34,6 @@ public class Notification extends BaseEntity {
     @Column(name = "content", columnDefinition = "TEXT")
     private String content;
 
-    @Column(name = "link_url", length = 500)
-    private String linkUrl;
-
     @Builder.Default
     @Column(name = "read", nullable = false)
     private boolean read = false;
