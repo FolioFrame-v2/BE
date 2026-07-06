@@ -6,18 +6,17 @@ import com.folioframe.domain.portfolio.enums.PortfolioSortType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
-import java.util.Collection;
-
 public interface PortfolioRepositoryCustom {
 
-    // jobRoles는 항상 비어있지 않은 값으로 넘어온다(카테고리 미선택 시 JobRole.values() 전체,
-    // 선택 시 해당 카테고리에 속한 JobRole 집합)
+    // exactRegionId/provinceRegionId는 둘 다 null이거나 둘 중 하나만 채워져서 넘어온다
+    // (exactRegionId: 특정 시/구/군 매칭, provinceRegionId: 시/도 전체(모든 시/구/군) 매칭)
     Page<Portfolio> findPublicPortfolios(
             String keyword,
-            Long regionId,
+            Long exactRegionId,
+            Long provinceRegionId,
             Integer minYears,
             Integer maxYearsExclusive,
-            Collection<JobRole> jobRoles,
+            JobRole jobRole,
             PortfolioSortType sortType,
             Pageable pageable
     );

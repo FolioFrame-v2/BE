@@ -11,14 +11,13 @@ import com.folioframe.domain.portfolio.dto.request.PortfolioCreateReqDTO;
 import com.folioframe.domain.portfolio.dto.request.PortfolioUpdateReqDTO;
 import com.folioframe.domain.portfolio.dto.request.PortfolioVisibilityReqDTO;
 import com.folioframe.domain.portfolio.dto.response.PortfolioDetailResDTO;
-import com.folioframe.domain.portfolio.dto.response.PortfolioJobCategoryResDTO;
 import com.folioframe.domain.portfolio.dto.response.PortfolioMyListResDTO;
 import com.folioframe.domain.portfolio.dto.response.PortfolioPublicListResDTO;
 import com.folioframe.domain.portfolio.dto.response.PortfolioResDTO;
 import com.folioframe.domain.common.dto.response.TechstackResDTO;
 import com.folioframe.domain.common.enums.CareerLevel;
 import com.folioframe.domain.common.enums.JobRole;
-import com.folioframe.domain.common.enums.PortfolioJobCategory;
+import com.folioframe.domain.common.repository.RegionRepository;
 import com.folioframe.domain.portfolio.enums.PortfolioSortType;
 import com.folioframe.global.dto.PageRequest;
 import com.folioframe.global.dto.PageResponse;
@@ -61,7 +60,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -90,6 +88,7 @@ public class PortfolioService {
     private final TalentCareerRepository talentCareerRepository;
     private final TalentEducationRepository talentEducationRepository;
     private final TalentCertificateRepository talentCertificateRepository;
+    private final RegionRepository regionRepository;
 
     @Transactional
     public PortfolioResDTO create(Long memberId, PortfolioCreateReqDTO request) {
@@ -188,28 +187,21 @@ public class PortfolioService {
     }
 
     @Transactional(readOnly = true)
-    public List<PortfolioJobCategoryResDTO> getJobCategories() {
-        return Arrays.stream(PortfolioJobCategory.values())
-                .map(PortfolioJobCategoryResDTO::from)
-                .toList();
-    }
-
-    @Transactional(readOnly = true)
-    public PageResponse<PortfolioPublicListResDTO> getPublicList(String keyword, Long regionId, PortfolioSortType sortType, PageRequest pageRequest, Long memberId, CareerLevel career, PortfolioJobCategory category) {
+    public PageResponse<PortfolioPublicListResDTO> getPublicList(String keyword, Long regionId, PortfolioSortType sortType, PageRequest pageRequest, Long memberId, CareerLevel career, JobRole jobRole) {
         if (sortType == null) sortType = PortfolioSortType.LATEST;
         // 비로그인 시 상위 3개만 반환 (프론트에서 회원가입 유도)
         PageRequest effectiveRequest = (memberId == null) ? PageRequest.of(1, 3) : pageRequest;
         Integer minYears = career != null ? career.getMinYears() : null;
         Integer maxYearsExclusive = (career != null && career.getMaxYearsExclusive() != Integer.MAX_VALUE)
                 ? career.getMaxYearsExclusive() : null;
-        // 카테고리 미선택("전체")이면 JobRole 전체를 넘겨서 필터가 걸리지 않게 한다
-        List<JobRole> jobRoles = category != null ? new ArrayList<>(category.getJobRoles()) : List.of(JobRole.values());
+        RegionFilter regionFilter = resolveRegionFilter(regionId);
         Page<Portfolio> portfolioPage = portfolioRepository.findPublicPortfolios(
                 keyword,
-                regionId,
+                regionFilter.exactRegionId(),
+                regionFilter.provinceRegionId(),
                 minYears,
                 maxYearsExclusive,
-                jobRoles,
+                jobRole,
                 sortType,
                 effectiveRequest.toPageable());
 
@@ -225,6 +217,27 @@ public class PortfolioService {
                 .map(p -> PortfolioPublicListResDTO.from(p, techstacksByPortfolioId.getOrDefault(p.getId(), List.of())))
                 .toList());
     }
+
+    // 시/도 ID가 넘어오면 그 시/도 전체(모든 시/구/군)를, 시/구/군의 "전체" 항목이 넘어와도 같은 시/도 전체를 매칭시키고,
+    // 그 외 특정 시/구/군이면 정확히 그 지역만 매칭시킨다. regionId가 지역 테이블에 없으면(잘못된 값) 있는 그대로
+    // 정확매칭에 넘겨 결과가 0건이 되도록 한다.
+    private RegionFilter resolveRegionFilter(Long regionId) {
+        if (regionId == null) return new RegionFilter(null, null);
+
+        return regionRepository.findById(regionId)
+                .map(region -> {
+                    if (region.getParent() == null) {
+                        return new RegionFilter(null, region.getId());
+                    }
+                    if ("전체".equals(region.getName())) {
+                        return new RegionFilter(null, region.getParent().getId());
+                    }
+                    return new RegionFilter(region.getId(), null);
+                })
+                .orElse(new RegionFilter(regionId, null));
+    }
+
+    private record RegionFilter(Long exactRegionId, Long provinceRegionId) {}
 
     // 공개/비공개 "선택"만으로는(게시하기 전) 남에게 보이면 안 되므로, PUBLIC이어도 확정
     // (confirmedAt) 전이면 소유자만 접근 가능하도록 막는다.

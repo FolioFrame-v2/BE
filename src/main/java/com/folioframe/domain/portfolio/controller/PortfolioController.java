@@ -5,13 +5,12 @@ import com.folioframe.domain.portfolio.dto.request.PortfolioUpdateReqDTO;
 import com.folioframe.domain.portfolio.dto.request.PortfolioVisibilityReqDTO;
 import com.folioframe.domain.portfolio.dto.request.TechstackIdsReqDTO;
 import com.folioframe.domain.portfolio.dto.response.PortfolioDetailResDTO;
-import com.folioframe.domain.portfolio.dto.response.PortfolioJobCategoryResDTO;
 import com.folioframe.domain.portfolio.dto.response.PortfolioMyListResDTO;
 import com.folioframe.domain.portfolio.dto.response.PortfolioPublicListResDTO;
 import com.folioframe.domain.portfolio.dto.response.PortfolioResDTO;
 import com.folioframe.domain.common.dto.response.TechstackResDTO;
 import com.folioframe.domain.common.enums.CareerLevel;
-import com.folioframe.domain.common.enums.PortfolioJobCategory;
+import com.folioframe.domain.common.enums.JobRole;
 import com.folioframe.domain.portfolio.exception.code.PortfolioSuccessCode;
 import com.folioframe.domain.portfolio.service.PortfolioService;
 import com.folioframe.domain.portfolio.enums.PortfolioSortType;
@@ -56,14 +55,6 @@ public class PortfolioController implements PortfolioControllerDocs {
     }
 
     @Override
-    @GetMapping("/job-categories")
-    public ResponseEntity<ApiResponse<List<PortfolioJobCategoryResDTO>>> getJobCategories() {
-        return ResponseEntity.ok(
-                ApiResponse.onSuccess(PortfolioSuccessCode.PORTFOLIO_JOB_CATEGORY_LIST_FOUND,
-                        portfolioService.getJobCategories()));
-    }
-
-    @Override
     @GetMapping("/public")
     public ResponseEntity<ApiResponse<PageResponse<PortfolioPublicListResDTO>>> getPublicList(
             @RequestParam(required = false) String keyword,
@@ -72,11 +63,11 @@ public class PortfolioController implements PortfolioControllerDocs {
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "9") Integer size,
             @RequestParam(required = false) CareerLevel career,
-            @RequestParam(required = false) PortfolioJobCategory category,
+            @RequestParam(required = false) JobRole jobRole,
             @CurrentMemberId(required = false) Long memberId) {
         return ResponseEntity.ok(
                 ApiResponse.onSuccess(PortfolioSuccessCode.PORTFOLIO_LIST_FOUND,
-                        portfolioService.getPublicList(keyword, regionId, sort, PageRequest.of(page, size), memberId, career, category)));
+                        portfolioService.getPublicList(keyword, regionId, sort, PageRequest.of(page, size), memberId, career, jobRole)));
     }
 
     @Override
