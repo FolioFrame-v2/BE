@@ -11,9 +11,12 @@ import com.folioframe.domain.chat.repository.ChatMessageRepository;
 import com.folioframe.domain.chat.repository.ChatRoomParticipantRepository;
 import com.folioframe.domain.chat.repository.ChatRoomRepository;
 import com.folioframe.domain.member.enums.MemberType;
+import com.folioframe.domain.member.enums.NotificationType;
 import com.folioframe.global.apiPayload.code.GeneralErrorCode;
 import com.folioframe.global.apiPayload.exception.GeneralException;
+import com.folioframe.domain.member.event.NotificationEvent;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -31,6 +34,7 @@ public class ChatMessageService {
     private final ChatRoomRepository chatRoomRepository;
     private final ChatRoomParticipantRepository participantRepository;
     private final ChatMessageRepository chatMessageRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public ChatMessageResDTO sendMessage(Long roomId, Long senderId, ChatMessageSendReqDTO request) {
@@ -60,6 +64,13 @@ public class ChatMessageService {
             participant.unhide();
             if (!participant.getMemberId().equals(senderId)) {
                 participant.increaseUnreadCount();
+
+                eventPublisher.publishEvent(new NotificationEvent(
+                        participant.getMemberId(),
+                        NotificationType.CHAT,
+                        "새로운 메시지가 도착했습니다.",
+                        truncate(request.content())
+                ));
             }
         }
 

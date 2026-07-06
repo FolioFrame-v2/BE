@@ -22,7 +22,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-@Tag(name = "Jop Application", description = "채용 공고 지원, 내역 조회 및 상태 변경 API")
+@Tag(name = "Job Application", description = "채용 공고 지원, 내역 조회 및 상태 변경 API")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/job-applications")
