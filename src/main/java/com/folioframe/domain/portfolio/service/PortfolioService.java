@@ -17,7 +17,7 @@ import com.folioframe.domain.portfolio.dto.response.PortfolioResDTO;
 import com.folioframe.domain.common.dto.response.TechstackResDTO;
 import com.folioframe.domain.common.enums.CareerLevel;
 import com.folioframe.domain.common.enums.JobRole;
-import com.folioframe.domain.common.repository.RegionRepository;
+import com.folioframe.domain.common.service.RegionService;
 import com.folioframe.domain.portfolio.enums.PortfolioSortType;
 import com.folioframe.global.dto.PageRequest;
 import com.folioframe.global.dto.PageResponse;
@@ -88,7 +88,7 @@ public class PortfolioService {
     private final TalentCareerRepository talentCareerRepository;
     private final TalentEducationRepository talentEducationRepository;
     private final TalentCertificateRepository talentCertificateRepository;
-    private final RegionRepository regionRepository;
+    private final RegionService regionService;
 
     @Transactional
     public PortfolioResDTO create(Long memberId, PortfolioCreateReqDTO request) {
@@ -194,7 +194,7 @@ public class PortfolioService {
         Integer minYears = career != null ? career.getMinYears() : null;
         Integer maxYearsExclusive = (career != null && career.getMaxYearsExclusive() != Integer.MAX_VALUE)
                 ? career.getMaxYearsExclusive() : null;
-        RegionFilter regionFilter = resolveRegionFilter(regionId);
+        RegionService.RegionFilter regionFilter = regionService.resolveRegionFilter(regionId);
         Page<Portfolio> portfolioPage = portfolioRepository.findPublicPortfolios(
                 keyword,
                 regionFilter.exactRegionId(),
@@ -217,27 +217,6 @@ public class PortfolioService {
                 .map(p -> PortfolioPublicListResDTO.from(p, techstacksByPortfolioId.getOrDefault(p.getId(), List.of())))
                 .toList());
     }
-
-    // 시/도 ID가 넘어오면 그 시/도 전체(모든 시/구/군)를, 시/구/군의 "전체" 항목이 넘어와도 같은 시/도 전체를 매칭시키고,
-    // 그 외 특정 시/구/군이면 정확히 그 지역만 매칭시킨다. regionId가 지역 테이블에 없으면(잘못된 값) 있는 그대로
-    // 정확매칭에 넘겨 결과가 0건이 되도록 한다.
-    private RegionFilter resolveRegionFilter(Long regionId) {
-        if (regionId == null) return new RegionFilter(null, null);
-
-        return regionRepository.findById(regionId)
-                .map(region -> {
-                    if (region.getParent() == null) {
-                        return new RegionFilter(null, region.getId());
-                    }
-                    if ("전체".equals(region.getName())) {
-                        return new RegionFilter(null, region.getParent().getId());
-                    }
-                    return new RegionFilter(region.getId(), null);
-                })
-                .orElse(new RegionFilter(regionId, null));
-    }
-
-    private record RegionFilter(Long exactRegionId, Long provinceRegionId) {}
 
     // 공개/비공개 "선택"만으로는(게시하기 전) 남에게 보이면 안 되므로, PUBLIC이어도 확정
     // (confirmedAt) 전이면 소유자만 접근 가능하도록 막는다.
