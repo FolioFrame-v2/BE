@@ -9,7 +9,8 @@ public enum NotificationType {
     COMPANY_PROPOSAL("기업 매칭 제안"),
     JOB_APPLICATION("채용 지원"),
     APPLICATION_RESULT("지원 결과"),
-    INTEREST_MATCH("관심 매칭");
+    INTEREST_MATCH("관심 매칭"),
+    CHAT("새로운 채팅");
 
     private final String label;
 }

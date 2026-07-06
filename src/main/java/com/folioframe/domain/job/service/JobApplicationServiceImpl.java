@@ -9,11 +9,14 @@ import com.folioframe.domain.job.exception.JobException;
 import com.folioframe.domain.job.exception.code.JobErrorCode;
 import com.folioframe.domain.job.repository.JobApplicationRepository;
 import com.folioframe.domain.job.repository.JobPostingRepository;
+import com.folioframe.domain.member.enums.NotificationType;
 import com.folioframe.domain.portfolio.entity.Portfolio;
 import com.folioframe.domain.portfolio.repository.PortfolioRepository;
 import com.folioframe.domain.talent.entity.TalentProfile;
 import com.folioframe.domain.talent.repository.TalentProfileRepository;
+import com.folioframe.domain.member.event.NotificationEvent;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -31,6 +34,7 @@ public class JobApplicationServiceImpl implements JobApplicationService {
     private final JobPostingRepository jobPostingRepository;
     private final PortfolioRepository portfolioRepository;
     private final TalentProfileRepository talentProfileRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     @Transactional
@@ -56,6 +60,15 @@ public class JobApplicationServiceImpl implements JobApplicationService {
 
         JobApplication savedApplication = jobApplicationRepository.save(application);
 
+        Long companyMemberId = jobPosting.getCompanyProfile().getMember().getId();
+        eventPublisher.publishEvent(new NotificationEvent(
+                companyMemberId,
+                NotificationType.JOB_APPLICATION,
+                "새로운 채용 지원자가 있습니다.",
+                talentProfile.getName() + "님이 [" + jobPosting.getTitle() + "] 공고에 지원했습니다.",
+                "/applications/" + savedApplication.getId() // TODO: 프론트엔드 url에 맞게 수정 필요
+        ));
+
         return new JobApplicationCreateResDTO(savedApplication.getId(), savedApplication.getStatus());
     }
 
@@ -75,6 +88,15 @@ public class JobApplicationServiceImpl implements JobApplicationService {
         }
 
         application.updateStatus(request.status());
+
+        Long applicantMemberId = application.getTalentProfile().getMember().getId();
+        eventPublisher.publishEvent(new NotificationEvent(
+                applicantMemberId,
+                NotificationType.APPLICATION_RESULT,
+                "채용 지원 상태가 변경되었습니다.",
+                "[" + application.getJobPosting().getTitle() + "] 공고의 지원 상태가 업데이트되었습니다.",
+                "/applications/" + application.getId() // TODO: 프론트엔드 url에 맞게 수정 필요
+        ));
 
         return new JobApplicationStatusUpdateResDTO(
                 application.getId(),

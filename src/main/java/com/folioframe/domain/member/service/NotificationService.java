@@ -6,6 +6,7 @@ import com.folioframe.domain.member.dto.response.NotificationSettingResDTO;
 import com.folioframe.domain.member.entity.Member;
 import com.folioframe.domain.member.entity.Notification;
 import com.folioframe.domain.member.entity.NotificationSetting;
+import com.folioframe.domain.member.enums.NotificationSettingType;
 import com.folioframe.domain.member.enums.NotificationType;
 import com.folioframe.domain.member.repository.MemberRepository;
 import com.folioframe.domain.member.repository.NotificationRepository;
@@ -16,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -58,8 +60,18 @@ public class NotificationService {
         return emitter;
     }
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void send(Long receiverId, NotificationType type, String title, String content, String linkUrl) {
+        NotificationSettingType settingType = NotificationSettingType.valueOf(type.name());
+
+        boolean isEnabled = notificationSettingRepository.findByMemberIdAndNotificationType(receiverId, settingType)
+                .map(NotificationSetting::isEnabled)
+                .orElse(true);
+
+        if (!isEnabled) {
+            return;
+        }
+
         Member receiver = memberRepository.findById(receiverId)
                 .orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다."));
 

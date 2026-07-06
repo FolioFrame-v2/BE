@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import jakarta.validation.Valid;
 
-@Tag(name = "Notification API", description = "알림 및 SSE 연결 관련 API")
+@Tag(name = "Notification", description = "알림 및 SSE 연결 관련 API")
 @RestController
 @RequestMapping("/api/v1/notifications")
 @RequiredArgsConstructor
