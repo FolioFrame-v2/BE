@@ -35,4 +35,8 @@ public class NotificationSetting extends BaseEntity {
     @Builder.Default
     @Column(name = "enabled", nullable = false)
     private boolean enabled = true;
+
+    public void updateEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
 }
