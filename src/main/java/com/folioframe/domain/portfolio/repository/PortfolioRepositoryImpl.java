@@ -17,7 +17,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 
-import java.util.Collection;
 import java.util.List;
 
 import static com.folioframe.domain.portfolio.entity.QPortfolio.portfolio;
@@ -35,8 +34,8 @@ public class PortfolioRepositoryImpl implements PortfolioRepositoryCustom {
 
     @Override
     public Page<Portfolio> findPublicPortfolios(
-            String keyword, Long regionId, Integer minYears, Integer maxYearsExclusive,
-            Collection<JobRole> jobRoles, PortfolioSortType sortType, Pageable pageable) {
+            String keyword, Long exactRegionId, Long provinceRegionId, Integer minYears, Integer maxYearsExclusive,
+            JobRole jobRole, PortfolioSortType sortType, Pageable pageable) {
 
         QRegion parentRegion = new QRegion("parentRegion");
 
@@ -51,8 +50,8 @@ public class PortfolioRepositoryImpl implements PortfolioRepositoryCustom {
                         portfolio.confirmedAt.isNotNull(),
                         goeCareerYears(minYears),
                         ltCareerYears(maxYearsExclusive),
-                        portfolio.jobRole.in(jobRoles),
-                        eqRegionId(regionId),
+                        eqJobRole(jobRole),
+                        eqRegionId(exactRegionId, provinceRegionId),
                         matchesKeyword(keyword)
                 )
                 .offset(pageable.getOffset())
@@ -70,8 +69,8 @@ public class PortfolioRepositoryImpl implements PortfolioRepositoryCustom {
                         portfolio.confirmedAt.isNotNull(),
                         goeCareerYears(minYears),
                         ltCareerYears(maxYearsExclusive),
-                        portfolio.jobRole.in(jobRoles),
-                        eqRegionId(regionId),
+                        eqJobRole(jobRole),
+                        eqRegionId(exactRegionId, provinceRegionId),
                         matchesKeyword(keyword)
                 );
 
@@ -87,8 +86,15 @@ public class PortfolioRepositoryImpl implements PortfolioRepositoryCustom {
         return maxYearsExclusive != null ? talentProfile.careerYears.lt(maxYearsExclusive) : null;
     }
 
-    private BooleanExpression eqRegionId(Long regionId) {
-        return regionId != null ? talentProfile.region.id.eq(regionId) : null;
+    private BooleanExpression eqJobRole(JobRole jobRole) {
+        return jobRole != null ? portfolio.jobRole.eq(jobRole) : null;
+    }
+
+    // exactRegionId: 특정 시/구/군 정확 매칭. provinceRegionId: 시/도 전체(그 아래 모든 시/구/군) 매칭
+    private BooleanExpression eqRegionId(Long exactRegionId, Long provinceRegionId) {
+        if (exactRegionId != null) return talentProfile.region.id.eq(exactRegionId);
+        if (provinceRegionId != null) return talentProfile.region.parent.id.eq(provinceRegionId);
+        return null;
     }
 
     // 통합 검색: 제목 / 작성자 이름 / 요구 기술스택 중 하나라도 겹치면 매칭(OR)

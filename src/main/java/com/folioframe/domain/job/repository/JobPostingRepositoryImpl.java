@@ -35,7 +35,7 @@ public class JobPostingRepositoryImpl implements JobPostingRepositoryCustom {
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public Page<JobPosting> findByCondition(JobPostingSearchCond cond) {
+    public Page<JobPosting> findByCondition(JobPostingSearchCond cond, Long exactRegionId, Long provinceRegionId) {
 
         // 1. 커스텀 페이징 계산 (UI는 1페이지부터, DB offset은 0부터)
         int page = Math.max(1, cond.getPage() != null ? cond.getPage() : 1);
@@ -50,7 +50,7 @@ public class JobPostingRepositoryImpl implements JobPostingRepositoryCustom {
                 .leftJoin(jobPostingTechstack.techstack, techstack)
                 .where(
                         matchesKeyword(cond.getKeyword()),
-                        eqRegionId(cond.getRegionId()),
+                        eqRegionId(exactRegionId, provinceRegionId),
                         eqCareerLevel(cond.getCareerLevel()),
                         eqStatus(cond.getStatus())
                 )
@@ -68,7 +68,7 @@ public class JobPostingRepositoryImpl implements JobPostingRepositoryCustom {
                 .leftJoin(jobPostingTechstack.techstack, techstack)
                 .where(
                         matchesKeyword(cond.getKeyword()),
-                        eqRegionId(cond.getRegionId()),
+                        eqRegionId(exactRegionId, provinceRegionId),
                         eqCareerLevel(cond.getCareerLevel()),
                         eqStatus(cond.getStatus())
                 );
@@ -113,12 +113,11 @@ public class JobPostingRepositoryImpl implements JobPostingRepositoryCustom {
         return matched;
     }
 
-    // 동적 쿼리: 지역 필터 (상위 지역까지 포함)
-    private BooleanExpression eqRegionId(Long regionId) {
-        if (regionId == null) {
-            return null;
-        }
-        return jobPosting.region.id.eq(regionId).or(jobPosting.region.parent.id.eq(regionId));
+    // 동적 쿼리: 지역 필터. exactRegionId: 특정 시/구/군 정확 매칭. provinceRegionId: 시/도 전체(그 아래 모든 시/구/군) 매칭
+    private BooleanExpression eqRegionId(Long exactRegionId, Long provinceRegionId) {
+        if (exactRegionId != null) return jobPosting.region.id.eq(exactRegionId);
+        if (provinceRegionId != null) return jobPosting.region.parent.id.eq(provinceRegionId);
+        return null;
     }
 
     // 동적 쿼리: 상태(전체/채용중/마감임박/마감) — 마감임박·마감은 저장된 값이 아니라 deadline 기준으로 파생 판정

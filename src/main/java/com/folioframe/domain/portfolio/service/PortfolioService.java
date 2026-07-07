@@ -11,14 +11,13 @@ import com.folioframe.domain.portfolio.dto.request.PortfolioCreateReqDTO;
 import com.folioframe.domain.portfolio.dto.request.PortfolioUpdateReqDTO;
 import com.folioframe.domain.portfolio.dto.request.PortfolioVisibilityReqDTO;
 import com.folioframe.domain.portfolio.dto.response.PortfolioDetailResDTO;
-import com.folioframe.domain.portfolio.dto.response.PortfolioJobCategoryResDTO;
 import com.folioframe.domain.portfolio.dto.response.PortfolioMyListResDTO;
 import com.folioframe.domain.portfolio.dto.response.PortfolioPublicListResDTO;
 import com.folioframe.domain.portfolio.dto.response.PortfolioResDTO;
 import com.folioframe.domain.common.dto.response.TechstackResDTO;
 import com.folioframe.domain.common.enums.CareerLevel;
 import com.folioframe.domain.common.enums.JobRole;
-import com.folioframe.domain.common.enums.PortfolioJobCategory;
+import com.folioframe.domain.common.service.RegionService;
 import com.folioframe.domain.portfolio.enums.PortfolioSortType;
 import com.folioframe.global.dto.PageRequest;
 import com.folioframe.global.dto.PageResponse;
@@ -61,7 +60,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -90,6 +88,7 @@ public class PortfolioService {
     private final TalentCareerRepository talentCareerRepository;
     private final TalentEducationRepository talentEducationRepository;
     private final TalentCertificateRepository talentCertificateRepository;
+    private final RegionService regionService;
 
     @Transactional
     public PortfolioResDTO create(Long memberId, PortfolioCreateReqDTO request) {
@@ -188,28 +187,21 @@ public class PortfolioService {
     }
 
     @Transactional(readOnly = true)
-    public List<PortfolioJobCategoryResDTO> getJobCategories() {
-        return Arrays.stream(PortfolioJobCategory.values())
-                .map(PortfolioJobCategoryResDTO::from)
-                .toList();
-    }
-
-    @Transactional(readOnly = true)
-    public PageResponse<PortfolioPublicListResDTO> getPublicList(String keyword, Long regionId, PortfolioSortType sortType, PageRequest pageRequest, Long memberId, CareerLevel career, PortfolioJobCategory category) {
+    public PageResponse<PortfolioPublicListResDTO> getPublicList(String keyword, Long regionId, PortfolioSortType sortType, PageRequest pageRequest, Long memberId, CareerLevel career, JobRole jobRole) {
         if (sortType == null) sortType = PortfolioSortType.LATEST;
         // 비로그인 시 상위 3개만 반환 (프론트에서 회원가입 유도)
         PageRequest effectiveRequest = (memberId == null) ? PageRequest.of(1, 3) : pageRequest;
         Integer minYears = career != null ? career.getMinYears() : null;
         Integer maxYearsExclusive = (career != null && career.getMaxYearsExclusive() != Integer.MAX_VALUE)
                 ? career.getMaxYearsExclusive() : null;
-        // 카테고리 미선택("전체")이면 JobRole 전체를 넘겨서 필터가 걸리지 않게 한다
-        List<JobRole> jobRoles = category != null ? new ArrayList<>(category.getJobRoles()) : List.of(JobRole.values());
+        RegionService.RegionFilter regionFilter = regionService.resolveRegionFilter(regionId);
         Page<Portfolio> portfolioPage = portfolioRepository.findPublicPortfolios(
                 keyword,
-                regionId,
+                regionFilter.exactRegionId(),
+                regionFilter.provinceRegionId(),
                 minYears,
                 maxYearsExclusive,
-                jobRoles,
+                jobRole,
                 sortType,
                 effectiveRequest.toPageable());
 

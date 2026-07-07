@@ -5,6 +5,7 @@ import com.folioframe.domain.common.entity.Techstack;
 import com.folioframe.domain.common.enums.CareerLevel;
 import com.folioframe.domain.common.repository.RegionRepository;
 import com.folioframe.domain.common.repository.TechstackRepository;
+import com.folioframe.domain.common.service.RegionService;
 import com.folioframe.domain.company.entity.CompanyProfile;
 import com.folioframe.domain.company.repository.CompanyProfileRepository;
 import com.folioframe.domain.job.dto.request.JobPostingReqDTO;
@@ -43,6 +44,7 @@ public class JobPostingService {
     private final JobPostingRepository jobPostingRepository;
     private final CompanyProfileRepository companyProfileRepository;
     private final RegionRepository regionRepository;
+    private final RegionService regionService;
     private final JobApplicationRepository jobApplicationRepository;
     private final JobPostingBookmarkRepository jobPostingBookmarkRepository;
     private final MemberRepository memberRepository;
@@ -91,7 +93,8 @@ public class JobPostingService {
     }
 
     public Page<JobPostingListResDTO> getJobPostings(JobPostingSearchCond cond) {
-        Page<JobPosting> jobPostings = jobPostingRepository.findByCondition(cond);
+        RegionService.RegionFilter regionFilter = regionService.resolveRegionFilter(cond.getRegionId());
+        Page<JobPosting> jobPostings = jobPostingRepository.findByCondition(cond, regionFilter.exactRegionId(), regionFilter.provinceRegionId());
 
         List<Long> jobPostingIds = jobPostings.getContent().stream().map(JobPosting::getId).toList();
 
